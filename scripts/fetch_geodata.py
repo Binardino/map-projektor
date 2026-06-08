@@ -14,6 +14,7 @@ SIMPLIFY_TOLERANCE   = 0.5 # degrees - ~55km around Equator
 COORDINATE_PRECISION = 4   # decimals - ~11km of precision , enough for web map
 
 def round_coordinates(geometry, precision):
+    """Recursively round all coordinate floats in a GeoJSON geometry dict."""
     def _round(value):
         if isinstance(value, (int, float)):
             return round(value, precision)
@@ -25,6 +26,11 @@ def round_coordinates(geometry, precision):
     return result
 
 def simplify_feature(feature, tolerance):
+    """Simplify a GeoJSON feature with Douglas-Peucker via Shapely.
+
+    Returns a cleaned feature (only name + continent properties),
+    or None if the geometry becomes empty after simplification.
+    """
     try:
         geometry = shape(feature["geometry"])
         simplified = geometry.simplify(tolerance, preserve_topology=True)
@@ -46,9 +52,12 @@ def simplify_feature(feature, tolerance):
         return None
     
 def main():
+    """Fetch Natural Earth 110m countries, simplify geometries, save to app/data/world.geojson."""
+    print(f"Fetching {SOURCE_URL} ...")
     response = requests.get(SOURCE_URL, timeout=30)
     response.raise_for_status()
-    
+    print(f"  → fetch OK ({response.status_code})")
+
     data     = response.json()
     features = data["features"]
 
