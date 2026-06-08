@@ -1,0 +1,192 @@
+/* ============================================================
+   CSS VARIABLES — Theme: Vintage Parchment
+   To switch themes, edit only this :root block.
+   ============================================================ */
+:root {
+  --bg-app:     #f2ead8;
+  --bg-sidebar: #e8dfc8;
+  --bg-ocean:   #c8d8e0;
+
+  --color-africa:        #e8c84a;
+  --color-europe:        #7cb87a;
+  --color-asia:          #d4a84a;
+  --color-north-america: #88c47a;
+  --color-south-america: #a8c870;
+  --color-oceania:       #c4a050;
+  --color-antarctica:    #ddd3be;
+
+  --text-primary:  #3d2b0a;
+  --text-muted:    #8b6f47;
+  --accent:        #8b6f47;
+  --border:        #c8b890;
+  --active-bg:     #d8ccb0;
+  --active-border: #8b6f47;
+
+  --font-family:    'Georgia', 'Times New Roman', serif;
+  --font-size-base: 14px;
+  --sidebar-width:  220px;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ============================================================
+   LAYOUT — sidebar left, map right
+   ============================================================ */
+#app {
+  display: flex;
+  height: 100vh;
+}
+
+#sidebar {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#sidebar-header {
+  padding: 20px 16px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+#sidebar-header h1 {
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  line-height: 1.2;
+}
+
+#sidebar-header .tagline {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+#projection-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px 0;
+}
+
+/* ============================================================
+   SIDEBAR BUTTONS
+   ============================================================ */
+.proj-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  padding: 8px 14px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-family: var(--font-family);
+  font-size: 13px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.proj-btn:hover {
+  background: var(--active-bg);
+  color: var(--text-primary);
+}
+
+.proj-btn.active {
+  background: var(--active-bg);
+  border-left-color: var(--active-border);
+  color: var(--text-primary);
+  font-weight: bold;
+}
+
+.proj-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.proj-btn .proj-family {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ============================================================
+   MAIN AREA — map + info strip
+   ============================================================ */
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#map-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+#map-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ocean {
+  fill: var(--bg-ocean);
+}
+
+.country {
+  stroke: var(--bg-sidebar);
+  stroke-width: 0.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+#projection-info {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-sidebar);
+  min-height: 64px;
+}
+
+#info-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+#info-family {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+#info-description {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.5;
+}

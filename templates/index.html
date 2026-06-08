@@ -2,11 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Map Projektor</title>
   <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 <body>
-  <p>Map Projektor — coming soon</p>
+  <div id="app">
+
+    <aside id="sidebar">
+      <div id="sidebar-header">
+        <h1>Map<br/>Projektor</h1>
+        <p class="tagline">Universal Converter</p>
+      </div>
+      <nav id="projection-list">
+        <!-- Populated by map.js from the PROJECTIONS array -->
+      </nav>
+    </aside>
+
+    <main id="main">
+      <div id="map-container">
+        <svg id="map-svg"></svg>
+      </div>
+      <div id="projection-info">
+        <span id="info-name"></span>
+        <span id="info-family"></span>
+        <p id="info-description"></p>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- CDN libraries — order matters: d3-geo-projection extends d3, map.js uses both -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4/dist/d3-geo-projection.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flubber@0.4.2/build/flubber.min.js"></script>
+
   <script src="/static/js/map.js"></script>
 </body>
 </html>

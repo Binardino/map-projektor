@@ -1,0 +1,270 @@
+// ============================================================
+// PROJECTIONS REGISTRY
+//
+// Each object describes one projection. The sidebar, switching
+// logic, and animation all read from this array — nothing else
+// needs to change when adding a projection.
+//
+// d3fn must return a D3 projection instance (not yet fitted to
+// the viewport — that happens in makeProjection()).
+// ============================================================
+const PROJECTIONS = [
+  {
+    id: "mercator",
+    name: "Mercator",
+    family: "Cylindrical",
+    year: 1569,
+    description:
+      "Preserves angles (conformal). Severely distorts area near the poles. " +
+      "The standard for maritime navigation for centuries.",
+    d3fn: () => d3.geoMercator(),
+  },
+  {
+    id: "equirectangular",
+    name: "Equirectangular",
+    family: "Cylindrical",
+    year: 100,
+    description:
+      "Maps longitude and latitude directly to x and y. Simple but distorts " +
+      "both shape and area away from the equator.",
+    d3fn: () => d3.geoEquirectangular(),
+  },
+  {
+    id: "robinson",
+    name: "Robinson",
+    family: "Pseudocylindrical",
+    year: 1963,
+    description:
+      "Visual compromise: neither conformal nor equal-area, but aesthetically " +
+      "pleasing. Used by National Geographic from 1988 to 1998.",
+    d3fn: () => d3.geoRobinson(),
+  },
+  {
+    id: "mollweide",
+    name: "Mollweide",
+    family: "Pseudocylindrical",
+    year: 1805,
+    description:
+      "Equal-area projection. Shapes are distorted near the edges but all " +
+      "regions are represented at their true relative size.",
+    d3fn: () => d3.geoMollweide(),
+  },
+  {
+    id: "naturalEarth",
+    name: "Natural Earth",
+    family: "Pseudocylindrical",
+    year: 2012,
+    description:
+      "Designed by Tom Patterson for attractive world maps. A smooth compromise " +
+      "between conformal and equal-area with gently rounded poles.",
+    d3fn: () => d3.geoNaturalEarth1(),
+  },
+  {
+    id: "sinusoidal",
+    name: "Sinusoidal",
+    family: "Pseudocylindrical",
+    year: 1570,
+    description:
+      "One of the oldest pseudocylindrical projections. Equal-area, but strong " +
+      "shearing distortion appears near the edges.",
+    d3fn: () => d3.geoSinusoidal(),
+  },
+  {
+    id: "orthographic",
+    name: "Orthographic",
+    family: "Azimuthal",
+    year: 200,
+    description:
+      "Simulates viewing Earth from infinite distance — the 'space view'. " +
+      "Only one hemisphere is visible at a time.",
+    d3fn: () => d3.geoOrthographic(),
+  },
+  {
+    id: "azimuthalEqualArea",
+    name: "Azimuthal Equal Area",
+    family: "Azimuthal",
+    year: 1772,
+    description:
+      "Projects from the centre of the sphere. Preserves area accurately, " +
+      "making it useful for comparing continent sizes.",
+    d3fn: () => d3.geoAzimuthalEqualArea(),
+  },
+  {
+    id: "albers",
+    name: "Albers",
+    family: "Conic",
+    year: 1805,
+    description:
+      "Conic equal-area projection with two standard parallels. Best for " +
+      "mid-latitude regions. Official projection for US Census maps.",
+    // Recentred for a world view — default is tuned for the USA
+    d3fn: () => d3.geoAlbers().rotate([0, 0]).parallels([20, 50]).scale(153),
+  },
+  {
+    id: "winkelTripel",
+    name: "Winkel Tripel",
+    family: "Pseudoazimuthal",
+    year: 1921,
+    description:
+      "Minimises the combined distortion of area, angles, and distances. " +
+      "Adopted by the National Geographic Society in 1998.",
+    d3fn: () => d3.geoWinkel3(),
+  },
+  {
+    id: "aitoff",
+    name: "Aitoff",
+    family: "Pseudoazimuthal",
+    year: 1889,
+    description:
+      "Modified azimuthal projection with an elliptical boundary. " +
+      "Reduces polar distortion compared to cylindrical projections.",
+    d3fn: () => d3.geoAitoff(),
+  },
+  {
+    id: "hammer",
+    name: "Hammer",
+    family: "Pseudoazimuthal",
+    year: 1892,
+    description:
+      "Equal-area modification of the Aitoff projection. Widely used in " +
+      "astronomy to map the entire celestial sphere.",
+    d3fn: () => d3.geoHammer(),
+  },
+];
+
+// ============================================================
+// CONTINENT → CSS VARIABLE
+// Keys must match the 'continent' values in world.geojson exactly.
+// ============================================================
+const CONTINENT_COLOR_VAR = {
+  "Africa":         "--color-africa",
+  "Europe":         "--color-europe",
+  "Asia":           "--color-asia",
+  "North America":  "--color-north-america",
+  "South America":  "--color-south-america",
+  "Oceania":        "--color-oceania",
+  "Antarctica":     "--color-antarctica",
+};
+
+function continentColor(continent) {
+  const varName = CONTINENT_COLOR_VAR[continent];
+  return varName ? `var(${varName})` : "var(--color-africa)";
+}
+
+// ============================================================
+// SVG SETUP
+// ============================================================
+const container = document.getElementById("map-container");
+const WIDTH  = container.clientWidth;
+const HEIGHT = container.clientHeight;
+
+const svg = d3
+  .select("#map-svg")
+  .attr("viewBox", `0 0 ${WIDTH} ${HEIGHT}`)
+  .attr("preserveAspectRatio", "xMidYMid meet");
+
+// Ocean background rectangle
+svg.append("rect").attr("class", "ocean").attr("width", WIDTH).attr("height", HEIGHT);
+
+// Group that holds all country <path> elements
+const mapGroup = svg.append("g").attr("class", "countries");
+
+// ============================================================
+// APPLICATION STATE
+// ============================================================
+let currentProjectionId = "mercator";
+let isAnimating = false;
+let worldData = null;
+
+// ============================================================
+// PROJECTION FACTORY
+// fitSize scales and centres the projection to fill the viewport.
+// ============================================================
+function makeProjection(projDef) {
+  return projDef.d3fn().fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+}
+
+// ============================================================
+// RENDER — draw or update country paths for a given projection
+// ============================================================
+function renderMap(projection) {
+  const path = d3.geoPath().projection(projection);
+
+  // D3 data join keyed by country name — handles enter/update/exit
+  const paths = mapGroup
+    .selectAll("path.country")
+    .data(worldData.features, (d) => d.properties.name);
+
+  paths
+    .enter()
+    .append("path")
+    .attr("class", "country")
+    .attr("fill", (d) => continentColor(d.properties.continent))
+    .attr("d", path);
+
+  paths.attr("d", path);
+}
+
+// ============================================================
+// INFO PANEL
+// ============================================================
+function updateInfo(projDef) {
+  document.getElementById("info-name").textContent        = projDef.name;
+  document.getElementById("info-family").textContent      = projDef.family;
+  document.getElementById("info-description").textContent = projDef.description;
+}
+
+// ============================================================
+// SIDEBAR — built dynamically from PROJECTIONS
+// ============================================================
+function buildSidebar() {
+  const nav = document.getElementById("projection-list");
+
+  PROJECTIONS.forEach((proj) => {
+    const btn = document.createElement("button");
+    btn.className      = "proj-btn";
+    btn.id             = `btn-${proj.id}`;
+    btn.dataset.projId = proj.id;
+    btn.innerHTML      = `${proj.name}<span class="proj-family">${proj.family}</span>`;
+    btn.addEventListener("click", () => switchProjection(proj.id));
+    nav.appendChild(btn);
+  });
+
+  setActiveButton(currentProjectionId);
+}
+
+function setActiveButton(projId) {
+  document.querySelectorAll(".proj-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.projId === projId);
+  });
+}
+
+// ============================================================
+// SWITCH PROJECTION (instant — animation added in Task 6)
+// ============================================================
+function switchProjection(newProjId) {
+  if (isAnimating || newProjId === currentProjectionId) return;
+
+  const projDef = PROJECTIONS.find((p) => p.id === newProjId);
+  if (!projDef) return;
+
+  currentProjectionId = newProjId;
+  setActiveButton(newProjId);
+  updateInfo(projDef);
+  renderMap(makeProjection(projDef));
+}
+
+// ============================================================
+// INIT — fetch GeoJSON then render
+// ============================================================
+async function init() {
+  const response = await fetch("/data/world.geojson");
+  worldData = await response.json();
+
+  const initialProj = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  buildSidebar();
+  renderMap(makeProjection(initialProj));
+  updateInfo(initialProj);
+}
+
+init();
