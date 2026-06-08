@@ -206,6 +206,72 @@ function renderMap(projection) {
 }
 
 // ============================================================
+// ANIMATION HELPERS
+// ============================================================
+
+// Returns a Map<countryName, svgPathString> for every country at the given
+// projection. Used as "from" or "to" snapshots by morphPaths().
+// precision(Infinity) disables D3's adaptive resampling so both paths have
+// identical point counts (straight from GeoJSON) — required for
+// d3.interpolateString to match coordinates correctly and avoid diagonal spikes.
+function computePaths(projection) {
+  projection.precision(Infinity);
+  const pathFn = d3.geoPath().projection(projection);
+  const result = new Map();
+  worldData.features.forEach((f) => {
+    result.set(f.properties.name, pathFn(f) || "");
+  });
+  return result;
+}
+
+// Tweens all country <path d="…"> attributes from fromPaths → toPaths.
+// Uses d3.interpolateString rather than flubber: we're morphing the SAME
+// GeoJSON feature between two projections, so both paths share the same
+// structure — only the screen coordinates differ. String interpolation is
+// sufficient and avoids the NaN/self-intersection artifacts flubber produces
+// on multi-polygon islands and overseas territories.
+// Returns a Promise that resolves when done.
+function morphPaths(fromPaths, toPaths, duration) {
+  const transition = mapGroup
+    .selectAll("path.country")
+    .transition()
+    .duration(duration)
+    .ease(d3.easeCubicInOut)
+    .attrTween("d", function (d) {
+      const name = d.properties.name;
+      const from = fromPaths.get(name) || "";
+      const to   = toPaths.get(name)   || "";
+      if (!from || !to) return () => to || from;
+      return d3.interpolateString(from, to);
+    });
+  // transition.end() resolves when all elements finish; catch silences
+  // "transition cancelled" errors from rapid successive clicks.
+  return transition.end().catch(() => {});
+}
+
+// ============================================================
+// TRANSITION — direct morph source → target
+// ============================================================
+async function transitionTo(newProjId) {
+  isAnimating = true;
+
+  const fromDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const toDef   = PROJECTIONS.find((p) => p.id === newProjId);
+
+  const fromPaths = computePaths(makeProjection(fromDef));
+  const toPaths   = computePaths(makeProjection(toDef));
+  await morphPaths(fromPaths, toPaths, 1400);
+
+  // Restore full-precision paths (with adaptive resampling) for the final rendered state.
+  renderMap(makeProjection(toDef));
+
+  currentProjectionId = newProjId;
+  setActiveButton(newProjId);
+  updateInfo(toDef);
+  isAnimating = false;
+}
+
+// ============================================================
 // INFO PANEL
 // ============================================================
 function updateInfo(projDef) {
@@ -240,18 +306,12 @@ function setActiveButton(projId) {
 }
 
 // ============================================================
-// SWITCH PROJECTION (instant — animation added in Task 6)
+// SWITCH PROJECTION
 // ============================================================
 function switchProjection(newProjId) {
   if (isAnimating || newProjId === currentProjectionId) return;
-
-  const projDef = PROJECTIONS.find((p) => p.id === newProjId);
-  if (!projDef) return;
-
-  currentProjectionId = newProjId;
-  setActiveButton(newProjId);
-  updateInfo(projDef);
-  renderMap(makeProjection(projDef));
+  if (!PROJECTIONS.find((p) => p.id === newProjId)) return;
+  transitionTo(newProjId);
 }
 
 // ============================================================
