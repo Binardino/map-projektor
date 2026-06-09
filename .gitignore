@@ -16,5 +16,8 @@ app/data/world.geojson
 # Claude Code — local settings and personal guides (not shared)
 .claude/
 
+# Personal learning notes (not for the repo)
+docs/fastapi-learning-notes.md
+
 # OS
 .DS_Store
