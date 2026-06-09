@@ -1,17 +1,23 @@
 import requests
 import json
 import pathlib
-from shapely.geometry import mapping, shape
+from shapely.geometry import mapping, shape, box as shapely_box
 
 SOURCE_URL = (
     "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/"
-    "master/geojson/ne_110m_admin_0_countries.geojson"
+    "master/geojson/ne_50m_admin_0_countries.geojson"
 )
 
 OUTPUT_PATH = pathlib.Path(__file__).parent.parent / "app" / "data" / "world.geojson"
 
-SIMPLIFY_TOLERANCE   = 0.5 # degrees - ~55km around Equator
-COORDINATE_PRECISION = 4   # decimals - ~11km of precision , enough for web map
+SIMPLIFY_TOLERANCE   = 0.1  # degrees - ~11km around Equator (was 0.5 = too aggressive)
+COORDINATE_PRECISION = 4    # decimals - ~11km of precision, enough for web map
+
+# Clip every geometry to stay strictly inside ±179.9° longitude.
+# Countries like Russia, Fiji, Antarctica have vertices at exactly ±180° — D3 then
+# tries to fill the complement of the polygon (everything *outside* the country),
+# producing the large black shapes that cover the map.
+ANTIMERIDIAN_CLIP = shapely_box(-179.9, -90.0, 179.9, 90.0)
 
 def round_coordinates(geometry, precision):
     """Recursively round all coordinate floats in a GeoJSON geometry dict."""
@@ -34,17 +40,18 @@ def simplify_feature(feature, tolerance):
     try:
         geometry = shape(feature["geometry"])
         simplified = geometry.simplify(tolerance, preserve_topology=True)
+        clipped   = simplified.intersection(ANTIMERIDIAN_CLIP)
 
-        if simplified.is_empty:
+        if clipped.is_empty:
             return None
-        
+
         return {
             "type"       : "Feature",
             "properties" : {
                 "name"      : feature["properties"].get("NAME", "Unknown"),
                 "continent" : feature["properties"].get("CONTINENT", "Unknown")
             },
-            "geometry": round_coordinates(mapping(simplified), COORDINATE_PRECISION) 
+            "geometry": round_coordinates(mapping(clipped), COORDINATE_PRECISION)
         }
 
     except Exception as e:

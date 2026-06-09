@@ -253,7 +253,13 @@ function morphPaths(fromPaths, toPaths, duration) {
       const name = d.properties.name;
       const from = fromPaths.get(name) || "";
       const to   = toPaths.get(name)   || "";
-      if (!from || !to) return () => to || from;
+      // Both empty — nothing to do
+      if (!from && !to) return () => "";
+      // Country newly appears (e.g. leaving Orthographic): snap to final position
+      if (!from) return () => to;
+      // Country disappears (e.g. entering Orthographic hidden hemisphere): hold
+      // until the very last frame so it doesn't freeze mid-animation
+      if (!to) return (t) => (t < 1 ? from : "");
       return d3.interpolateString(from, to);
     });
   // transition.end() resolves when all elements finish; catch silences
@@ -340,6 +346,56 @@ async function init() {
 }
 
 init();
+
+// ============================================================
+// DEBUG — call debugTransitions() from the browser console to
+// identify which projection pairs produce path structure mismatches.
+//
+// A mismatch means a country has N subpaths (M commands) in the
+// "from" projection but a different count in the "to" projection —
+// this is the root cause of the diagonal spike artifacts.
+// ============================================================
+function debugTransitions() {
+  if (!worldData) { console.warn("worldData not loaded yet — wait for init()"); return; }
+
+  const results = [];
+
+  for (const from of PROJECTIONS) {
+    for (const to of PROJECTIONS) {
+      if (from.id === to.id) continue;
+
+      const fromPaths = computePaths(makeProjection(from));
+      const toPaths   = computePaths(makeProjection(to));
+
+      const mismatched = [];
+      for (const feature of worldData.features) {
+        const name  = feature.properties.name;
+        const f     = fromPaths.get(name) || "";
+        const t     = toPaths.get(name)   || "";
+        const fromM = (f.match(/M/g) || []).length;
+        const toM   = (t.match(/M/g) || []).length;
+        if (fromM !== toM) mismatched.push(`${name} (${fromM}→${toM})`);
+      }
+
+      if (mismatched.length > 0) {
+        results.push({
+          from:      from.id,
+          to:        to.id,
+          countries: mismatched.length,
+          examples:  mismatched.slice(0, 4).join(" | ") + (mismatched.length > 4 ? " …" : ""),
+        });
+      }
+    }
+  }
+
+  if (results.length === 0) {
+    console.log("✅ No path structure mismatches found across all projection pairs.");
+  } else {
+    console.warn(`⚠️ ${results.length} transition pairs with path structure mismatches:`);
+    console.table(results);
+  }
+  return results;
+}
 
 // ============================================================
 // THEME SWITCHER (temporary — remove once theme is chosen)
