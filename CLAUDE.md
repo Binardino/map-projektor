@@ -2,9 +2,9 @@
 
 ## Project Summary
 
-Interactive world map web app displaying 12 cartographic projections with animated transitions. Built as a FastAPI learning project.
+Interactive world map web app displaying 13 cartographic projections with animated transitions. Built as a FastAPI learning project.
 
-**Stack:** FastAPI + uvicorn + Jinja2 (Python server) · D3.js + d3-geo-projection v4 + flubber.js (frontend) · shapely + requests (data pipeline)
+**Stack:** FastAPI + uvicorn + Jinja2 (Python server) · D3.js + d3-geo-projection v4 (frontend) · shapely + requests (data pipeline)
 
 **Run:** `poetry run uvicorn app.main:app --reload` → http://localhost:8000
 
@@ -42,7 +42,7 @@ Add one object to the `PROJECTIONS` array in `static/js/map.js`. Nothing else ch
 }
 ```
 
-Projections requiring `d3-geo-projection` (CDN loaded in index.html): Robinson, Mollweide, Sinusoidal, Winkel Tripel, Aitoff, Hammer.
+Projections requiring `d3-geo-projection` (CDN loaded in index.html): Robinson, Mollweide, Sinusoidal, Winkel Tripel, Aitoff, Hammer, Gall-Peters.
 
 ---
 

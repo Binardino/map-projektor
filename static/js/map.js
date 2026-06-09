@@ -30,6 +30,18 @@ const PROJECTIONS = [
     d3fn: () => d3.geoEquirectangular(),
   },
   {
+    id: "gallPeters",
+    name: "Gall-Peters",
+    family: "Cylindrical",
+    year: 1855,
+    description:
+      "Equal-area cylindrical: every country is shown at its true relative size. " +
+      "A direct political response to Mercator — Africa appears far larger than Europe.",
+    // parallel(45) is the standard that makes this equal-area (James Gall, 1855;
+    // re-popularised by Arno Peters in 1973, sparking the "Peters controversy")
+    d3fn: () => d3.geoCylindricalEqualArea().parallel(45),
+  },
+  {
     id: "robinson",
     name: "Robinson",
     family: "Pseudocylindrical",
@@ -85,8 +97,8 @@ const PROJECTIONS = [
     family: "Azimuthal",
     year: 1772,
     description:
-      "Projects from the centre of the sphere. Preserves area accurately, " +
-      "making it useful for comparing continent sizes.",
+      "Preserves area accurately across the entire map from a central anchor point. " +
+      "Unlike Mercator, Greenland and Africa appear at their true relative sizes.",
     d3fn: () => d3.geoAzimuthalEqualArea(),
   },
   {
@@ -328,3 +340,14 @@ async function init() {
 }
 
 init();
+
+// ============================================================
+// THEME SWITCHER (temporary — remove once theme is chosen)
+// ============================================================
+document.querySelectorAll(".theme-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.body.setAttribute("data-theme", btn.dataset.theme);
+    document.querySelectorAll(".theme-btn").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+  });
+});

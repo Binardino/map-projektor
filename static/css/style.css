@@ -1,26 +1,28 @@
 /* ============================================================
-   CSS VARIABLES — Theme: Vintage Parchment
+   CSS VARIABLES — Theme: Dark Nautical
    To switch themes, edit only this :root block.
    ============================================================ */
 :root {
-  --bg-app:     #f2ead8;
-  --bg-sidebar: #e8dfc8;
-  --bg-ocean:   #c8d8e0;
+  --bg-app:     #0d1520;
+  --bg-sidebar: #111d2e;
+  --bg-ocean:   #18304e;
 
-  --color-africa:        #e8c84a;
-  --color-europe:        #7cb87a;
-  --color-asia:          #d4a84a;
-  --color-north-america: #88c47a;
-  --color-south-america: #a8c870;
-  --color-oceania:       #c4a050;
-  --color-antarctica:    #ddd3be;
+  --color-africa:        #d4a820;
+  --color-europe:        #5a9e60;
+  --color-asia:          #c46840;
+  --color-north-america: #3a9870;
+  --color-south-america: #78b030;
+  --color-oceania:       #a87040;
+  --color-antarctica:    #6878a0;
 
-  --text-primary:  #3d2b0a;
-  --text-muted:    #8b6f47;
-  --accent:        #8b6f47;
-  --border:        #c8b890;
-  --active-bg:     #d8ccb0;
-  --active-border: #8b6f47;
+  --text-primary:  #dce8f8;
+  --text-muted:    #6090b8;
+  --accent:        #4a9eee;
+  --border:        #243850;
+  --active-bg:     #1a2e48;
+  --active-border: #4a9eee;
+
+  --stroke-country: #111d2e;
 
   --font-family:    'Georgia', 'Times New Roman', serif;
   --font-size-base: 14px;
@@ -159,7 +161,7 @@ body {
 }
 
 .country {
-  stroke: var(--bg-sidebar);
+  stroke: var(--stroke-country);
   stroke-width: 0.5px;
   vector-effect: non-scaling-stroke;
 }
@@ -172,21 +174,137 @@ body {
 }
 
 #info-name {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: bold;
   margin-right: 10px;
 }
 
 #info-family {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
 #info-description {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
-  margin-top: 4px;
-  line-height: 1.5;
+  margin-top: 6px;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   THEME SWITCHER (temporary — remove once theme is chosen)
+   ============================================================ */
+#theme-switcher {
+  display: flex;
+  gap: 4px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.theme-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-family);
+  border-radius: 2px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.theme-btn:hover,
+.theme-btn.active {
+  background: var(--active-bg);
+  border-color: var(--active-border);
+  color: var(--text-primary);
+}
+
+/* ============================================================
+   THEME OVERRIDES — each block overrides the :root variables
+   ============================================================ */
+
+/* National Geographic — warm atlas style */
+body[data-theme="natgeo"] {
+  --bg-app:     #f5f0e8;
+  --bg-sidebar: #ede7da;
+  --bg-ocean:   #d2e4f0;
+
+  --color-africa:        #eed9b3;
+  --color-europe:        #d1e2c4;
+  --color-asia:          #e8c4c4;
+  --color-north-america: #e2d1f9;
+  --color-south-america: #f7e5a9;
+  --color-oceania:       #fed7c3;
+  --color-antarctica:    #eaeaea;
+
+  --text-primary:  #1a1a1a;
+  --text-muted:    #6b6b6b;
+  --accent:        #3a6ea8;
+  --border:        #d0c8b8;
+  --active-bg:     #e4ddd0;
+  --active-border: #3a6ea8;
+  --stroke-country: rgba(255, 255, 255, 0.7);
+}
+
+/* Indigo Minimaliste — modern SaaS style with opacity trick */
+body[data-theme="indigo"] {
+  --bg-app:     #f8fafc;
+  --bg-sidebar: #f0f4f8;
+  --bg-ocean:   #f0f4f8;
+
+  --color-africa:        #6366f1;
+  --color-europe:        #3b82f6;
+  --color-asia:          #10b981;
+  --color-north-america: #8b5cf6;
+  --color-south-america: #f59e0b;
+  --color-oceania:       #ec4899;
+  --color-antarctica:    #94a3b8;
+
+  --text-primary:  #1e293b;
+  --text-muted:    #64748b;
+  --accent:        #6366f1;
+  --border:        #e2e8f0;
+  --active-bg:     #e0e7ff;
+  --active-border: #6366f1;
+  --stroke-country: #cbd5e1;
+}
+
+/* Countries semi-transparent in Indigo theme, revealed on hover */
+body[data-theme="indigo"] .country {
+  fill-opacity: 0.25;
+}
+body[data-theme="indigo"] .country:hover {
+  fill-opacity: 0.85;
+  cursor: pointer;
+}
+
+/* Vintage Vector — retro cartographic style */
+body[data-theme="vintage"] {
+  --bg-app:     #f2ede0;
+  --bg-sidebar: #e8e3d5;
+  --bg-ocean:   #dcd4be;
+
+  --color-africa:        #d9a86c;
+  --color-europe:        #b8c89a;
+  --color-asia:          #c48860;
+  --color-north-america: #a8c090;
+  --color-south-america: #d4b878;
+  --color-oceania:       #c0986a;
+  --color-antarctica:    #d8d4ca;
+
+  --text-primary:  #2e2010;
+  --text-muted:    #7a6548;
+  --accent:        #6b5234;
+  --border:        #c8b890;
+  --active-bg:     #ddd5c0;
+  --active-border: #6b5234;
+  --stroke-country: #655a46;
 }
