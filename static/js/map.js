@@ -260,6 +260,13 @@ function morphPaths(fromPaths, toPaths, duration) {
       // Country disappears (e.g. entering Orthographic hidden hemisphere): hold
       // until the very last frame so it doesn't freeze mid-animation
       if (!to) return (t) => (t < 1 ? from : "");
+      // Projection clipping can add/remove vertices at clip boundaries, changing the
+      // total number of coordinate values even when subpath count is identical.
+      // d3.interpolateString pairs numbers positionally — a mismatch produces diagonal
+      // spikes. Hold `from` and snap to `to` at t=1 (same pattern as above).
+      const fromNums = (from.match(/[-\d.]+/g) || []).length;
+      const toNums   = (to.match(/[-\d.]+/g)   || []).length;
+      if (fromNums !== toNums) return (t) => (t < 1 ? from : to);
       return d3.interpolateString(from, to);
     });
   // transition.end() resolves when all elements finish; catch silences
@@ -369,12 +376,17 @@ function debugTransitions() {
 
       const mismatched = [];
       for (const feature of worldData.features) {
-        const name  = feature.properties.name;
-        const f     = fromPaths.get(name) || "";
-        const t     = toPaths.get(name)   || "";
-        const fromM = (f.match(/M/g) || []).length;
-        const toM   = (t.match(/M/g) || []).length;
-        if (fromM !== toM) mismatched.push(`${name} (${fromM}→${toM})`);
+        const name     = feature.properties.name;
+        const f        = fromPaths.get(name) || "";
+        const t        = toPaths.get(name)   || "";
+        const fromM    = (f.match(/M/g)       || []).length;
+        const toM      = (t.match(/M/g)       || []).length;
+        const fromNums = (f.match(/[-\d.]+/g) || []).length;
+        const toNums   = (t.match(/[-\d.]+/g) || []).length;
+        const kind = fromM !== toM     ? "M-count"
+                   : fromNums !== toNums ? "coord-count"
+                   : null;
+        if (kind) mismatched.push(`${name} [${kind}] (${fromM}M/${fromNums}n→${toM}M/${toNums}n)`);
       }
 
       if (mismatched.length > 0) {
