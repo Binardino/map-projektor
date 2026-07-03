@@ -145,25 +145,6 @@ const PROJECTIONS = [
 ];
 
 // ============================================================
-// CONTINENT → CSS VARIABLE
-// Keys must match the 'continent' values in world.geojson exactly.
-// ============================================================
-const CONTINENT_COLOR_VAR = {
-  "Africa":         "--color-africa",
-  "Europe":         "--color-europe",
-  "Asia":           "--color-asia",
-  "North America":  "--color-north-america",
-  "South America":  "--color-south-america",
-  "Oceania":        "--color-oceania",
-  "Antarctica":     "--color-antarctica",
-};
-
-function continentColor(continent) {
-  const varName = CONTINENT_COLOR_VAR[continent];
-  return varName ? `var(${varName})` : "var(--color-africa)";
-}
-
-// ============================================================
 // SVG SETUP
 // ============================================================
 const container = document.getElementById("map-container");
@@ -211,67 +192,85 @@ function renderMap(projection) {
     .enter()
     .append("path")
     .attr("class", "country")
-    .attr("fill", (d) => continentColor(d.properties.continent))
     .attr("d", path);
 
   paths.attr("d", path);
 }
 
 // ============================================================
-// ANIMATION HELPERS
+// ANIMATION — projection blending
+//
+// Interpolating SVG path strings breaks whenever clipping changes
+// the vertex count between two projections (Antarctica cut at the
+// pole in Mercator, the giant arc in Albers, the hidden hemisphere
+// in Orthographic) — countries froze then snapped. Instead we build
+// a hybrid projection whose output is the linear blend of the two
+// fitted projections, and reproject every country on every frame.
+// Each frame is then a real projection, so D3's clipping stays
+// geometrically correct throughout the morph.
 // ============================================================
+const DEGREES = 180 / Math.PI;
 
-// Returns a Map<countryName, svgPathString> for every country at the given
-// projection. Used as "from" or "to" snapshots by morphPaths().
-// precision(Infinity) disables D3's adaptive resampling so both paths have
-// identical point counts (straight from GeoJSON) — required for
-// d3.interpolateString to match coordinates correctly and avoid diagonal spikes.
-function computePaths(projection) {
-  projection.precision(Infinity);
-  const pathFn = d3.geoPath().projection(projection);
-  const result = new Map();
-  worldData.features.forEach((f) => {
-    result.set(f.properties.name, pathFn(f) || "");
+function blendProjection(projFrom, projTo) {
+  const mutate = d3.geoProjectionMutator((t) => (lambda, phi) => {
+    // Raw functions receive radians; the fitted projections expect degrees
+    const [xa, ya] = projFrom([lambda * DEGREES, phi * DEGREES]);
+    const [xb, yb] = projTo([lambda * DEGREES, phi * DEGREES]);
+    // The wrapper flips y (geographic y-up → screen y-down); pre-negating it
+    // here means the blend passes the endpoints' screen coordinates through.
+    return [(1 - t) * xa + t * xb, -((1 - t) * ya + t * yb)];
   });
-  return result;
+  // D3's translate means "where (0°,0°) lands on screen", not an offset —
+  // so with scale 1 the wrapper becomes an exact identity over the blended
+  // output only if we pin (0°,0°) to its own blended screen position.
+  const centerFrom = projFrom([0, 0]);
+  const centerTo   = projTo([0, 0]);
+  const projection = Object.assign(mutate(0), {
+    alpha(t) {
+      mutate(t);
+      return projection.translate([
+        (1 - t) * centerFrom[0] + t * centerTo[0],
+        (1 - t) * centerFrom[1] + t * centerTo[1],
+      ]);
+    },
+  });
+  return projection
+    .scale(1)
+    .clipExtent([[0, 0], [WIDTH, HEIGHT]])
+    .alpha(0);
 }
 
-// Tweens all country <path d="…"> attributes from fromPaths → toPaths.
-// Uses d3.interpolateString rather than flubber: we're morphing the SAME
-// GeoJSON feature between two projections, so both paths share the same
-// structure — only the screen coordinates differ. String interpolation is
-// sufficient and avoids the NaN/self-intersection artifacts flubber produces
-// on multi-polygon islands and overseas territories.
-// Returns a Promise that resolves when done.
-function morphPaths(fromPaths, toPaths, duration) {
-  const transition = mapGroup
-    .selectAll("path.country")
-    .transition()
-    .duration(duration)
-    .ease(d3.easeCubicInOut)
-    .attrTween("d", function (d) {
-      const name = d.properties.name;
-      const from = fromPaths.get(name) || "";
-      const to   = toPaths.get(name)   || "";
-      // Both empty — nothing to do
-      if (!from && !to) return () => "";
-      // Country newly appears (e.g. leaving Orthographic): snap to final position
-      if (!from) return () => to;
-      // Country disappears (e.g. entering Orthographic hidden hemisphere): hold
-      // until the very last frame so it doesn't freeze mid-animation
-      if (!to) return (t) => (t < 1 ? from : "");
-      // Projection clipping can add/remove vertices at clip boundaries, changing the
-      // total number of coordinate values even when subpath count is identical.
-      // d3.interpolateString pairs numbers positionally — a mismatch produces diagonal
-      // spikes. Hold `from` and snap to `to` at t=1 (same pattern as above).
-      const fromNums = (from.match(/[-\d.]+/g) || []).length;
-      const toNums   = (to.match(/[-\d.]+/g)   || []).length;
-      if (fromNums !== toNums) return (t) => (t < 1 ? from : to);
-      return d3.interpolateString(from, to);
+// Orthographic clips to the visible hemisphere (90°); everything else
+// clips at the antimeridian, which a near-180° circle approximates.
+// Animating between the two makes back-hemisphere countries shrink
+// smoothly into the horizon instead of snapping in or out.
+function clipAngleOf(projDef) {
+  return projDef.id === "orthographic" ? 90 : 179.9;
+}
+
+function animateTransition(fromDef, toDef, duration) {
+  const projection = blendProjection(makeProjection(fromDef), makeProjection(toDef));
+  const clipFrom = clipAngleOf(fromDef);
+  const clipTo   = clipAngleOf(toDef);
+  // Only azimuthal-hemisphere transitions need the circle clip; other
+  // pairs keep D3's default antimeridian clipping untouched.
+  const morphClip = clipFrom !== clipTo;
+
+  const pathFn    = d3.geoPath().projection(projection);
+  const countries = mapGroup.selectAll("path.country");
+
+  return new Promise((resolve) => {
+    const timer = d3.timer((elapsed) => {
+      const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
+      projection.alpha(t);
+      if (morphClip) projection.clipAngle(clipFrom + (clipTo - clipFrom) * t);
+      countries.attr("d", (d) => pathFn(d) || "");
+      if (elapsed >= duration) {
+        timer.stop();
+        resolve();
+      }
     });
-  // transition.end() resolves when all elements finish; catch silences
-  // "transition cancelled" errors from rapid successive clicks.
-  return transition.end().catch(() => {});
+  });
 }
 
 // ============================================================
@@ -283,11 +282,9 @@ async function transitionTo(newProjId) {
   const fromDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
   const toDef   = PROJECTIONS.find((p) => p.id === newProjId);
 
-  const fromPaths = computePaths(makeProjection(fromDef));
-  const toPaths   = computePaths(makeProjection(toDef));
-  await morphPaths(fromPaths, toPaths, 1400);
+  await animateTransition(fromDef, toDef, 1400);
 
-  // Restore full-precision paths (with adaptive resampling) for the final rendered state.
+  // Final render with the true target projection (native clipping rules)
   renderMap(makeProjection(toDef));
 
   currentProjectionId = newProjId;
@@ -355,62 +352,7 @@ async function init() {
 init();
 
 // ============================================================
-// DEBUG — call debugTransitions() from the browser console to
-// identify which projection pairs produce path structure mismatches.
-//
-// A mismatch means a country has N subpaths (M commands) in the
-// "from" projection but a different count in the "to" projection —
-// this is the root cause of the diagonal spike artifacts.
-// ============================================================
-function debugTransitions() {
-  if (!worldData) { console.warn("worldData not loaded yet — wait for init()"); return; }
-
-  const results = [];
-
-  for (const from of PROJECTIONS) {
-    for (const to of PROJECTIONS) {
-      if (from.id === to.id) continue;
-
-      const fromPaths = computePaths(makeProjection(from));
-      const toPaths   = computePaths(makeProjection(to));
-
-      const mismatched = [];
-      for (const feature of worldData.features) {
-        const name     = feature.properties.name;
-        const f        = fromPaths.get(name) || "";
-        const t        = toPaths.get(name)   || "";
-        const fromM    = (f.match(/M/g)       || []).length;
-        const toM      = (t.match(/M/g)       || []).length;
-        const fromNums = (f.match(/[-\d.]+/g) || []).length;
-        const toNums   = (t.match(/[-\d.]+/g) || []).length;
-        const kind = fromM !== toM     ? "M-count"
-                   : fromNums !== toNums ? "coord-count"
-                   : null;
-        if (kind) mismatched.push(`${name} [${kind}] (${fromM}M/${fromNums}n→${toM}M/${toNums}n)`);
-      }
-
-      if (mismatched.length > 0) {
-        results.push({
-          from:      from.id,
-          to:        to.id,
-          countries: mismatched.length,
-          examples:  mismatched.slice(0, 4).join(" | ") + (mismatched.length > 4 ? " …" : ""),
-        });
-      }
-    }
-  }
-
-  if (results.length === 0) {
-    console.log("✅ No path structure mismatches found across all projection pairs.");
-  } else {
-    console.warn(`⚠️ ${results.length} transition pairs with path structure mismatches:`);
-    console.table(results);
-  }
-  return results;
-}
-
-// ============================================================
-// THEME SWITCHER (temporary — remove once theme is chosen)
+// THEME SWITCHER
 // ============================================================
 document.querySelectorAll(".theme-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
