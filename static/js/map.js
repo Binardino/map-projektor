@@ -72,6 +72,26 @@ const PROJECTIONS = [
     d3fn: () => d3.geoNaturalEarth1(),
   },
   {
+    id: "equalEarth",
+    name: "Equal Earth",
+    family: "Pseudocylindrical",
+    year: 2018,
+    description:
+      "Modern equal-area projection inspired by Robinson's aesthetics. " +
+      "Designed as an answer to Gall-Peters: true sizes without the stretching.",
+    d3fn: () => d3.geoEqualEarth(),
+  },
+  {
+    id: "eckert4",
+    name: "Eckert IV",
+    family: "Pseudocylindrical",
+    year: 1906,
+    description:
+      "Equal-area projection with poles drawn as lines half the equator's length. " +
+      "A favourite for thematic world maps of climate and population.",
+    d3fn: () => d3.geoEckert4(),
+  },
+  {
     id: "sinusoidal",
     name: "Sinusoidal",
     family: "Pseudocylindrical",
@@ -100,6 +120,28 @@ const PROJECTIONS = [
       "Preserves area accurately across the entire map from a central anchor point. " +
       "Unlike Mercator, Greenland and Africa appear at their true relative sizes.",
     d3fn: () => d3.geoAzimuthalEqualArea(),
+  },
+  {
+    id: "polarNorth",
+    name: "North Polar",
+    family: "Azimuthal",
+    year: 1946,
+    description:
+      "Azimuthal equidistant centred on the North Pole — the view on the United " +
+      "Nations emblem. Distances measured from the pole are true to scale.",
+    // clipAngle(179) trims a 1° cap around the antipode (the South Pole),
+    // where this projection is singular — Antarctica renders as the outer ring
+    d3fn: () => d3.geoAzimuthalEquidistant().rotate([0, -90]).clipAngle(179),
+  },
+  {
+    id: "polarSouth",
+    name: "South Polar",
+    family: "Azimuthal",
+    year: 1000,
+    description:
+      "Azimuthal equidistant centred on the South Pole. Antarctica sits at the " +
+      "centre, surrounded by the Southern Ocean and every other continent.",
+    d3fn: () => d3.geoAzimuthalEquidistant().rotate([0, 90]).clipAngle(179),
   },
   {
     id: "albers",
@@ -211,8 +253,19 @@ function renderMap(projection) {
 // ============================================================
 const DEGREES = 180 / Math.PI;
 
-function blendProjection(projFrom, projTo) {
+// Mercator sends the poles to y = ±Infinity, which poisons the blend for
+// every t (0.05 · ∞ is still ∞, and 0 · ∞ is NaN at the endpoints).
+// Clamping latitude a hair away from the poles keeps every blended
+// coordinate finite; the clamped point lands ~1500px offscreen, so the
+// visible map is unchanged.
+const POLE_LIMIT = 89.99 / DEGREES;
+
+// `rotation` (optional) is for blending two projections that share the same
+// rotate(): pass them UNROTATED and let the wrapper rotate instead — this
+// keeps clipAngle circles centred on the shared centre (e.g. a pole).
+function blendProjection(projFrom, projTo, rotation = null) {
   const mutate = d3.geoProjectionMutator((t) => (lambda, phi) => {
+    phi = Math.max(-POLE_LIMIT, Math.min(POLE_LIMIT, phi));
     // Raw functions receive radians; the fitted projections expect degrees
     const [xa, ya] = projFrom([lambda * DEGREES, phi * DEGREES]);
     const [xb, yb] = projTo([lambda * DEGREES, phi * DEGREES]);
@@ -234,10 +287,12 @@ function blendProjection(projFrom, projTo) {
       ]);
     },
   });
-  return projection
-    .scale(1)
-    .clipExtent([[0, 0], [WIDTH, HEIGHT]])
-    .alpha(0);
+  if (rotation) projection.rotate(rotation);
+  // No planar clipExtent on purpose: D3's rectangle clip decides whether the
+  // viewport lies *inside* a polygon from its winding, and mid-blend folds of
+  // Antarctica flipped that test — filling the whole screen. The SVG viewport
+  // already crops offscreen geometry visually, so planar clipping adds nothing.
+  return projection.scale(1).alpha(0);
 }
 
 // Orthographic clips to the visible hemisphere (90°); everything else
@@ -248,14 +303,8 @@ function clipAngleOf(projDef) {
   return projDef.id === "orthographic" ? 90 : 179.9;
 }
 
-function animateTransition(fromDef, toDef, duration) {
-  const projection = blendProjection(makeProjection(fromDef), makeProjection(toDef));
-  const clipFrom = clipAngleOf(fromDef);
-  const clipTo   = clipAngleOf(toDef);
-  // Only azimuthal-hemisphere transitions need the circle clip; other
-  // pairs keep D3's default antimeridian clipping untouched.
-  const morphClip = clipFrom !== clipTo;
-
+// Drives one blend from alpha 0 → 1, optionally morphing the clip circle.
+function animateBlend(projection, duration, clipFrom = null, clipTo = null) {
   const pathFn    = d3.geoPath().projection(projection);
   const countries = mapGroup.selectAll("path.country");
 
@@ -263,7 +312,7 @@ function animateTransition(fromDef, toDef, duration) {
     const timer = d3.timer((elapsed) => {
       const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
       projection.alpha(t);
-      if (morphClip) projection.clipAngle(clipFrom + (clipTo - clipFrom) * t);
+      if (clipFrom !== null) projection.clipAngle(clipFrom + (clipTo - clipFrom) * t);
       countries.attr("d", (d) => pathFn(d) || "");
       if (elapsed >= duration) {
         timer.stop();
@@ -273,8 +322,92 @@ function animateTransition(fromDef, toDef, duration) {
   });
 }
 
+function animateTransition(fromDef, toDef, duration) {
+  const projection = blendProjection(makeProjection(fromDef), makeProjection(toDef));
+  const clipFrom = clipAngleOf(fromDef);
+  const clipTo   = clipAngleOf(toDef);
+  // Only azimuthal-hemisphere transitions need the circle clip; other
+  // pairs keep D3's default antimeridian clipping untouched.
+  if (clipFrom !== clipTo) return animateBlend(projection, duration, clipFrom, clipTo);
+  return animateBlend(projection, duration);
+}
+
 // ============================================================
-// TRANSITION — direct morph source → target
+// POLAR ROUTE — via the orthographic globe
+//
+// A polar view sits 90° of rotation away from every other
+// projection. Blending directly would drag Antarctica's ring
+// across the whole map (a disc cannot become an annulus that
+// encircles everything without sweeping over it). Instead:
+// fold the map onto the globe, spin the globe to/from the pole
+// (a true projection every frame — always clean), then unfold
+// into the polar azimuthal view.
+// ============================================================
+const POLAR_ROTATION = { polarNorth: [0, -90], polarSouth: [0, 90] };
+
+// Spins a real orthographic globe between two orientations.
+function animateRotation(fromRot, toRot, duration) {
+  const projection = d3.geoOrthographic().fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+  const pathFn    = d3.geoPath().projection(projection);
+  const countries = mapGroup.selectAll("path.country");
+
+  return new Promise((resolve) => {
+    const timer = d3.timer((elapsed) => {
+      const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
+      projection.rotate([
+        fromRot[0] + (toRot[0] - fromRot[0]) * t,
+        fromRot[1] + (toRot[1] - fromRot[1]) * t,
+      ]);
+      countries.attr("d", (d) => pathFn(d) || "");
+      if (elapsed >= duration) {
+        timer.stop();
+        resolve();
+      }
+    });
+  });
+}
+
+// Morphs between the orthographic globe and the flat azimuthal equidistant
+// disc, both centred on the same pole. Endpoints are built unrotated and the
+// blend wrapper carries the rotation, so the hemisphere clip stays centred
+// on the pole while it opens (90° → 179°) or closes (179° → 90°).
+function animatePolarUnfold(rotation, foldToGlobe, duration) {
+  const globe = d3.geoOrthographic().fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+  const disc  = d3.geoAzimuthalEquidistant().clipAngle(179)
+    .fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+  const projection = foldToGlobe
+    ? blendProjection(disc, globe, rotation)
+    : blendProjection(globe, disc, rotation);
+  return foldToGlobe
+    ? animateBlend(projection, duration, 179, 90)
+    : animateBlend(projection, duration, 90, 179);
+}
+
+async function polarTransition(fromDef, toDef) {
+  const orthoDef = PROJECTIONS.find((p) => p.id === "orthographic");
+  const fromRot  = POLAR_ROTATION[fromDef.id];
+  const toRot    = POLAR_ROTATION[toDef.id];
+
+  // Fold: reach an orthographic globe at the starting orientation
+  if (fromRot) {
+    await animatePolarUnfold(fromRot, true, 800);
+  } else if (fromDef.id !== "orthographic") {
+    await animateTransition(fromDef, orthoDef, 800);
+  }
+
+  // Spin between orientations (north↔south rolls through the equator)
+  await animateRotation(fromRot || [0, 0], toRot || [0, 0], 700);
+
+  // Unfold: from the globe to the target
+  if (toRot) {
+    await animatePolarUnfold(toRot, false, 800);
+  } else if (toDef.id !== "orthographic") {
+    await animateTransition(orthoDef, toDef, 800);
+  }
+}
+
+// ============================================================
+// TRANSITION — morph source → target
 // ============================================================
 async function transitionTo(newProjId) {
   isAnimating = true;
@@ -282,7 +415,11 @@ async function transitionTo(newProjId) {
   const fromDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
   const toDef   = PROJECTIONS.find((p) => p.id === newProjId);
 
-  await animateTransition(fromDef, toDef, 1400);
+  if (POLAR_ROTATION[fromDef.id] || POLAR_ROTATION[toDef.id]) {
+    await polarTransition(fromDef, toDef);
+  } else {
+    await animateTransition(fromDef, toDef, 1400);
+  }
 
   // Final render with the true target projection (native clipping rules)
   renderMap(makeProjection(toDef));
