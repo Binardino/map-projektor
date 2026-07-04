@@ -2,7 +2,7 @@
 
 ## Project Summary
 
-Interactive world map web app displaying 13 cartographic projections with animated transitions. Built as a FastAPI learning project.
+Interactive world map web app displaying 17 cartographic projections with animated transitions. Built as a FastAPI learning project.
 
 **Stack:** FastAPI + uvicorn + Jinja2 (Python server) · D3.js + d3-geo-projection v4 (frontend) · shapely + requests (data pipeline)
 
@@ -42,7 +42,9 @@ Add one object to the `PROJECTIONS` array in `static/js/map.js`. Nothing else ch
 }
 ```
 
-Projections requiring `d3-geo-projection` (CDN loaded in index.html): Robinson, Mollweide, Sinusoidal, Winkel Tripel, Aitoff, Hammer, Gall-Peters.
+Projections requiring `d3-geo-projection` (CDN loaded in index.html): Robinson, Mollweide, Sinusoidal, Winkel Tripel, Aitoff, Hammer, Gall-Peters, Eckert IV.
+
+Transitions morph a blended projection frame by frame; pairs involving a polar view route through the orthographic globe (fold → spin → unfold) — see the POLAR ROUTE section in `static/js/map.js`.
 
 ---
 
