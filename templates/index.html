@@ -21,6 +21,7 @@
         </div>
         <ul id="country-search-results" hidden></ul>
       </div>
+      <button id="compare-toggle">Compare Projections</button>
       <nav id="projection-list">
         <!-- Populated by map.js from the PROJECTIONS array -->
       </nav>
@@ -39,6 +40,17 @@
         <span id="info-name"></span>
         <span id="info-family"></span>
         <p id="info-description"></p>
+      </div>
+
+      <div id="compare-container" hidden>
+        <div class="compare-panel" data-side="left">
+          <select class="compare-select"></select>
+          <svg class="compare-svg"></svg>
+        </div>
+        <div class="compare-panel" data-side="right">
+          <select class="compare-select"></select>
+          <svg class="compare-svg"></svg>
+        </div>
       </div>
     </main>
 

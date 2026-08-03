@@ -521,6 +521,8 @@ function selectCountry(feature) {
   searchInput.value = selectedCountryName;
   clearBtn.hidden = false;
   hideResults();
+
+  if (compareMode) comparePanels.forEach(applySelectionToPanel);
 }
 
 function clearSelection() {
@@ -532,6 +534,8 @@ function clearSelection() {
 
   searchInput.value = "";
   clearBtn.hidden = true;
+
+  if (compareMode) comparePanels.forEach(applySelectionToPanel);
 }
 
 function hideResults() {
@@ -578,6 +582,123 @@ searchInput.addEventListener("keydown", (event) => {
 });
 
 clearBtn.addEventListener("click", clearSelection);
+
+// ============================================================
+// SIDE-BY-SIDE COMPARISON MODE
+//
+// Two independent panels, each with its own projection dropdown
+// and its own D3 projection/render pipeline. Switching a panel's
+// projection is instant — no morph animation — to keep two
+// independent animation timelines out of scope for now. Country
+// selection (the search UI above) is shared and applies to both
+// panels at once, since comparing one country's distortion across
+// two projections is the point of this mode.
+// ============================================================
+const compareToggleBtn = document.getElementById("compare-toggle");
+const mapContainerEl   = document.getElementById("map-container");
+const infoEl           = document.getElementById("projection-info");
+const compareContainer = document.getElementById("compare-container");
+const projectionListEl = document.getElementById("projection-list");
+
+let compareMode = false;
+let comparePanels = null; // built lazily on first toggle-on, once panel sizes are known
+
+function buildComparePanel(panelEl, initialProjId) {
+  const select = panelEl.querySelector(".compare-select");
+  PROJECTIONS.forEach((proj) => {
+    const option = document.createElement("option");
+    option.value = proj.id;
+    option.textContent = proj.name;
+    select.appendChild(option);
+  });
+  select.value = initialProjId;
+
+  const width  = panelEl.clientWidth;
+  const height = panelEl.querySelector(".compare-svg").clientHeight;
+
+  const svg = d3
+    .select(panelEl.querySelector(".compare-svg"))
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("preserveAspectRatio", "xMidYMid meet");
+
+  svg.append("rect").attr("class", "ocean").attr("width", width).attr("height", height);
+  const panel = { projId: initialProjId, mapGroup: svg.append("g").attr("class", "countries"), width, height };
+
+  panel.render = () => {
+    const projDef     = PROJECTIONS.find((p) => p.id === panel.projId);
+    const projection  = projDef.d3fn().fitSize([panel.width, panel.height], { type: "Sphere" });
+    const pathFn       = d3.geoPath().projection(projection);
+    const paths = panel.mapGroup
+      .selectAll("path.country")
+      .data(worldData.features, (d) => d.properties.name);
+    paths.enter().append("path").attr("class", "country").attr("d", pathFn);
+    paths.attr("d", pathFn);
+  };
+  panel.render();
+
+  select.addEventListener("change", () => {
+    panel.projId = select.value;
+    panel.render();
+    applySelectionToPanel(panel);
+  });
+
+  return panel;
+}
+
+// Mirrors the shared search selection (highlight + zoom) onto one panel.
+function applySelectionToPanel(panel) {
+  panel.mapGroup
+    .selectAll("path.country")
+    .classed("selected", (d) => d.properties.name === selectedCountryName);
+
+  if (!selectedCountryName) {
+    panel.mapGroup.transition().duration(400).attr("transform", null);
+    return;
+  }
+
+  const feature = worldData.features.find((f) => f.properties.name === selectedCountryName);
+  const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
+  const pathFn  = d3.geoPath().projection(projDef.d3fn().fitSize([panel.width, panel.height], { type: "Sphere" }));
+  const [[x0, y0], [x1, y1]] = pathFn.bounds(feature);
+
+  const PADDING   = 40;
+  const MAX_SCALE = 8;
+  const scale = Math.min(
+    (panel.width - PADDING) / Math.max(x1 - x0, 1),
+    (panel.height - PADDING) / Math.max(y1 - y0, 1),
+    MAX_SCALE
+  );
+  const translateX = panel.width / 2 - scale * ((x0 + x1) / 2);
+  const translateY = panel.height / 2 - scale * ((y0 + y1) / 2);
+
+  panel.mapGroup
+    .transition()
+    .duration(600)
+    .attr("transform", `translate(${translateX},${translateY}) scale(${scale})`);
+}
+
+compareToggleBtn.addEventListener("click", () => {
+  compareMode = !compareMode;
+  compareToggleBtn.classList.toggle("active", compareMode);
+  projectionListEl.classList.toggle("disabled-list", compareMode);
+  mapContainerEl.hidden   = compareMode;
+  infoEl.hidden           = compareMode;
+  compareContainer.hidden = !compareMode;
+
+  if (!compareMode) return;
+
+  if (!comparePanels) {
+    const panelEls = document.querySelectorAll(".compare-panel");
+    const rightDefaultId = PROJECTIONS.some((p) => p.id === "gallPeters") ? "gallPeters" : PROJECTIONS[1].id;
+    comparePanels = [
+      buildComparePanel(panelEls[0], currentProjectionId),
+      buildComparePanel(panelEls[1], rightDefaultId),
+    ];
+  } else {
+    comparePanels.forEach((p) => p.render());
+  }
+  comparePanels.forEach(applySelectionToPanel);
+});
 
 // ============================================================
 // INIT — fetch GeoJSON then render
