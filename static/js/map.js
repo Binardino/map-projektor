@@ -490,11 +490,26 @@ init();
 
 // ============================================================
 // THEME SWITCHER
+// Persists the chosen theme in localStorage so it survives page
+// reloads and stays constant across projection switches.
 // ============================================================
+const THEME_STORAGE_KEY = "mapProjektorTheme";
+
+function applyTheme(theme) {
+  document.body.setAttribute("data-theme", theme);
+  document.querySelectorAll(".theme-btn").forEach((b) => {
+    b.classList.toggle("active", b.dataset.theme === theme);
+  });
+}
+
+const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+if (savedTheme !== null) {
+  applyTheme(savedTheme);
+}
+
 document.querySelectorAll(".theme-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
-    document.body.setAttribute("data-theme", btn.dataset.theme);
-    document.querySelectorAll(".theme-btn").forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
+    applyTheme(btn.dataset.theme);
+    localStorage.setItem(THEME_STORAGE_KEY, btn.dataset.theme);
   });
 });
