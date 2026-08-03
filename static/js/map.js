@@ -234,7 +234,8 @@ function renderMap(projection) {
     .enter()
     .append("path")
     .attr("class", "country")
-    .attr("d", path);
+    .attr("d", path)
+    .on("click", (event, d) => selectCountry(d));
 
   paths.attr("d", path);
 }
@@ -411,6 +412,7 @@ async function polarTransition(fromDef, toDef) {
 // ============================================================
 async function transitionTo(newProjId) {
   isAnimating = true;
+  clearSelection();
 
   const fromDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
   const toDef   = PROJECTIONS.find((p) => p.id === newProjId);
@@ -472,6 +474,110 @@ function switchProjection(newProjId) {
   if (!PROJECTIONS.find((p) => p.id === newProjId)) return;
   transitionTo(newProjId);
 }
+
+// ============================================================
+// COUNTRY SEARCH & SELECTION
+//
+// Selecting a country (via search or a click on the map) pans/
+// zooms the SVG country group to its bounding box and highlights
+// it. This is a plain transform on top of the existing rendered
+// paths — no projection recalculation — so it behaves identically
+// across all 17 projections. Bounds are projection-specific, so
+// switching projection clears the selection (see transitionTo).
+// ============================================================
+const searchInput   = document.getElementById("country-search-input");
+const searchResults = document.getElementById("country-search-results");
+const clearBtn       = document.getElementById("country-search-clear");
+
+let selectedCountryName = null;
+
+function selectCountry(feature) {
+  if (!feature) return;
+  selectedCountryName = feature.properties.name;
+
+  mapGroup
+    .selectAll("path.country")
+    .classed("selected", (d) => d.properties.name === selectedCountryName);
+
+  const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const pathFn      = d3.geoPath().projection(makeProjection(currentDef));
+  const [[x0, y0], [x1, y1]] = pathFn.bounds(feature);
+
+  const PADDING   = 60;
+  const MAX_SCALE = 8;
+  const scale = Math.min(
+    (WIDTH - PADDING) / Math.max(x1 - x0, 1),
+    (HEIGHT - PADDING) / Math.max(y1 - y0, 1),
+    MAX_SCALE
+  );
+  const translateX = WIDTH / 2 - scale * ((x0 + x1) / 2);
+  const translateY = HEIGHT / 2 - scale * ((y0 + y1) / 2);
+
+  mapGroup
+    .transition()
+    .duration(600)
+    .attr("transform", `translate(${translateX},${translateY}) scale(${scale})`);
+
+  searchInput.value = selectedCountryName;
+  clearBtn.hidden = false;
+  hideResults();
+}
+
+function clearSelection() {
+  if (!selectedCountryName) return;
+  selectedCountryName = null;
+
+  mapGroup.selectAll("path.country").classed("selected", false);
+  mapGroup.transition().duration(400).attr("transform", null);
+
+  searchInput.value = "";
+  clearBtn.hidden = true;
+}
+
+function hideResults() {
+  searchResults.hidden = true;
+  searchResults.innerHTML = "";
+}
+
+function showResults(matches) {
+  searchResults.innerHTML = "";
+  matches.forEach((feature) => {
+    const li = document.createElement("li");
+    li.textContent = feature.properties.name;
+    li.addEventListener("click", () => selectCountry(feature));
+    searchResults.appendChild(li);
+  });
+  searchResults.hidden = matches.length === 0;
+}
+
+searchInput.addEventListener("input", () => {
+  const query = searchInput.value.trim().toLowerCase();
+  if (!query || !worldData) {
+    hideResults();
+    return;
+  }
+  const matches = worldData.features
+    .filter((f) => f.properties.name.toLowerCase().includes(query))
+    .sort((a, b) => {
+      const nameA = a.properties.name.toLowerCase();
+      const nameB = b.properties.name.toLowerCase();
+      return nameA.indexOf(query) - nameB.indexOf(query);
+    })
+    .slice(0, 8);
+  showResults(matches);
+});
+
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    const query = searchInput.value.trim().toLowerCase();
+    const match = worldData?.features.find((f) => f.properties.name.toLowerCase().includes(query));
+    if (match) selectCountry(match);
+  } else if (event.key === "Escape") {
+    clearSelection();
+  }
+});
+
+clearBtn.addEventListener("click", clearSelection);
 
 // ============================================================
 // INIT — fetch GeoJSON then render
