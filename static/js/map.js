@@ -626,7 +626,13 @@ function buildComparePanel(panelEl, initialProjId) {
     .attr("preserveAspectRatio", "xMidYMid meet");
 
   svg.append("rect").attr("class", "ocean").attr("width", width).attr("height", height);
-  const panel = { projId: initialProjId, mapGroup: svg.append("g").attr("class", "countries"), width, height };
+  const panel = {
+    projId: initialProjId,
+    mapGroup: svg.append("g").attr("class", "countries"),
+    tissotGroup: svg.append("g").attr("class", "tissot-layer"),
+    width,
+    height,
+  };
 
   panel.render = () => {
     const projDef     = PROJECTIONS.find((p) => p.id === panel.projId);
@@ -644,6 +650,7 @@ function buildComparePanel(panelEl, initialProjId) {
     panel.projId = select.value;
     panel.render();
     applySelectionToPanel(panel);
+    refreshTissot();
   });
 
   return panel;
@@ -702,6 +709,7 @@ compareToggleBtn.addEventListener("click", () => {
     comparePanels.forEach((p) => p.render());
   }
   comparePanels.forEach(applySelectionToPanel);
+  refreshTissot();
 });
 
 // ============================================================
