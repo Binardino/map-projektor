@@ -204,6 +204,9 @@ svg.append("rect").attr("class", "ocean").attr("width", WIDTH).attr("height", HE
 // Group that holds all country <path> elements
 const mapGroup = svg.append("g").attr("class", "countries");
 
+// Tissot's indicatrix overlay — appended after mapGroup so it paints on top
+const tissotGroup = svg.append("g").attr("class", "tissot-layer");
+
 // ============================================================
 // APPLICATION STATE
 // ============================================================
@@ -429,6 +432,7 @@ async function transitionTo(newProjId) {
   currentProjectionId = newProjId;
   setActiveButton(newProjId);
   updateInfo(toDef);
+  refreshTissot();
   isAnimating = false;
 }
 
@@ -701,6 +705,72 @@ compareToggleBtn.addEventListener("click", () => {
 });
 
 // ============================================================
+// TISSOT'S INDICATRIX OVERLAY
+//
+// A grid of identically-sized geographic circles, projected like
+// any other geometry. Each circle becomes an ellipse whose shape
+// and size reveal the projection's local distortion — the
+// standard cartography tool for comparing projections objectively.
+// Toggled on demand; recomputed on projection switch and (if
+// active) mirrored onto both comparison panels.
+// ============================================================
+const tissotToggleBtn = document.getElementById("tissot-toggle");
+
+const TISSOT_STEP   = 30; // degrees between grid points
+const TISSOT_RADIUS = 4;  // degrees — the geographic circle radius
+
+const tissotPoints = [];
+for (let lat = -90 + TISSOT_STEP; lat <= 90 - TISSOT_STEP; lat += TISSOT_STEP) {
+  for (let lon = -180; lon < 180; lon += TISSOT_STEP) {
+    tissotPoints.push([lon, lat]);
+  }
+}
+
+let tissotVisible = false;
+
+function renderTissot(group, projection) {
+  const pathFn = d3.geoPath().projection(projection);
+  const circles = group.selectAll("path.tissot").data(tissotPoints);
+  circles
+    .enter()
+    .append("path")
+    .attr("class", "tissot")
+    .merge(circles)
+    .attr("d", (d) => pathFn(d3.geoCircle().center(d).radius(TISSOT_RADIUS)()));
+  circles.exit().remove();
+}
+
+function clearTissot(group) {
+  group.selectAll("path.tissot").remove();
+}
+
+// Re-renders (or clears) the overlay on the single map and, if active,
+// on both comparison panels — called after any projection change.
+function refreshTissot() {
+  if (!tissotVisible) {
+    clearTissot(tissotGroup);
+    if (compareMode && comparePanels) comparePanels.forEach((p) => clearTissot(p.tissotGroup));
+    return;
+  }
+
+  const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  renderTissot(tissotGroup, makeProjection(currentDef));
+
+  if (compareMode && comparePanels) {
+    comparePanels.forEach((panel) => {
+      const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
+      renderTissot(panel.tissotGroup, projDef.d3fn().fitSize([panel.width, panel.height], { type: "Sphere" }));
+    });
+  }
+}
+
+tissotToggleBtn.addEventListener("click", () => {
+  tissotVisible = !tissotVisible;
+  tissotToggleBtn.classList.toggle("active", tissotVisible);
+  refreshTissot();
+});
+
+// ============================================================
 // INIT — fetch GeoJSON then render
 // ============================================================
 async function init() {
@@ -711,6 +781,7 @@ async function init() {
   buildSidebar();
   renderMap(makeProjection(initialProj));
   updateInfo(initialProj);
+  refreshTissot();
 }
 
 init();
