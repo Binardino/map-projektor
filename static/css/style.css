@@ -182,10 +182,29 @@ body {
 }
 
 #compare-toggle:hover,
-#compare-toggle.active {
+#compare-toggle.active,
+#tissot-toggle:hover,
+#tissot-toggle.active {
   background: var(--active-bg);
   border-color: var(--active-border);
   color: var(--text-primary);
+}
+
+#tissot-toggle {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 0 12px 10px;
+  padding: 7px 10px;
+  font-family: var(--font-family);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.15s, color 0.15s;
 }
 
 #projection-list.disabled-list {
@@ -272,6 +291,20 @@ body {
 
 .country.selected {
   fill: var(--accent);
+}
+
+/* Tissot's indicatrix overlay — pointer-events off so it never
+   steals clicks from the country paths underneath it. */
+.tissot-layer {
+  pointer-events: none;
+}
+
+.tissot {
+  fill: var(--accent);
+  fill-opacity: 0.18;
+  stroke: var(--accent);
+  stroke-width: 1px;
+  stroke-opacity: 0.8;
 }
 
 /* ============================================================
