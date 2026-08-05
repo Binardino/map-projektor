@@ -413,6 +413,72 @@ body {
 }
 
 /* ============================================================
+   MOBILE — off-canvas sidebar drawer + stacked comparison
+   ============================================================ */
+#sidebar-toggle {
+  display: none;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 110;
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+#sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+#sidebar-backdrop:not([hidden]) {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  #sidebar-toggle {
+    display: block;
+  }
+
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: min(80vw, 280px);
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.25);
+  }
+
+  #sidebar.open {
+    transform: translateX(0);
+  }
+
+  #sidebar-header {
+    padding-left: 56px; /* clears the fixed toggle button */
+  }
+
+  #compare-container {
+    flex-direction: column;
+  }
+
+  .compare-panel + .compare-panel {
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+}
+
+/* ============================================================
    THEME OVERRIDES — each block overrides the :root variables
    ============================================================ */
 
