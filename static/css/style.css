@@ -307,6 +307,13 @@ body {
   stroke-opacity: 0.8;
 }
 
+.tissot-graticule {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 0.5px;
+  stroke-opacity: 0.45;
+}
+
 /* ============================================================
    COMPARE MODE — two independent panels side by side
    ============================================================ */

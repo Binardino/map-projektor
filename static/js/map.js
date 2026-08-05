@@ -761,8 +761,17 @@ for (let lat = -90 + TISSOT_STEP; lat <= 90 - TISSOT_STEP; lat += TISSOT_STEP) {
 
 let tissotVisible = false;
 
+// Isolated ellipses don't read as "a grid" on their own — the graticule
+// (meridian/parallel lines, same 30° step as the circle spacing) gives
+// the eye a reference frame, same as any textbook Tissot illustration.
+const tissotGraticule = d3.geoGraticule().step([TISSOT_STEP, TISSOT_STEP]);
+
 function renderTissot(group, projection) {
   const pathFn = d3.geoPath().projection(projection);
+
+  const grid = group.selectAll("path.tissot-graticule").data([tissotGraticule()]);
+  grid.enter().append("path").attr("class", "tissot-graticule").merge(grid).attr("d", pathFn);
+
   const circles = group.selectAll("path.tissot").data(tissotPoints);
   circles
     .enter()
@@ -774,7 +783,7 @@ function renderTissot(group, projection) {
 }
 
 function clearTissot(group) {
-  group.selectAll("path.tissot").remove();
+  group.selectAll("path.tissot, path.tissot-graticule").remove();
 }
 
 // Re-renders (or clears) the overlay on the single map and, if active,
