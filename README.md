@@ -6,7 +6,11 @@ An interactive world map that renders 17 cartographic projections and animates s
 
 - **17 projections** across 6 families: Cylindrical, Pseudocylindrical, Azimuthal, Conic, Pseudoazimuthal, and Polar
 - **Animated transitions** — switching projection morphs the map through an intermediate orthographic globe (fold → spin → unfold) rather than snapping instantly
-- **Multiple color themes** — Blue (default), Forest, Dark Mode, selectable at runtime
+- **Country search & click-to-zoom** — search or click a country to pan/zoom and highlight it, useful for comparing its apparent size across projections
+- **Side-by-side comparison mode** — two independently selectable projections rendered at once, for direct visual comparison
+- **Tissot's indicatrix overlay** — a graticule + grid of geographic circles that become ellipses under projection, revealing each projection's local distortion (the standard cartography teaching tool)
+- **Multiple color themes** — Blue (default), Forest, Dark Mode, selectable at runtime and persisted across reloads
+- **Responsive layout** — off-canvas sidebar drawer and stacked comparison panels under 768px
 - **Continent-colored countries** rendered from simplified Natural Earth data
 - A short description and metadata (family, year introduced) for each projection
 
@@ -97,6 +101,10 @@ Projections requiring `d3-geo-projection` (loaded via CDN in `index.html`): Robi
 ## Changing the Theme
 
 Edit the `:root` block (and theme override blocks) in `static/css/style.css`. All colors are CSS variables, so a single edit propagates across the whole UI.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a sprint-by-sprint history of features and fixes.
 
 ## License
 
