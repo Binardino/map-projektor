@@ -7,6 +7,7 @@ An interactive world map that renders 17 cartographic projections and animates s
 - **17 projections** across 6 families: Cylindrical, Pseudocylindrical, Azimuthal, Conic, Pseudoazimuthal, and Polar
 - **Animated transitions** — switching projection morphs the map through an intermediate orthographic globe (fold → spin → unfold) rather than snapping instantly
 - **Country search & click-to-zoom** — search or click a country to pan/zoom and highlight it, useful for comparing its apparent size across projections
+- **Persistent zoom & wheel zoom** — a selected country stays selected and zoomed across projection switches (dezoom → morph → rezoom automatically); mouse wheel zooms further in/out centered on the country while it's selected
 - **Side-by-side comparison mode** — two independently selectable projections rendered at once, for direct visual comparison
 - **Tissot's indicatrix overlay** — a graticule + grid of geographic circles that become ellipses under projection, revealing each projection's local distortion (the standard cartography teaching tool)
 - **Multiple color themes** — Blue (default), Forest, Dark Mode, selectable at runtime and persisted across reloads
