@@ -730,8 +730,9 @@ function closeSidebar() {
 }
 
 sidebarToggleBtn.addEventListener("click", () => {
-  sidebarEl.classList.add("open");
-  sidebarBackdrop.hidden = false;
+  const willOpen = !sidebarEl.classList.contains("open");
+  sidebarEl.classList.toggle("open", willOpen);
+  sidebarBackdrop.hidden = !willOpen;
 });
 
 sidebarBackdrop.addEventListener("click", closeSidebar);
