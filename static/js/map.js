@@ -415,7 +415,19 @@ async function polarTransition(fromDef, toDef) {
 // ============================================================
 async function transitionTo(newProjId) {
   isAnimating = true;
-  clearSelection();
+
+  // If a country is selected, dezoom to the world view *before* the morph
+  // starts. The zoom is a static transform, not recomputed per animation
+  // frame — staying zoomed in while the projection morphs would drift the
+  // country out of the viewport mid-animation (bounds only hold for the
+  // projection they were computed from), then snap once rezoomed at the
+  // end. Returning to the world view first avoids that glitch entirely;
+  // the morph itself is unaffected by any zoom state.
+  if (selectedCountryName) {
+    await new Promise((resolve) => {
+      mapGroup.transition().duration(400).attr("transform", null).on("end", resolve);
+    });
+  }
 
   const fromDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
   const toDef   = PROJECTIONS.find((p) => p.id === newProjId);
@@ -433,6 +445,14 @@ async function transitionTo(newProjId) {
   setActiveButton(newProjId);
   updateInfo(toDef);
   refreshTissot();
+
+  // Rezoom on the same country in the new projection, at the same
+  // zoomFactor (selectCountry/handleMapWheel already keep it projection-
+  // independent — see the COUNTRY SEARCH & SELECTION comment above).
+  if (selectedCountryName) {
+    applyCountryZoom();
+  }
+
   isAnimating = false;
 }
 
@@ -487,41 +507,71 @@ function switchProjection(newProjId) {
 // zooms the SVG country group to its bounding box and highlights
 // it. This is a plain transform on top of the existing rendered
 // paths — no projection recalculation — so it behaves identically
-// across all 17 projections. Bounds are projection-specific, so
-// switching projection clears the selection (see transitionTo).
+// across all 17 projections.
+//
+// Zoom is tracked as `zoomFactor`, a multiplier on top of the
+// country's default auto-fit scale for whatever projection is
+// currently active — not an absolute SVG scale. A fitted scale
+// number is projection-specific (each projection's fitSize picks a
+// different base scale to fill the same viewport), so "zoomed in
+// 3x past the default framing" is the only notion of zoom that
+// stays meaningful across a projection switch (see transitionTo,
+// which dezooms before the morph and rezooms after at the same
+// zoomFactor).
 // ============================================================
 const searchInput   = document.getElementById("country-search-input");
 const searchResults = document.getElementById("country-search-results");
 const clearBtn       = document.getElementById("country-search-clear");
 
+const BASE_MAX_SCALE = 8;  // default auto-fit cap, as a fraction of the viewport
+const MAX_ZOOM_FACTOR = 6; // ceiling for manual wheel zoom past the default framing
+
 let selectedCountryName = null;
+let zoomFactor = 1;
+
+// Bounding-box fit for `feature` under `projDef`, in that projection's own
+// fitted coordinate space — recomputed fresh since it depends on whichever
+// projection is currently on screen.
+function computeCountryFit(feature, projDef) {
+  const pathFn = d3.geoPath().projection(makeProjection(projDef));
+  const [[x0, y0], [x1, y1]] = pathFn.bounds(feature);
+  const PADDING = 60;
+  const scale = Math.min(
+    (WIDTH - PADDING) / Math.max(x1 - x0, 1),
+    (HEIGHT - PADDING) / Math.max(y1 - y0, 1),
+    BASE_MAX_SCALE
+  );
+  return { scale, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
+}
+
+// Applies the current selection + zoomFactor as a transform on mapGroup.
+// duration=0 skips the transition for per-frame wheel updates.
+function applyCountryZoom(duration = 600) {
+  const feature = worldData.features.find((f) => f.properties.name === selectedCountryName);
+  const projDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const fit     = computeCountryFit(feature, projDef);
+  const scale   = fit.scale * zoomFactor;
+  const translateX = WIDTH / 2 - scale * fit.cx;
+  const translateY = HEIGHT / 2 - scale * fit.cy;
+  const transformStr = `translate(${translateX},${translateY}) scale(${scale})`;
+
+  if (duration > 0) {
+    mapGroup.transition().duration(duration).attr("transform", transformStr);
+  } else {
+    mapGroup.attr("transform", transformStr);
+  }
+}
 
 function selectCountry(feature) {
   if (!feature) return;
   selectedCountryName = feature.properties.name;
+  zoomFactor = 1;
 
   mapGroup
     .selectAll("path.country")
     .classed("selected", (d) => d.properties.name === selectedCountryName);
 
-  const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  const pathFn      = d3.geoPath().projection(makeProjection(currentDef));
-  const [[x0, y0], [x1, y1]] = pathFn.bounds(feature);
-
-  const PADDING   = 60;
-  const MAX_SCALE = 8;
-  const scale = Math.min(
-    (WIDTH - PADDING) / Math.max(x1 - x0, 1),
-    (HEIGHT - PADDING) / Math.max(y1 - y0, 1),
-    MAX_SCALE
-  );
-  const translateX = WIDTH / 2 - scale * ((x0 + x1) / 2);
-  const translateY = HEIGHT / 2 - scale * ((y0 + y1) / 2);
-
-  mapGroup
-    .transition()
-    .duration(600)
-    .attr("transform", `translate(${translateX},${translateY}) scale(${scale})`);
+  applyCountryZoom();
 
   searchInput.value = selectedCountryName;
   clearBtn.hidden = false;
@@ -530,9 +580,21 @@ function selectCountry(feature) {
   if (compareMode) comparePanels.forEach(applySelectionToPanel);
 }
 
+// Wheel-to-zoom, centred on the selected country's bounding-box centre.
+// Only active while a country is selected and no transition is running.
+function handleMapWheel(event) {
+  if (!selectedCountryName || isAnimating) return;
+  event.preventDefault();
+  const factor = Math.exp(-event.deltaY * 0.0015);
+  zoomFactor = Math.min(MAX_ZOOM_FACTOR, Math.max(1, zoomFactor * factor));
+  applyCountryZoom(0);
+}
+svg.node().addEventListener("wheel", handleMapWheel, { passive: false });
+
 function clearSelection() {
   if (!selectedCountryName) return;
   selectedCountryName = null;
+  zoomFactor = 1;
 
   mapGroup.selectAll("path.country").classed("selected", false);
   mapGroup.transition().duration(400).attr("transform", null);
