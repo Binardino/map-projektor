@@ -213,6 +213,53 @@ body {
 }
 
 /* ============================================================
+   RECENTER PRESETS
+   ============================================================ */
+#recenter-panel {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+#recenter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#recenter-list.disabled-list {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.recenter-btn {
+  text-align: left;
+  padding: 6px 8px;
+  font-family: var(--font-family);
+  font-size: 11px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.recenter-btn:hover,
+.recenter-btn.active {
+  background: var(--active-bg);
+  border-color: var(--active-border);
+  color: var(--text-primary);
+}
+
+/* ============================================================
    SIDEBAR BUTTONS
    ============================================================ */
 .proj-btn {

@@ -217,9 +217,15 @@ let worldData = null;
 // ============================================================
 // PROJECTION FACTORY
 // fitSize scales and centres the projection to fill the viewport.
+// rotationOverride (optional [lambda, phi, gamma]) recenters the sphere
+// before fitting — used by the recenter presets below. Overrides any
+// rotate() the projection's own d3fn already set (e.g. the polar views),
+// which is why presets are disabled for those (see RECENTER_INCOMPATIBLE).
 // ============================================================
-function makeProjection(projDef) {
-  return projDef.d3fn().fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+function makeProjection(projDef, rotationOverride = null) {
+  const projection = projDef.d3fn();
+  if (rotationOverride) projection.rotate(rotationOverride);
+  return projection.fitSize([WIDTH, HEIGHT], { type: "Sphere" });
 }
 
 // ============================================================
@@ -445,6 +451,7 @@ async function transitionTo(newProjId) {
   setActiveButton(newProjId);
   updateInfo(toDef);
   refreshTissot();
+  refreshRecenterAvailability();
 
   // Rezoom on the same country in the new projection, at the same
   // zoomFactor (selectCountry/handleMapWheel already keep it projection-
@@ -491,12 +498,113 @@ function setActiveButton(projId) {
 }
 
 // ============================================================
+// RECENTER PRESETS
+//
+// Every default map (Europe/Atlantic-centred) is itself a cartographic
+// convention, not a neutral fact — these presets recentre the current
+// projection the way other cultures' atlases customarily do. Applied as
+// an instant re-render (no morph), single-map view only.
+//
+// Scope kept deliberately small: a preset overrides any rotate() the
+// active projection's own d3fn already sets, so it's disabled on
+// projections where that rotate is load-bearing (the two polar views)
+// or tuned for one hemisphere (Albers, calibrated for the US). Presets
+// and the country-zoom selection are mutually exclusive for now — each
+// clears the other — since composing "zoomed on a country" with "the
+// whole sphere rotated" isn't handled by the zoom math yet. Switching
+// projection always resets to World View, so the animated morph never
+// has to deal with a rotation override either.
+//
+// The "upside-down" preset is a true vertical mirror (flipVertical),
+// not a 180° rotate() — d3's rotate() performs a rigid rotation of the
+// sphere, which has no fixed axis at the equator: a 180° roll there
+// flips both north/south AND east/west (point symmetry), not the
+// clean south-up-only mirror real upside-down maps use. Reflection
+// isn't expressible as a sphere rotation, so it's applied as a 2D SVG
+// transform on top of the (longitude-only) rotated render instead.
+// ============================================================
+const RECENTER_PRESETS = [
+  { id: "world", name: "World View", rotate: null,
+    description: "Default centering." },
+  { id: "china", name: "China-centered", rotate: [-105, 0, 0],
+    description: "Common convention in Chinese school atlases — centred near 105°E, splitting the world along the Atlantic instead of the Pacific." },
+  { id: "usaPacific", name: "USA / Pacific-centered", rotate: [98, 0, 0],
+    description: "Common convention in American atlases — centred near 98°W, splitting the world through Europe and Africa." },
+  { id: "southAmericaFlipped", name: "South America (upside-down)", rotate: [60, 0, 0], flipVertical: true,
+    description: "South-up orientation, inspired by McArthur's Universal Corrective Map (1979) — a deliberate challenge to the assumption that \"north = up\"." },
+];
+
+const RECENTER_INCOMPATIBLE = new Set(["albers", "polarNorth", "polarSouth"]);
+
+let currentRecenterRotate = null;
+let currentRecenterFlip = false;
+
+function buildRecenterPanel() {
+  const nav = document.getElementById("recenter-list");
+  RECENTER_PRESETS.forEach((preset) => {
+    const btn = document.createElement("button");
+    btn.className = "recenter-btn" + (preset.id === "world" ? " active" : "");
+    btn.dataset.presetId = preset.id;
+    btn.title = preset.description;
+    btn.textContent = preset.name;
+    btn.addEventListener("click", () => applyRecenter(preset.id));
+    nav.appendChild(btn);
+  });
+}
+
+// Mirrors mapGroup/tissotGroup vertically about the viewport's horizontal
+// centreline (translate(0,H) scale(1,-1)) when the active preset asks for
+// it, or clears the transform otherwise.
+function applyRecenterFlip() {
+  const flipTransform = currentRecenterFlip ? `translate(0, ${HEIGHT}) scale(1, -1)` : null;
+  mapGroup.attr("transform", flipTransform);
+  tissotGroup.attr("transform", flipTransform);
+}
+
+function applyRecenter(presetId) {
+  if (isAnimating || RECENTER_INCOMPATIBLE.has(currentProjectionId)) return;
+
+  const preset = RECENTER_PRESETS.find((p) => p.id === presetId);
+  currentRecenterRotate = preset.rotate;
+  currentRecenterFlip = !!preset.flipVertical;
+
+  document.querySelectorAll(".recenter-btn").forEach((b) => {
+    b.classList.toggle("active", b.dataset.presetId === presetId);
+  });
+
+  clearSelection(); // mutually exclusive with the country-zoom selection, see note above
+
+  const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  renderMap(makeProjection(currentDef, currentRecenterRotate));
+  applyRecenterFlip();
+  refreshTissot();
+}
+
+function resetRecenter() {
+  currentRecenterRotate = null;
+  currentRecenterFlip = false;
+  // Cleared synchronously (no transition): if a projection switch is about
+  // to run, the morph must not inherit a leftover flip transform on the
+  // group it repaints into.
+  mapGroup.attr("transform", null);
+  tissotGroup.attr("transform", null);
+  document.querySelectorAll(".recenter-btn").forEach((b) => {
+    b.classList.toggle("active", b.dataset.presetId === "world");
+  });
+}
+
+function refreshRecenterAvailability() {
+  document.getElementById("recenter-list").classList.toggle("disabled-list", RECENTER_INCOMPATIBLE.has(currentProjectionId));
+}
+
+// ============================================================
 // SWITCH PROJECTION
 // ============================================================
 function switchProjection(newProjId) {
   if (isAnimating || newProjId === currentProjectionId) return;
   if (!PROJECTIONS.find((p) => p.id === newProjId)) return;
   closeSidebar(); // no-op on desktop; on mobile, reveals the map after picking
+  resetRecenter(); // presets don't survive a projection change, see RECENTER PRESETS note
   transitionTo(newProjId);
 }
 
@@ -564,6 +672,16 @@ function applyCountryZoom(duration = 600) {
 
 function selectCountry(feature) {
   if (!feature) return;
+
+  // Mutually exclusive with recenter presets (see RECENTER PRESETS note):
+  // the map must be re-rendered unrotated before we compute/zoom to bounds,
+  // since applyCountryZoom's bbox math assumes the default orientation.
+  if (currentRecenterRotate) {
+    resetRecenter();
+    renderMap(makeProjection(PROJECTIONS.find((p) => p.id === currentProjectionId)));
+    refreshTissot();
+  }
+
   selectedCountryName = feature.properties.name;
   zoomFactor = 1;
 
@@ -755,6 +873,7 @@ compareToggleBtn.addEventListener("click", () => {
   compareMode = !compareMode;
   compareToggleBtn.classList.toggle("active", compareMode);
   projectionListEl.classList.toggle("disabled-list", compareMode);
+  document.getElementById("recenter-list").classList.toggle("disabled-list", compareMode);
   mapContainerEl.hidden   = compareMode;
   infoEl.hidden           = compareMode;
   compareContainer.hidden = !compareMode;
@@ -858,7 +977,7 @@ function refreshTissot() {
   }
 
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  renderTissot(tissotGroup, makeProjection(currentDef));
+  renderTissot(tissotGroup, makeProjection(currentDef, currentRecenterRotate));
 
   if (compareMode && comparePanels) {
     comparePanels.forEach((panel) => {
@@ -883,9 +1002,11 @@ async function init() {
 
   const initialProj = PROJECTIONS.find((p) => p.id === currentProjectionId);
   buildSidebar();
+  buildRecenterPanel();
   renderMap(makeProjection(initialProj));
   updateInfo(initialProj);
   refreshTissot();
+  refreshRecenterAvailability();
 }
 
 init();
