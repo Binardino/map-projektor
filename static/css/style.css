@@ -184,7 +184,9 @@ body {
 #compare-toggle:hover,
 #compare-toggle.active,
 #tissot-toggle:hover,
-#tissot-toggle.active {
+#tissot-toggle.active,
+#flightpath-toggle:hover,
+#flightpath-toggle.active {
   background: var(--active-bg);
   border-color: var(--active-border);
   color: var(--text-primary);
@@ -205,6 +207,29 @@ body {
   cursor: pointer;
   border-radius: 2px;
   transition: background 0.15s, color 0.15s;
+}
+
+#flightpath-toggle {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 0 12px 4px;
+  padding: 7px 10px;
+  font-family: var(--font-family);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.15s, color 0.15s;
+}
+
+#flightpath-distance {
+  padding: 0 12px 10px;
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 #projection-list.disabled-list {
@@ -359,6 +384,24 @@ body {
   stroke: var(--accent);
   stroke-width: 0.5px;
   stroke-opacity: 0.45;
+}
+
+/* Flight path overlay — pointer-events off so it never blocks the
+   click-to-place-point handler on the layers underneath it. */
+.flightpath-layer {
+  pointer-events: none;
+}
+
+.flightpath-path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2px;
+}
+
+.flightpath-marker {
+  fill: var(--accent);
+  stroke: var(--bg-app);
+  stroke-width: 1.5px;
 }
 
 /* ============================================================
