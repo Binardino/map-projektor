@@ -207,6 +207,9 @@ const mapGroup = svg.append("g").attr("class", "countries");
 // Tissot's indicatrix overlay — appended after mapGroup so it paints on top
 const tissotGroup = svg.append("g").attr("class", "tissot-layer");
 
+// Flight path overlay — appended after tissotGroup so the arc paints on top
+const flightPathGroup = svg.append("g").attr("class", "flightpath-layer");
+
 // ============================================================
 // APPLICATION STATE
 // ============================================================
@@ -244,7 +247,9 @@ function renderMap(projection) {
     .append("path")
     .attr("class", "country")
     .attr("d", path)
-    .on("click", (event, d) => selectCountry(d));
+    .on("click", (event, d) => {
+      if (!flightPathMode) selectCountry(d);
+    });
 
   paths.attr("d", path);
 }
@@ -452,6 +457,7 @@ async function transitionTo(newProjId) {
   updateInfo(toDef);
   refreshTissot();
   refreshRecenterAvailability();
+  refreshFlightPath();
 
   // Rezoom on the same country in the new projection, at the same
   // zoomFactor (selectCountry/handleMapWheel already keep it projection-
@@ -564,6 +570,8 @@ function applyRecenterFlip() {
 function applyRecenter(presetId) {
   if (isAnimating || RECENTER_INCOMPATIBLE.has(currentProjectionId)) return;
 
+  if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
+
   const preset = RECENTER_PRESETS.find((p) => p.id === presetId);
   currentRecenterRotate = preset.rotate;
   currentRecenterFlip = !!preset.flipVertical;
@@ -672,6 +680,8 @@ function applyCountryZoom(duration = 600) {
 
 function selectCountry(feature) {
   if (!feature) return;
+
+  if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
 
   // Mutually exclusive with recenter presets (see RECENTER PRESETS note):
   // the map must be re-rendered unrotated before we compute/zoom to bounds,
@@ -994,6 +1004,127 @@ tissotToggleBtn.addEventListener("click", () => {
 });
 
 // ============================================================
+// FLIGHT PATH / GREAT CIRCLE
+//
+// Click two points anywhere on the map to draw the great-circle
+// route between them, with its real-world distance. Switching
+// projection re-renders the same route, showing how its curvature
+// changes — this is what makes "shortest path" distortion visible
+// (e.g. why transpolar flights curve near the pole on a globe but
+// look wrong on a flat Mercator map).
+//
+// Endpoints are stored as [lon, lat] — projection-independent, like
+// the Tissot grid points — so refreshFlightPath() can re-project and
+// redraw them after any projection switch, the same pattern as
+// refreshTissot(). Mutually exclusive with country selection and
+// recenter presets (same convention those two already use with each
+// other): turning flight-path mode on clears both; selecting a
+// country or a recenter preset turns flight-path mode off.
+// ============================================================
+const flightPathToggleBtn  = document.getElementById("flightpath-toggle");
+const flightPathDistanceEl = document.getElementById("flightpath-distance");
+
+const EARTH_RADIUS_KM = 6371;
+
+let flightPathMode = false;
+let flightPathA = null; // [lon, lat] or null
+let flightPathB = null; // [lon, lat] or null
+
+// Full clear-and-redraw rather than a D3 data join: at most one path and
+// two markers, redrawn only on discrete events (click, projection switch),
+// never per animation frame — a join would add complexity for no benefit.
+function renderFlightPath(group, projection) {
+  group.selectAll("*").remove();
+  if (!flightPathA) return;
+
+  const pathFn = d3.geoPath().projection(projection);
+
+  if (flightPathB) {
+    const arc = d3.geoInterpolate(flightPathA, flightPathB);
+    const coordinates = d3.range(0, 1.0001, 1 / 100).map(arc);
+    const line = pathFn({ type: "LineString", coordinates });
+    if (line) group.append("path").attr("class", "flightpath-path").attr("d", line);
+  }
+
+  const points = flightPathB ? [flightPathA, flightPathB] : [flightPathA];
+  points.forEach((d) => {
+    const screen = projection(d);
+    if (!screen) return; // point fell outside the visible hemisphere after a projection switch
+    group
+      .append("circle")
+      .attr("class", "flightpath-marker")
+      .attr("r", 4)
+      .attr("cx", screen[0])
+      .attr("cy", screen[1]);
+  });
+}
+
+function updateFlightPathDistanceLabel() {
+  if (flightPathA && flightPathB) {
+    const km = Math.round(d3.geoDistance(flightPathA, flightPathB) * EARTH_RADIUS_KM);
+    flightPathDistanceEl.textContent = `Distance: ${km.toLocaleString()} km`;
+    flightPathDistanceEl.hidden = false;
+  } else {
+    flightPathDistanceEl.hidden = true;
+  }
+}
+
+// Re-renders the route on the single map and, if active, on both
+// comparison panels — called after any projection change.
+function refreshFlightPath() {
+  const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  renderFlightPath(flightPathGroup, makeProjection(currentDef, currentRecenterRotate));
+
+  if (compareMode && comparePanels) {
+    comparePanels.forEach((panel) => {
+      const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
+      renderFlightPath(panel.flightPathGroup, projDef.d3fn().fitSize([panel.width, panel.height], { type: "Sphere" }));
+    });
+  }
+
+  updateFlightPathDistanceLabel();
+}
+
+function setFlightPathMode(active) {
+  flightPathMode = active;
+  flightPathToggleBtn.classList.toggle("active", flightPathMode);
+  flightPathA = null;
+  flightPathB = null;
+  refreshFlightPath();
+}
+
+flightPathToggleBtn.addEventListener("click", () => {
+  if (isAnimating) return;
+  if (!flightPathMode) {
+    clearSelection();
+    resetRecenter();
+  }
+  setFlightPathMode(!flightPathMode);
+});
+
+// 1st click places A, 2nd places B and draws the route, 3rd starts over.
+function handleFlightPathClick(event) {
+  if (!flightPathMode || isAnimating) return;
+
+  const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const projection = makeProjection(currentDef, currentRecenterRotate);
+  const [x, y] = d3.pointer(event, svg.node());
+  const coords = projection.invert([x, y]);
+  if (!coords) return; // click landed outside the rendered sphere
+
+  if (!flightPathA) {
+    flightPathA = coords;
+  } else if (!flightPathB) {
+    flightPathB = coords;
+  } else {
+    flightPathA = coords;
+    flightPathB = null;
+  }
+  refreshFlightPath();
+}
+svg.node().addEventListener("click", handleFlightPathClick);
+
+// ============================================================
 // INIT — fetch GeoJSON then render
 // ============================================================
 async function init() {
@@ -1007,6 +1138,7 @@ async function init() {
   updateInfo(initialProj);
   refreshTissot();
   refreshRecenterAvailability();
+  refreshFlightPath();
 }
 
 init();
