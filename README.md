@@ -10,6 +10,7 @@ An interactive world map that renders 17 cartographic projections and animates s
 - **Persistent zoom & wheel zoom** — a selected country stays selected and zoomed across projection switches (dezoom → morph → rezoom automatically); mouse wheel zooms further in/out centered on the country while it's selected
 - **Side-by-side comparison mode** — two independently selectable projections rendered at once, for direct visual comparison
 - **Tissot's indicatrix overlay** — a graticule + grid of geographic circles that become ellipses under projection, revealing each projection's local distortion (the standard cartography teaching tool)
+- **Recenter View presets** — China-centered, USA/Pacific-centered, and South America upside-down, curated examples showing that the default Europe-centered map is itself a convention, not a neutral baseline
 - **Multiple color themes** — Blue (default), Forest, Dark Mode, selectable at runtime and persisted across reloads
 - **Responsive layout** — off-canvas sidebar drawer and stacked comparison panels under 768px
 - **Continent-colored countries** rendered from simplified Natural Earth data

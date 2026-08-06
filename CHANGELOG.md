@@ -2,13 +2,14 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
-## 2026-08-05 — Mobile layout, Tissot fix & persistent country zoom
+## 2026-08-05 — Mobile layout, Tissot fix, persistent zoom & recentered projections
 
 ### Added
 - Responsive layout: off-canvas sidebar drawer (hamburger toggle + backdrop) under 768px; comparison mode stacks its two panels vertically instead of side by side
 - Graticule (meridian/parallel) lines under the Tissot indicatrix overlay, so the distortion grid reads visually as a grid instead of isolated circles
 - Selecting a country and switching projection now dezooms to the world view, runs the transition, then rezooms on the same country — instead of dropping the selection outright
 - Mouse wheel zooms in/out on the selected country (centred on its bounding-box centre, clamped to 1×–6× past the default framing)
+- Recenter View presets: China-centered, USA/Pacific-centered, and South America upside-down — curated examples showing that the default Europe-centered map is itself a cartographic convention, not a neutral baseline. Disabled on projections where it wouldn't compose meaningfully (Albers, both polar views).
 
 ### Fixed
 - Sidebar hamburger button only opened the drawer, never closed it on a second click
