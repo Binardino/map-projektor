@@ -514,6 +514,14 @@ function setActiveButton(projId) {
 // whole sphere rotated" isn't handled by the zoom math yet. Switching
 // projection always resets to World View, so the animated morph never
 // has to deal with a rotation override either.
+//
+// The "upside-down" preset is a true vertical mirror (flipVertical),
+// not a 180° rotate() — d3's rotate() performs a rigid rotation of the
+// sphere, which has no fixed axis at the equator: a 180° roll there
+// flips both north/south AND east/west (point symmetry), not the
+// clean south-up-only mirror real upside-down maps use. Reflection
+// isn't expressible as a sphere rotation, so it's applied as a 2D SVG
+// transform on top of the (longitude-only) rotated render instead.
 // ============================================================
 const RECENTER_PRESETS = [
   { id: "world", name: "World View", rotate: null,
@@ -522,13 +530,14 @@ const RECENTER_PRESETS = [
     description: "Common convention in Chinese school atlases — centred near 105°E, splitting the world along the Atlantic instead of the Pacific." },
   { id: "usaPacific", name: "USA / Pacific-centered", rotate: [98, 0, 0],
     description: "Common convention in American atlases — centred near 98°W, splitting the world through Europe and Africa." },
-  { id: "southAmericaFlipped", name: "South America (upside-down)", rotate: [60, 0, 180],
+  { id: "southAmericaFlipped", name: "South America (upside-down)", rotate: [60, 0, 0], flipVertical: true,
     description: "South-up orientation, inspired by McArthur's Universal Corrective Map (1979) — a deliberate challenge to the assumption that \"north = up\"." },
 ];
 
 const RECENTER_INCOMPATIBLE = new Set(["albers", "polarNorth", "polarSouth"]);
 
 let currentRecenterRotate = null;
+let currentRecenterFlip = false;
 
 function buildRecenterPanel() {
   const nav = document.getElementById("recenter-list");
@@ -543,11 +552,21 @@ function buildRecenterPanel() {
   });
 }
 
+// Mirrors mapGroup/tissotGroup vertically about the viewport's horizontal
+// centreline (translate(0,H) scale(1,-1)) when the active preset asks for
+// it, or clears the transform otherwise.
+function applyRecenterFlip() {
+  const flipTransform = currentRecenterFlip ? `translate(0, ${HEIGHT}) scale(1, -1)` : null;
+  mapGroup.attr("transform", flipTransform);
+  tissotGroup.attr("transform", flipTransform);
+}
+
 function applyRecenter(presetId) {
   if (isAnimating || RECENTER_INCOMPATIBLE.has(currentProjectionId)) return;
 
   const preset = RECENTER_PRESETS.find((p) => p.id === presetId);
   currentRecenterRotate = preset.rotate;
+  currentRecenterFlip = !!preset.flipVertical;
 
   document.querySelectorAll(".recenter-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.presetId === presetId);
@@ -557,11 +576,18 @@ function applyRecenter(presetId) {
 
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
   renderMap(makeProjection(currentDef, currentRecenterRotate));
+  applyRecenterFlip();
   refreshTissot();
 }
 
 function resetRecenter() {
   currentRecenterRotate = null;
+  currentRecenterFlip = false;
+  // Cleared synchronously (no transition): if a projection switch is about
+  // to run, the morph must not inherit a leftover flip transform on the
+  // group it repaints into.
+  mapGroup.attr("transform", null);
+  tissotGroup.attr("transform", null);
   document.querySelectorAll(".recenter-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.presetId === "world");
   });
