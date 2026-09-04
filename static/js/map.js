@@ -560,11 +560,16 @@ function buildRecenterPanel() {
 
 // Mirrors mapGroup/tissotGroup vertically about the viewport's horizontal
 // centreline (translate(0,H) scale(1,-1)) when the active preset asks for
-// it, or clears the transform otherwise.
-function applyRecenterFlip() {
-  const flipTransform = currentRecenterFlip ? `translate(0, ${HEIGHT}) scale(1, -1)` : null;
-  mapGroup.attr("transform", flipTransform);
-  tissotGroup.attr("transform", flipTransform);
+// it, or eases back to identity otherwise. D3's "transform" attribute
+// interpolator decomposes both strings into translate/scale components, so
+// animating between them sweeps scaleY through 0 — the map visibly folds
+// flat then unfolds mirrored, reading as a top-down flip rather than a snap.
+function animateRecenterFlip(flip, duration = 600) {
+  const flipTransform = flip ? `translate(0, ${HEIGHT}) scale(1, -1)` : "translate(0, 0) scale(1, 1)";
+  return new Promise((resolve) => {
+    mapGroup.transition().duration(duration).attr("transform", flipTransform);
+    tissotGroup.transition().duration(duration).attr("transform", flipTransform).on("end", resolve);
+  });
 }
 
 // Spins the current projection's own sphere from the active rotation to the
@@ -612,13 +617,15 @@ async function applyRecenter(presetId) {
   isAnimating = true;
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
   await animateRecenterRotation(currentDef, fromRot, preset.rotate, 900);
-  isAnimating = false;
 
   currentRecenterRotate = preset.rotate;
-  currentRecenterFlip = !!preset.flipVertical;
-
   renderMap(makeProjection(currentDef, currentRecenterRotate)); // final render with native clipping
-  applyRecenterFlip();
+
+  const wantsFlip = !!preset.flipVertical;
+  if (wantsFlip !== currentRecenterFlip) await animateRecenterFlip(wantsFlip);
+  currentRecenterFlip = wantsFlip;
+
+  isAnimating = false;
   refreshTissot();
 }
 
