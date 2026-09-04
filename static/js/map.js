@@ -1150,11 +1150,11 @@ init();
 // ============================================================
 const THEME_STORAGE_KEY = "mapProjektorTheme";
 
+const themeSelect = document.getElementById("theme-select");
+
 function applyTheme(theme) {
   document.body.setAttribute("data-theme", theme);
-  document.querySelectorAll(".theme-btn").forEach((b) => {
-    b.classList.toggle("active", b.dataset.theme === theme);
-  });
+  themeSelect.value = theme;
 }
 
 const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -1162,9 +1162,7 @@ if (savedTheme !== null) {
   applyTheme(savedTheme);
 }
 
-document.querySelectorAll(".theme-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    applyTheme(btn.dataset.theme);
-    localStorage.setItem(THEME_STORAGE_KEY, btn.dataset.theme);
-  });
+themeSelect.addEventListener("change", () => {
+  applyTheme(themeSelect.value);
+  localStorage.setItem(THEME_STORAGE_KEY, themeSelect.value);
 });
