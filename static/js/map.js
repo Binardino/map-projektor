@@ -567,14 +567,41 @@ function applyRecenterFlip() {
   tissotGroup.attr("transform", flipTransform);
 }
 
-function applyRecenter(presetId) {
+// Spins the current projection's own sphere from the active rotation to the
+// preset's, so recentering reads as a camera pan instead of a hard cut.
+// Mirrors animateRotation's per-frame rotate() + repath loop, but against
+// the live projection type instead of a fixed orthographic globe.
+function animateRecenterRotation(projDef, fromRot, toRot, duration) {
+  const from = fromRot || [0, 0, 0];
+  const to   = toRot || [0, 0, 0];
+  const projection = projDef.d3fn().fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+  const pathFn      = d3.geoPath().projection(projection);
+  const countries   = mapGroup.selectAll("path.country");
+
+  return new Promise((resolve) => {
+    const timer = d3.timer((elapsed) => {
+      const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
+      projection.rotate([
+        from[0] + (to[0] - from[0]) * t,
+        from[1] + (to[1] - from[1]) * t,
+        (from[2] || 0) + ((to[2] || 0) - (from[2] || 0)) * t,
+      ]);
+      countries.attr("d", (d) => pathFn(d) || "");
+      if (elapsed >= duration) {
+        timer.stop();
+        resolve();
+      }
+    });
+  });
+}
+
+async function applyRecenter(presetId) {
   if (isAnimating || RECENTER_INCOMPATIBLE.has(currentProjectionId)) return;
 
   if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
 
   const preset = RECENTER_PRESETS.find((p) => p.id === presetId);
-  currentRecenterRotate = preset.rotate;
-  currentRecenterFlip = !!preset.flipVertical;
+  const fromRot = currentRecenterRotate;
 
   document.querySelectorAll(".recenter-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.presetId === presetId);
@@ -582,8 +609,15 @@ function applyRecenter(presetId) {
 
   clearSelection(); // mutually exclusive with the country-zoom selection, see note above
 
+  isAnimating = true;
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  renderMap(makeProjection(currentDef, currentRecenterRotate));
+  await animateRecenterRotation(currentDef, fromRot, preset.rotate, 900);
+  isAnimating = false;
+
+  currentRecenterRotate = preset.rotate;
+  currentRecenterFlip = !!preset.flipVertical;
+
+  renderMap(makeProjection(currentDef, currentRecenterRotate)); // final render with native clipping
   applyRecenterFlip();
   refreshTissot();
 }
