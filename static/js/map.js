@@ -922,6 +922,7 @@ function applySelectionToPanel(panel) {
 
 compareToggleBtn.addEventListener("click", () => {
   compareMode = !compareMode;
+  if (compareMode && flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
   compareToggleBtn.classList.toggle("active", compareMode);
   projectionListEl.classList.toggle("disabled-list", compareMode);
   document.getElementById("recenter-list").classList.toggle("disabled-list", compareMode);
@@ -1117,7 +1118,10 @@ function refreshFlightPath() {
   renderFlightPath(flightPathGroup, makeProjection(currentDef, currentRecenterRotate));
 
   if (compareMode && comparePanels) {
+    // Panels don't get a flightPathGroup until Task 3 wires it up — skip
+    // those so this doesn't crash in the meantime.
     comparePanels.forEach((panel) => {
+      if (!panel.flightPathGroup) return;
       const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
       renderFlightPath(panel.flightPathGroup, projDef.d3fn().fitSize([panel.width, panel.height], { type: "Sphere" }));
     });
