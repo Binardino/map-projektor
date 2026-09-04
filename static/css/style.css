@@ -480,30 +480,34 @@ body {
    ============================================================ */
 #theme-switcher {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
   padding: 10px 12px;
   border-top: 1px solid var(--border);
-  flex-wrap: wrap;
 }
 
-.theme-btn {
-  flex: 1;
-  min-width: 0;
-  padding: 4px 6px;
+#theme-switcher label {
   font-size: 10px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+#theme-select {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  font-size: 11px;
   background: none;
   border: 1px solid var(--border);
-  color: var(--text-muted);
+  color: var(--text-primary);
   cursor: pointer;
   font-family: var(--font-family);
   border-radius: 2px;
-  transition: background 0.15s, color 0.15s;
 }
 
-.theme-btn:hover,
-.theme-btn.active {
+#theme-select:hover,
+#theme-select:focus {
   background: var(--active-bg);
   border-color: var(--active-border);
   color: var(--text-primary);
@@ -612,4 +616,106 @@ body[data-theme="dark"] {
   --border:        #235078;
   --active-bg:     #1f4a70;
   --active-border: #4aa0e8;
+}
+
+/* Desert Dusk — warm sand and terracotta land on a muted teal sea */
+body[data-theme="desert-dusk"] {
+  --bg-app:     #f7ece0;
+  --bg-sidebar: #efd9c2;
+  --bg-ocean:   #3f6f7a;
+
+  --color-country:  #e8c9a3;
+  --stroke-country: #a3703f;
+
+  --text-primary:  #4a2e1e;
+  --text-muted:    #8a6a4f;
+  --accent:        #c1622c;
+  --border:        #dfc0a0;
+  --active-bg:     #e6c39c;
+  --active-border: #c1622c;
+}
+
+/* Midnight Atlas — ink navy with a brass-gold accent */
+body[data-theme="midnight-atlas"] {
+  --bg-app:     #10151f;
+  --bg-sidebar: #171e2c;
+  --bg-ocean:   #0c1a2e;
+
+  --color-country:  #2a3448;
+  --stroke-country: #c9a24b;
+
+  --text-primary:  #e9edf3;
+  --text-muted:    #8b93a6;
+  --accent:        #d4af5a;
+  --border:        #2a3344;
+  --active-bg:     #232c3d;
+  --active-border: #d4af5a;
+}
+
+/* Copper Coast — deep teal ocean, copper landmass */
+body[data-theme="copper-coast"] {
+  --bg-app:     #f5efe9;
+  --bg-sidebar: #e8dcd0;
+  --bg-ocean:   #2e6b6e;
+
+  --color-country:  #ecd3b8;
+  --stroke-country: #b5713c;
+
+  --text-primary:  #2c2420;
+  --text-muted:    #7a6a5c;
+  --accent:        #b5561f;
+  --border:        #dcc9b4;
+  --active-bg:     #e4c8a8;
+  --active-border: #b5561f;
+}
+
+/* Emerald Cartography — deep forest ocean, soft green landmass */
+body[data-theme="emerald-cartography"] {
+  --bg-app:     #f4f7f2;
+  --bg-sidebar: #dfe9db;
+  --bg-ocean:   #1f4d3f;
+
+  --color-country:  #cfe3c6;
+  --stroke-country: #3f7a5a;
+
+  --text-primary:  #14261d;
+  --text-muted:    #567760;
+  --accent:        #1f6e4a;
+  --border:        #c6d9bd;
+  --active-bg:     #c9e0bd;
+  --active-border: #1f6e4a;
+}
+
+/* Dusty Rose Meridian — refined take on the default palette */
+body[data-theme="dusty-rose-meridian"] {
+  --bg-app:     #f7edea;
+  --bg-sidebar: #ecdad3;
+  --bg-ocean:   #4a6b8a;
+
+  --color-country:  #eecfc4;
+  --stroke-country: #a8746a;
+
+  --text-primary:  #3a2c34;
+  --text-muted:    #8a6d68;
+  --accent:        #b3563f;
+  --border:        #e0c4b8;
+  --active-bg:     #e7c9ba;
+  --active-border: #b3563f;
+}
+
+/* Amber Compass — charcoal ocean, warm amber landmass */
+body[data-theme="amber-compass"] {
+  --bg-app:     #fbf3e7;
+  --bg-sidebar: #f0e0c4;
+  --bg-ocean:   #2b3a4a;
+
+  --color-country:  #f0d29b;
+  --stroke-country: #a9762f;
+
+  --text-primary:  #2e2413;
+  --text-muted:    #7d6a48;
+  --accent:        #c17f17;
+  --border:        #e6d0a4;
+  --active-bg:     #ecd6a8;
+  --active-border: #c17f17;
 }
