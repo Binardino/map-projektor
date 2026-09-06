@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-06 — Sidebar UX reorg
+
+### Changed
+- Promoted the projection list and theme switcher to sit right after country search, since switching projections is the app's primary interaction
+- Regrouped Compare Projections, Show Distortion Grid, and Draw Flight Path under a de-emphasized "Tools" panel further down the sidebar (reduced font-size/opacity vs. the primary list)
+
 ## 2026-08-05 — Mobile layout, Tissot fix, persistent zoom & recentered projections
 
 ### Added
