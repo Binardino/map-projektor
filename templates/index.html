@@ -24,16 +24,6 @@
         </div>
         <ul id="country-search-results" hidden></ul>
       </div>
-      <button id="compare-toggle">Compare Projections</button>
-      <button id="tissot-toggle">Show Distortion Grid</button>
-      <button id="flightpath-toggle">Draw Flight Path</button>
-      <p id="flightpath-distance" hidden></p>
-      <div id="recenter-panel">
-        <p class="panel-label">Recenter View</p>
-        <nav id="recenter-list">
-          <!-- Populated by map.js from the RECENTER_PRESETS array -->
-        </nav>
-      </div>
       <nav id="projection-list">
         <!-- Populated by map.js from the PROJECTIONS array -->
       </nav>
@@ -50,6 +40,19 @@
           <option value="dusty-rose-meridian">Dusty Rose Meridian</option>
           <option value="amber-compass">Amber Compass</option>
         </select>
+      </div>
+      <div id="recenter-panel">
+        <p class="panel-label">Recenter View</p>
+        <nav id="recenter-list">
+          <!-- Populated by map.js from the RECENTER_PRESETS array -->
+        </nav>
+      </div>
+      <div id="tools-panel">
+        <p class="panel-label">Tools</p>
+        <button id="compare-toggle">Compare Projections</button>
+        <button id="tissot-toggle">Show Distortion Grid</button>
+        <button id="flightpath-toggle">Draw Flight Path</button>
+        <p id="flightpath-distance" hidden></p>
       </div>
     </aside>
 
