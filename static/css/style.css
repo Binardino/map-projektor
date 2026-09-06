@@ -232,6 +232,25 @@ body {
   color: var(--text-muted);
 }
 
+/* ============================================================
+   TOOLS PANEL — secondary actions, de-emphasized vs. the
+   promoted projection list / theme switcher above
+   ============================================================ */
+#tools-panel {
+  padding: 10px 12px 4px;
+  border-top: 1px solid var(--border);
+}
+
+#tools-panel button {
+  font-size: 10px;
+  opacity: 0.75;
+}
+
+#tools-panel button:hover,
+#tools-panel button.active {
+  opacity: 1;
+}
+
 #projection-list.disabled-list {
   opacity: 0.4;
   pointer-events: none;
