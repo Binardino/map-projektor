@@ -63,6 +63,23 @@ Open [http://localhost:8000](http://localhost:8000).
 poetry run pytest -v
 ```
 
+## Run with Docker
+
+The app can also run as a self-contained container — no local Python/Poetry setup needed. The image builds the GeoJSON data at `docker build` time, so the container is fully standalone at runtime.
+
+```bash
+docker build -t map-projektor .
+docker run -p 8000:8000 map-projektor
+```
+
+Or with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+Open [http://localhost:8000](http://localhost:8000). For deploying this image to a hosting platform (e.g. Render), see [docs/deployment.md](docs/deployment.md).
+
 ## Project Structure
 
 ```
