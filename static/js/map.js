@@ -233,11 +233,34 @@ let worldData = null;
 // before fitting — used by the recenter presets below. Overrides any
 // rotate() the projection's own d3fn already set (e.g. the polar views),
 // which is why presets are disabled for those (see RECENTER_INCOMPATIBLE).
+//
+// Mercator is a special case: its y-coordinate diverges near the poles,
+// so even bounded at the sphere's outline its natural fitted aspect ratio
+// is close to square — much taller relative to its width than this app's
+// wide map viewport. fitSize would then fit to the viewport's height and
+// leave large empty margins on the sides (reported as "Mercator looks too
+// small"/"whitespace on both sides"). Real-world Mercator world maps fit
+// to width instead and crop the poles, so we do the same: fit to width,
+// then vertically center the overflow and clip it, rather than shrinking
+// the whole map to fit the height too. Shared by makeProjection below and
+// by the comparison panels, which fit independently to their own size.
 // ============================================================
+function fitProjection(projDef, projection, width, height) {
+  if (projDef.id === "mercator") {
+    projection.fitWidth(width, { type: "Sphere" });
+    const [[, y0], [, y1]] = d3.geoPath().projection(projection).bounds({ type: "Sphere" });
+    const verticalOverflow = (y1 - y0) - height;
+    const [tx, ty] = projection.translate();
+    projection.translate([tx, ty - verticalOverflow / 2]);
+    return projection.clipExtent([[0, 0], [width, height]]);
+  }
+  return projection.fitSize([width, height], { type: "Sphere" });
+}
+
 function makeProjection(projDef, rotationOverride = null) {
   const projection = projDef.d3fn();
   if (rotationOverride) projection.rotate(rotationOverride);
-  return projection.fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+  return fitProjection(projDef, projection, WIDTH, HEIGHT);
 }
 
 // ============================================================
@@ -589,7 +612,7 @@ function animateRecenterFlip(flip, duration = 600) {
 function animateRecenterRotation(projDef, fromRot, toRot, duration) {
   const from = fromRot || [0, 0, 0];
   const to   = toRot || [0, 0, 0];
-  const projection = projDef.d3fn().fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+  const projection = fitProjection(projDef, projDef.d3fn(), WIDTH, HEIGHT);
   const pathFn      = d3.geoPath().projection(projection);
   const countries   = mapGroup.selectAll("path.country");
 
@@ -878,7 +901,7 @@ function buildComparePanel(panelEl, initialProjId) {
 
   panel.render = () => {
     const projDef     = PROJECTIONS.find((p) => p.id === panel.projId);
-    const projection  = projDef.d3fn().fitSize([panel.width, panel.height], { type: "Sphere" });
+    const projection  = fitProjection(projDef, projDef.d3fn(), panel.width, panel.height);
     const pathFn       = d3.geoPath().projection(projection);
     const paths = panel.mapGroup
       .selectAll("path.country")
@@ -912,7 +935,7 @@ function applySelectionToPanel(panel) {
 
   const feature = worldData.features.find((f) => f.properties.name === selectedCountryName);
   const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
-  const pathFn  = d3.geoPath().projection(projDef.d3fn().fitSize([panel.width, panel.height], { type: "Sphere" }));
+  const pathFn  = d3.geoPath().projection(fitProjection(projDef, projDef.d3fn(), panel.width, panel.height));
   const [[x0, y0], [x1, y1]] = pathFn.bounds(feature);
 
   const PADDING   = 40;
@@ -1045,7 +1068,7 @@ function refreshTissot() {
   if (compareMode && comparePanels) {
     comparePanels.forEach((panel) => {
       const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
-      renderTissot(panel.tissotGroup, projDef.d3fn().fitSize([panel.width, panel.height], { type: "Sphere" }));
+      renderTissot(panel.tissotGroup, fitProjection(projDef, projDef.d3fn(), panel.width, panel.height));
     });
   }
 }
@@ -1134,7 +1157,7 @@ function refreshFlightPath() {
     comparePanels.forEach((panel) => {
       if (!panel.flightPathGroup) return;
       const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
-      renderFlightPath(panel.flightPathGroup, projDef.d3fn().fitSize([panel.width, panel.height], { type: "Sphere" }));
+      renderFlightPath(panel.flightPathGroup, fitProjection(projDef, projDef.d3fn(), panel.width, panel.height));
     });
   }
 
