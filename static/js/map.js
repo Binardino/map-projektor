@@ -246,10 +246,14 @@ let worldData = null;
 // wide map viewport. fitSize would then fit to the viewport's height and
 // leave large empty margins on the sides (reported as "Mercator looks too
 // small"/"whitespace on both sides"). Real-world Mercator world maps fit
-// to width instead and crop the poles, so we do the same: fit to width,
-// then vertically center the overflow and clip it, rather than shrinking
-// the whole map to fit the height too. Shared by makeProjection below and
-// by the comparison panels, which fit independently to their own size.
+// to width instead, so we do the same: fit to width and vertically center
+// the initial framing, rather than shrinking the whole map to fit the
+// height too. Deliberately not clipped to the viewport — the polar regions
+// (Greenland, northern Russia, Antarctica) extend past the initial frame
+// but stay reachable by panning the free camera (see CAMERA PAN & ZOOM)
+// instead of being permanently cropped away. Shared by makeProjection
+// below and by the comparison panels, which fit independently to their
+// own size.
 // ============================================================
 function fitProjection(projDef, projection, width, height) {
   if (projDef.id === "mercator") {
@@ -258,7 +262,7 @@ function fitProjection(projDef, projection, width, height) {
     const verticalOverflow = (y1 - y0) - height;
     const [tx, ty] = projection.translate();
     projection.translate([tx, ty - verticalOverflow / 2]);
-    return projection.clipExtent([[0, 0], [width, height]]);
+    return projection;
   }
   return projection.fitSize([width, height], { type: "Sphere" });
 }
