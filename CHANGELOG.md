@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-08 — UX feedback pass: colors, camera, Mercator, default view
+
+### Changed
+- Softened the default theme's ocean color and country border color (less saturated blue, less red in the borders)
+- Replaced the zoom-locked-to-selection model with a free camera: clicking a country or a search result gently centers/zooms on it, but pan (drag) and zoom (wheel/pinch) are always free afterward, independently in each comparison panel too
+- App now defaults to the Orthographic (globe) view on load instead of Mercator, with a dedicated darker background for the space outside the sphere disc
+
+### Fixed
+- Mercator no longer renders with large empty margins on both sides — it was fitting to the viewport's height (its bounded aspect ratio is close to square) instead of its width; now fits to width and crops the poles, like standard Mercator world maps
+
 ## 2026-09-07 — Docker containerization
 
 ### Added
