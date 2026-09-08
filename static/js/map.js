@@ -700,12 +700,51 @@ let currentZoomTransform = d3.zoomIdentity;
 
 const zoom = d3.zoom()
   .scaleExtent(MAIN_ZOOM_SCALE_EXTENT)
+  // On the orthographic globe, drag/touch-pan is handed off to globeDrag
+  // below instead (see GLOBE ROTATION) — wheel/pinch still zoom as usual.
+  .filter((event) => {
+    if (currentProjectionId === "orthographic" && event.type !== "wheel") return false;
+    return (!event.ctrlKey || event.type === "wheel") && !event.button;
+  })
   .on("zoom", (event) => {
     currentZoomTransform = event.transform;
     zoomLayer.attr("transform", currentZoomTransform);
   });
 
 svg.call(zoom);
+
+// ============================================================
+// GLOBE ROTATION (orthographic only)
+//
+// A screen-space pan wouldn't reveal the far side of the sphere, so on the
+// orthographic globe, dragging instead rotates it — reusing the same
+// currentRecenterRotate state the recenter presets use (see RECENTER
+// PRESETS below), so a preset and a manual drag compose the same way and
+// both reset together on a projection switch. zoom.filter above excludes
+// drag/touch-pan on this projection so the two behaviors don't fight over
+// the pointer.
+// ============================================================
+const GLOBE_DRAG_SENSITIVITY = 0.35; // degrees rotated per pixel dragged
+
+const globeDrag = d3.drag()
+  .filter((event) => currentProjectionId === "orthographic" && !isAnimating && !flightPathMode)
+  .on("start", () => {
+    document.querySelectorAll(".recenter-btn").forEach((b) => b.classList.remove("active"));
+  })
+  .on("drag", (event) => {
+    const [lambda, phi] = currentRecenterRotate || [0, 0, 0];
+    currentRecenterRotate = [
+      lambda + event.dx * GLOBE_DRAG_SENSITIVITY,
+      Math.max(-90, Math.min(90, phi - event.dy * GLOBE_DRAG_SENSITIVITY)),
+      0,
+    ];
+    const projDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+    renderMap(makeProjection(projDef, currentRecenterRotate));
+    refreshTissot();
+    refreshFlightPath();
+  });
+
+svg.call(globeDrag);
 
 // ============================================================
 // COUNTRY SEARCH & SELECTION
