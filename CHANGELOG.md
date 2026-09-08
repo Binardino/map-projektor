@@ -8,9 +8,11 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 - Softened the default theme's ocean color and country border color (less saturated blue, less red in the borders)
 - Replaced the zoom-locked-to-selection model with a free camera: clicking a country or a search result gently centers/zooms on it, but pan (drag) and zoom (wheel/pinch) are always free afterward, independently in each comparison panel too
 - App now defaults to the Orthographic (globe) view on load instead of Mercator, with a dedicated darker background for the space outside the sphere disc
+- Dragging on the Orthographic globe now rotates the sphere itself (reveals the far side), instead of panning the screen — wheel/pinch still zoom as on every other projection
 
 ### Fixed
-- Mercator no longer renders with large empty margins on both sides — it was fitting to the viewport's height (its bounded aspect ratio is close to square) instead of its width; now fits to width and crops the poles, like standard Mercator world maps
+- Mercator no longer renders with large empty margins on both sides — it was fitting to the viewport's height (its bounded aspect ratio is close to square) instead of its width; now fits to width, like standard Mercator world maps
+- Mercator's polar regions (Greenland's north, northern Russia, Antarctica) are no longer permanently cropped away — they extend past the initial frame and are reachable by panning the free camera up/down
 
 ## 2026-09-07 — Docker containerization
 
