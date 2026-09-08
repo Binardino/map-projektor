@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.git/
+.gitignore
+.superpowers/
+.claude/
+docs/
+tests/
+CHANGELOG.md
+README.md
+app/data/world.geojson
