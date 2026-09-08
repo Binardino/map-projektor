@@ -8,6 +8,7 @@
   --bg-app:     #fbeeec;
   --bg-sidebar: #f4dbd8;
   --bg-ocean:   #5597dd;
+  --bg-globe:   #1b2733;
 
   --color-country:  #f4dbd8;
   --stroke-country: #a87d76;
@@ -372,6 +373,12 @@ body {
   fill: var(--bg-ocean);
 }
 
+/* Orthographic (globe) view: the space outside the sphere disc needs its
+   own darker backdrop instead of the flat-map ocean color, per UX feedback. */
+.ocean.globe-bg {
+  fill: var(--bg-globe);
+}
+
 .country {
   fill: var(--color-country);
   stroke: var(--stroke-country);
@@ -607,6 +614,7 @@ body[data-theme="forest"] {
   --bg-app:     #04211c;
   --bg-sidebar: #0a3129;
   --bg-ocean:   #309bc5;
+  --bg-globe:   #021410;
 
   --color-country:  #0fd2ab;
   --stroke-country: #076b55;
@@ -625,6 +633,7 @@ body[data-theme="dark"] {
   --bg-app:     #0f2137;
   --bg-sidebar: #173753;
   --bg-ocean:   #2264aa;
+  --bg-globe:   #060f1c;
 
   --color-country:  #173753;
   --stroke-country: #4180b8;
@@ -642,6 +651,7 @@ body[data-theme="desert-dusk"] {
   --bg-app:     #f7ece0;
   --bg-sidebar: #efd9c2;
   --bg-ocean:   #3f6f7a;
+  --bg-globe:   #2a1f18;
 
   --color-country:  #e8c9a3;
   --stroke-country: #a3703f;
@@ -659,6 +669,7 @@ body[data-theme="midnight-atlas"] {
   --bg-app:     #10151f;
   --bg-sidebar: #171e2c;
   --bg-ocean:   #0c1a2e;
+  --bg-globe:   #0a0d14;
 
   --color-country:  #2a3448;
   --stroke-country: #c9a24b;
@@ -676,6 +687,7 @@ body[data-theme="copper-coast"] {
   --bg-app:     #f5efe9;
   --bg-sidebar: #e8dcd0;
   --bg-ocean:   #2e6b6e;
+  --bg-globe:   #1a1410;
 
   --color-country:  #ecd3b8;
   --stroke-country: #b5713c;
@@ -693,6 +705,7 @@ body[data-theme="emerald-cartography"] {
   --bg-app:     #f4f7f2;
   --bg-sidebar: #dfe9db;
   --bg-ocean:   #1f4d3f;
+  --bg-globe:   #0c150f;
 
   --color-country:  #cfe3c6;
   --stroke-country: #3f7a5a;
@@ -710,6 +723,7 @@ body[data-theme="dusty-rose-meridian"] {
   --bg-app:     #f7edea;
   --bg-sidebar: #ecdad3;
   --bg-ocean:   #4a6b8a;
+  --bg-globe:   #241a1f;
 
   --color-country:  #eecfc4;
   --stroke-country: #a8746a;
@@ -727,6 +741,7 @@ body[data-theme="amber-compass"] {
   --bg-app:     #fbf3e7;
   --bg-sidebar: #f0e0c4;
   --bg-ocean:   #2b3a4a;
+  --bg-globe:   #14110a;
 
   --color-country:  #f0d29b;
   --stroke-country: #a9762f;
