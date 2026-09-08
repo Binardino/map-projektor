@@ -198,18 +198,24 @@ const svg = d3
   .attr("viewBox", `0 0 ${WIDTH} ${HEIGHT}`)
   .attr("preserveAspectRatio", "xMidYMid meet");
 
-// Ocean background rectangle — swaps to the globe backdrop color
-// (see updateGlobeBackground) whenever the orthographic view is active.
+// Ocean background rectangle — stays outside the zoom layer so it always
+// fills the viewport regardless of the current pan/zoom transform, and
+// swaps to the globe backdrop color (see updateGlobeBackground) whenever
+// the orthographic view is active.
 const oceanRect = svg.append("rect").attr("class", "ocean").attr("width", WIDTH).attr("height", HEIGHT);
 
+// Zoom layer — receives the free pan/zoom transform (see CAMERA PAN & ZOOM
+// below). Everything that pans/zooms with the map lives inside it.
+const zoomLayer = svg.append("g").attr("class", "viewport");
+
 // Group that holds all country <path> elements
-const mapGroup = svg.append("g").attr("class", "countries");
+const mapGroup = zoomLayer.append("g").attr("class", "countries");
 
 // Tissot's indicatrix overlay — appended after mapGroup so it paints on top
-const tissotGroup = svg.append("g").attr("class", "tissot-layer");
+const tissotGroup = zoomLayer.append("g").attr("class", "tissot-layer");
 
 // Flight path overlay — appended after tissotGroup so the arc paints on top
-const flightPathGroup = svg.append("g").attr("class", "flightpath-layer");
+const flightPathGroup = zoomLayer.append("g").attr("class", "flightpath-layer");
 
 // ============================================================
 // APPLICATION STATE
@@ -459,19 +465,10 @@ async function polarTransition(fromDef, toDef) {
 async function transitionTo(newProjId) {
   isAnimating = true;
 
-  // If a country is selected, dezoom to the world view *before* the morph
-  // starts. The zoom is a static transform, not recomputed per animation
-  // frame — staying zoomed in while the projection morphs would drift the
-  // country out of the viewport mid-animation (bounds only hold for the
-  // projection they were computed from), then snap once rezoomed at the
-  // end. Returning to the world view first avoids that glitch entirely;
-  // the morph itself is unaffected by any zoom state.
-  if (selectedCountryName) {
-    await new Promise((resolve) => {
-      mapGroup.transition().duration(400).attr("transform", null).on("end", resolve);
-    });
-  }
-
+  // The camera (pan/zoom transform on zoomLayer, see CAMERA PAN & ZOOM) lives
+  // outside mapGroup and is independent of any selection or projection — it
+  // stays exactly where the user left it across the morph, no dezoom/rezoom
+  // needed.
   const fromDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
   const toDef   = PROJECTIONS.find((p) => p.id === newProjId);
 
@@ -491,13 +488,6 @@ async function transitionTo(newProjId) {
   refreshTissot();
   refreshRecenterAvailability();
   refreshFlightPath();
-
-  // Rezoom on the same country in the new projection, at the same
-  // zoomFactor (selectCountry/handleMapWheel already keep it projection-
-  // independent — see the COUNTRY SEARCH & SELECTION comment above).
-  if (selectedCountryName) {
-    applyCountryZoom();
-  }
 
   isAnimating = false;
 }
@@ -691,37 +681,44 @@ function switchProjection(newProjId) {
 }
 
 // ============================================================
+// CAMERA PAN & ZOOM
+//
+// Free pan (drag) and zoom (wheel/pinch) on zoomLayer via d3.zoom,
+// independent of any country selection — the camera stays wherever
+// the user leaves it across projection switches, recenter presets,
+// and compare-mode panel changes. Replaces the old model where zoom
+// was only possible while a country was selected and locked to it.
+// ============================================================
+const MAIN_ZOOM_SCALE_EXTENT = [1, 40];
+const LIGHT_ZOOM_MAX_SCALE   = 3; // gentle zoom-in cap when centering on a clicked/searched country
+
+let currentZoomTransform = d3.zoomIdentity;
+
+const zoom = d3.zoom()
+  .scaleExtent(MAIN_ZOOM_SCALE_EXTENT)
+  .on("zoom", (event) => {
+    currentZoomTransform = event.transform;
+    zoomLayer.attr("transform", currentZoomTransform);
+  });
+
+svg.call(zoom);
+
+// ============================================================
 // COUNTRY SEARCH & SELECTION
 //
-// Selecting a country (via search or a click on the map) pans/
-// zooms the SVG country group to its bounding box and highlights
-// it. This is a plain transform on top of the existing rendered
-// paths — no projection recalculation — so it behaves identically
-// across all 17 projections.
-//
-// Zoom is tracked as `zoomFactor`, a multiplier on top of the
-// country's default auto-fit scale for whatever projection is
-// currently active — not an absolute SVG scale. A fitted scale
-// number is projection-specific (each projection's fitSize picks a
-// different base scale to fill the same viewport), so "zoomed in
-// 3x past the default framing" is the only notion of zoom that
-// stays meaningful across a projection switch (see transitionTo,
-// which dezooms before the morph and rezooms after at the same
-// zoomFactor).
+// Selecting a country (via search or a click on the map) highlights
+// it and gently centers/zooms the camera on it — the user can then
+// pan/zoom away freely, the selection doesn't lock the camera.
 // ============================================================
 const searchInput   = document.getElementById("country-search-input");
 const searchResults = document.getElementById("country-search-results");
 const clearBtn       = document.getElementById("country-search-clear");
 
-const BASE_MAX_SCALE = 8;  // default auto-fit cap, as a fraction of the viewport
-const MAX_ZOOM_FACTOR = 6; // ceiling for manual wheel zoom past the default framing
-
 let selectedCountryName = null;
-let zoomFactor = 1;
 
-// Bounding-box fit for `feature` under `projDef`, in that projection's own
-// fitted coordinate space — recomputed fresh since it depends on whichever
-// projection is currently on screen.
+// Bounding-box fit for `feature` under `projDef`, capped to a gentle zoom
+// level rather than tightly filling the viewport — recomputed fresh since
+// it depends on whichever projection is currently on screen.
 function computeCountryFit(feature, projDef) {
   const pathFn = d3.geoPath().projection(makeProjection(projDef));
   const [[x0, y0], [x1, y1]] = pathFn.bounds(feature);
@@ -729,27 +726,9 @@ function computeCountryFit(feature, projDef) {
   const scale = Math.min(
     (WIDTH - PADDING) / Math.max(x1 - x0, 1),
     (HEIGHT - PADDING) / Math.max(y1 - y0, 1),
-    BASE_MAX_SCALE
+    LIGHT_ZOOM_MAX_SCALE
   );
   return { scale, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
-}
-
-// Applies the current selection + zoomFactor as a transform on mapGroup.
-// duration=0 skips the transition for per-frame wheel updates.
-function applyCountryZoom(duration = 600) {
-  const feature = worldData.features.find((f) => f.properties.name === selectedCountryName);
-  const projDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  const fit     = computeCountryFit(feature, projDef);
-  const scale   = fit.scale * zoomFactor;
-  const translateX = WIDTH / 2 - scale * fit.cx;
-  const translateY = HEIGHT / 2 - scale * fit.cy;
-  const transformStr = `translate(${translateX},${translateY}) scale(${scale})`;
-
-  if (duration > 0) {
-    mapGroup.transition().duration(duration).attr("transform", transformStr);
-  } else {
-    mapGroup.attr("transform", transformStr);
-  }
 }
 
 function selectCountry(feature) {
@@ -758,8 +737,9 @@ function selectCountry(feature) {
   if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
 
   // Mutually exclusive with recenter presets (see RECENTER PRESETS note):
-  // the map must be re-rendered unrotated before we compute/zoom to bounds,
-  // since applyCountryZoom's bbox math assumes the default orientation.
+  // the map must be re-rendered unrotated before we compute the bounds to
+  // center on, since computeCountryFit's bbox math assumes the default
+  // orientation.
   if (currentRecenterRotate) {
     resetRecenter();
     renderMap(makeProjection(PROJECTIONS.find((p) => p.id === currentProjectionId)));
@@ -767,13 +747,18 @@ function selectCountry(feature) {
   }
 
   selectedCountryName = feature.properties.name;
-  zoomFactor = 1;
 
   mapGroup
     .selectAll("path.country")
     .classed("selected", (d) => d.properties.name === selectedCountryName);
 
-  applyCountryZoom();
+  const projDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const fit     = computeCountryFit(feature, projDef);
+  const transform = d3.zoomIdentity
+    .translate(WIDTH / 2, HEIGHT / 2)
+    .scale(fit.scale)
+    .translate(-fit.cx, -fit.cy);
+  svg.transition().duration(600).call(zoom.transform, transform);
 
   searchInput.value = selectedCountryName;
   clearBtn.hidden = false;
@@ -782,24 +767,13 @@ function selectCountry(feature) {
   if (compareMode) comparePanels.forEach(applySelectionToPanel);
 }
 
-// Wheel-to-zoom, centred on the selected country's bounding-box centre.
-// Only active while a country is selected and no transition is running.
-function handleMapWheel(event) {
-  if (!selectedCountryName || isAnimating) return;
-  event.preventDefault();
-  const factor = Math.exp(-event.deltaY * 0.0015);
-  zoomFactor = Math.min(MAX_ZOOM_FACTOR, Math.max(1, zoomFactor * factor));
-  applyCountryZoom(0);
-}
-svg.node().addEventListener("wheel", handleMapWheel, { passive: false });
-
+// Clears the highlight only — the camera stays exactly where the user left
+// it, since pan/zoom is no longer tied to a selection.
 function clearSelection() {
   if (!selectedCountryName) return;
   selectedCountryName = null;
-  zoomFactor = 1;
 
   mapGroup.selectAll("path.country").classed("selected", false);
-  mapGroup.transition().duration(400).attr("transform", null);
 
   searchInput.value = "";
   clearBtn.hidden = true;
@@ -890,14 +864,23 @@ function buildComparePanel(panelEl, initialProjId) {
     .attr("viewBox", `0 0 ${width} ${height}`)
     .attr("preserveAspectRatio", "xMidYMid meet");
 
+  const panelOceanRect = svg.append("rect").attr("class", "ocean").attr("width", width).attr("height", height);
+  const zoomLayer = svg.append("g").attr("class", "viewport");
   const panel = {
     projId: initialProjId,
-    oceanRect: svg.append("rect").attr("class", "ocean").attr("width", width).attr("height", height),
-    mapGroup: svg.append("g").attr("class", "countries"),
-    tissotGroup: svg.append("g").attr("class", "tissot-layer"),
+    oceanRect: panelOceanRect,
+    mapGroup: zoomLayer.append("g").attr("class", "countries"),
+    tissotGroup: zoomLayer.append("g").attr("class", "tissot-layer"),
+    svg,
     width,
     height,
   };
+
+  // Same free pan/zoom as the main view, independent per panel.
+  panel.zoom = d3.zoom()
+    .scaleExtent(MAIN_ZOOM_SCALE_EXTENT)
+    .on("zoom", (event) => zoomLayer.attr("transform", event.transform));
+  svg.call(panel.zoom);
 
   panel.render = () => {
     const projDef     = PROJECTIONS.find((p) => p.id === panel.projId);
@@ -922,36 +905,33 @@ function buildComparePanel(panelEl, initialProjId) {
   return panel;
 }
 
-// Mirrors the shared search selection (highlight + zoom) onto one panel.
+// Mirrors the shared search selection (highlight + gentle centering zoom)
+// onto one panel. The panel's own camera stays free afterward, same as the
+// main view — clearing the selection only removes the highlight.
 function applySelectionToPanel(panel) {
   panel.mapGroup
     .selectAll("path.country")
     .classed("selected", (d) => d.properties.name === selectedCountryName);
 
-  if (!selectedCountryName) {
-    panel.mapGroup.transition().duration(400).attr("transform", null);
-    return;
-  }
+  if (!selectedCountryName) return;
 
   const feature = worldData.features.find((f) => f.properties.name === selectedCountryName);
   const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
   const pathFn  = d3.geoPath().projection(fitProjection(projDef, projDef.d3fn(), panel.width, panel.height));
   const [[x0, y0], [x1, y1]] = pathFn.bounds(feature);
 
-  const PADDING   = 40;
-  const MAX_SCALE = 8;
+  const PADDING = 40;
   const scale = Math.min(
     (panel.width - PADDING) / Math.max(x1 - x0, 1),
     (panel.height - PADDING) / Math.max(y1 - y0, 1),
-    MAX_SCALE
+    LIGHT_ZOOM_MAX_SCALE
   );
-  const translateX = panel.width / 2 - scale * ((x0 + x1) / 2);
-  const translateY = panel.height / 2 - scale * ((y0 + y1) / 2);
+  const transform = d3.zoomIdentity
+    .translate(panel.width / 2, panel.height / 2)
+    .scale(scale)
+    .translate(-(x0 + x1) / 2, -(y0 + y1) / 2);
 
-  panel.mapGroup
-    .transition()
-    .duration(600)
-    .attr("transform", `translate(${translateX},${translateY}) scale(${scale})`);
+  panel.svg.transition().duration(600).call(panel.zoom.transform, transform);
 }
 
 compareToggleBtn.addEventListener("click", () => {
@@ -1187,7 +1167,10 @@ function handleFlightPathClick(event) {
 
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
   const projection = makeProjection(currentDef, currentRecenterRotate);
-  const [x, y] = d3.pointer(event, svg.node());
+  // Undo the free camera pan/zoom (see CAMERA PAN & ZOOM) to get back to the
+  // coordinate space the projection itself draws in before inverting.
+  const [sx, sy] = d3.pointer(event, svg.node());
+  const [x, y] = currentZoomTransform.invert([sx, sy]);
   const coords = projection.invert([x, y]);
   if (!coords) return; // click landed outside the rendered sphere
 
