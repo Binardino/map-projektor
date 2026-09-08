@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-07 — Docker containerization
+
+### Added
+- `Dockerfile`: multi-stage build (Poetry install → slim runtime image, non-root user), generates `app/data/world.geojson` at build time so the container is standalone at runtime, binds to `$PORT` (defaults to 8000)
+- `.dockerignore` to keep the build context small
+- `docker-compose.yml` for a one-command local run
+- README section documenting `docker build` / `docker run` / `docker compose up`
+
 ## 2026-09-06 — Sidebar UX reorg
 
 ### Changed
