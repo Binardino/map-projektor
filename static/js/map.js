@@ -198,8 +198,9 @@ const svg = d3
   .attr("viewBox", `0 0 ${WIDTH} ${HEIGHT}`)
   .attr("preserveAspectRatio", "xMidYMid meet");
 
-// Ocean background rectangle
-svg.append("rect").attr("class", "ocean").attr("width", WIDTH).attr("height", HEIGHT);
+// Ocean background rectangle — swaps to the globe backdrop color
+// (see updateGlobeBackground) whenever the orthographic view is active.
+const oceanRect = svg.append("rect").attr("class", "ocean").attr("width", WIDTH).attr("height", HEIGHT);
 
 // Group that holds all country <path> elements
 const mapGroup = svg.append("g").attr("class", "countries");
@@ -213,8 +214,16 @@ const flightPathGroup = svg.append("g").attr("class", "flightpath-layer");
 // ============================================================
 // APPLICATION STATE
 // ============================================================
-let currentProjectionId = "mercator";
+// Defaults to the orthographic globe — the "space view" reads better as a
+// first impression than a flat map, per UX feedback.
+let currentProjectionId = "orthographic";
 let isAnimating = false;
+
+// The globe view needs its own darker backdrop instead of the flat-map
+// ocean color for the space outside the sphere disc.
+function updateGlobeBackground() {
+  oceanRect.classed("globe-bg", currentProjectionId === "orthographic");
+}
 let worldData = null;
 
 // ============================================================
@@ -455,6 +464,7 @@ async function transitionTo(newProjId) {
   currentProjectionId = newProjId;
   setActiveButton(newProjId);
   updateInfo(toDef);
+  updateGlobeBackground();
   refreshTissot();
   refreshRecenterAvailability();
   refreshFlightPath();
@@ -857,9 +867,9 @@ function buildComparePanel(panelEl, initialProjId) {
     .attr("viewBox", `0 0 ${width} ${height}`)
     .attr("preserveAspectRatio", "xMidYMid meet");
 
-  svg.append("rect").attr("class", "ocean").attr("width", width).attr("height", height);
   const panel = {
     projId: initialProjId,
+    oceanRect: svg.append("rect").attr("class", "ocean").attr("width", width).attr("height", height),
     mapGroup: svg.append("g").attr("class", "countries"),
     tissotGroup: svg.append("g").attr("class", "tissot-layer"),
     width,
@@ -875,6 +885,7 @@ function buildComparePanel(panelEl, initialProjId) {
       .data(worldData.features, (d) => d.properties.name);
     paths.enter().append("path").attr("class", "country").attr("d", pathFn);
     paths.attr("d", pathFn);
+    panel.oceanRect.classed("globe-bg", panel.projId === "orthographic");
   };
   panel.render();
 
@@ -1181,6 +1192,7 @@ async function init() {
   buildRecenterPanel();
   renderMap(makeProjection(initialProj));
   updateInfo(initialProj);
+  updateGlobeBackground();
   refreshTissot();
   refreshRecenterAvailability();
   refreshFlightPath();
