@@ -211,6 +211,11 @@ const zoomLayer = svg.append("g").attr("class", "viewport");
 // Group that holds all country <path> elements
 const mapGroup = zoomLayer.append("g").attr("class", "countries");
 
+// Mountain range/plateau terrain patches — appended after mapGroup so they
+// paint over the flat country fill, purely decorative (pointer-events:none
+// in CSS so clicks still reach the country underneath).
+const terrainGroup = zoomLayer.append("g").attr("class", "terrain-layer");
+
 // Tissot's indicatrix overlay — appended after mapGroup so it paints on top
 const tissotGroup = zoomLayer.append("g").attr("class", "tissot-layer");
 
@@ -231,6 +236,7 @@ function updateGlobeBackground() {
   oceanRect.classed("globe-bg", currentProjectionId === "orthographic");
 }
 let worldData = null;
+let terrainData = null;
 
 // ============================================================
 // PROJECTION FACTORY
@@ -294,6 +300,20 @@ function renderMap(projection) {
     });
 
   paths.attr("d", path);
+
+  renderTerrain(terrainGroup, projection);
+}
+
+// Draws the mountain range/plateau patches, keyed by name like country
+// paths. Always on (no toggle — purely decorative terrain texture).
+function renderTerrain(group, projection) {
+  const path = d3.geoPath().projection(projection);
+
+  const patches = group
+    .selectAll("path.mountain-patch")
+    .data(terrainData.features, (d) => d.properties.name);
+
+  patches.enter().append("path").attr("class", "mountain-patch").merge(patches).attr("d", path);
 }
 
 // ============================================================
@@ -371,6 +391,7 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null) {
       projection.alpha(t);
       if (clipFrom !== null) projection.clipAngle(clipFrom + (clipTo - clipFrom) * t);
       countries.attr("d", (d) => pathFn(d) || "");
+      renderTerrain(terrainGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -416,6 +437,7 @@ function animateRotation(fromRot, toRot, duration) {
         fromRot[1] + (toRot[1] - fromRot[1]) * t,
       ]);
       countries.attr("d", (d) => pathFn(d) || "");
+      renderTerrain(terrainGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -1233,8 +1255,12 @@ svg.node().addEventListener("click", handleFlightPathClick);
 // INIT — fetch GeoJSON then render
 // ============================================================
 async function init() {
-  const response = await fetch("/data/world.geojson");
-  worldData = await response.json();
+  const [worldResponse, terrainResponse] = await Promise.all([
+    fetch("/data/world.geojson"),
+    fetch("/data/terrain.geojson"),
+  ]);
+  worldData = await worldResponse.json();
+  terrainData = await terrainResponse.json();
 
   const initialProj = PROJECTIONS.find((p) => p.id === currentProjectionId);
   buildSidebar();
