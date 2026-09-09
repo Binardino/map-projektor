@@ -8,6 +8,22 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 - Switching projection now dezooms/re-centers the free camera back to the standard view before running the morph, instead of carrying over whatever pan/zoom the user left it at — fixes inconsistent framing when switching in/out of Mercator (or any projection) while zoomed in
 - New reset-view button (bottom-right corner of the map) resets the camera to the standard view at any time
 
+## 2026-09-09 — Collapsible country search
+
+### Changed
+- Country search is now hidden behind a search icon button instead of a top-level input, per UX designer feedback; selecting a country (via search or a direct map click) still reopens the panel so its "Reset view" control stays reachable
+
+## 2026-09-09 — Terrain overlay: mountains, deserts, forest basins
+
+### Added
+- Terrain patches rendered decoratively on the main map, sourced from Natural Earth's physical regions dataset: mountain ranges/plateaus in brown (Alps, Andes, Himalayas, Rockies...), deserts in sandy tan (Sahara, Gobi, Kalahari, Atacama...), and the Amazon/Congo basins in green as a rough proxy for tropical rainforest extent — Natural Earth has no dedicated forest layer, so this is an approximation, not real canopy data
+- New `/data/terrain.geojson` route and pipeline step in `scripts/fetch_geodata.py`
+
+## 2026-09-09 — Animated distortion grid
+
+### Changed
+- The Tissot's Indicatrix distortion grid now redraws on every frame of a projection transition (both regular blends and the polar fold/spin/unfold route) instead of only refreshing once the transition finishes
+
 ## 2026-09-08 — UX feedback pass: colors, camera, Mercator, default view
 
 ### Changed

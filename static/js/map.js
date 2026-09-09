@@ -211,6 +211,11 @@ const zoomLayer = svg.append("g").attr("class", "viewport");
 // Group that holds all country <path> elements
 const mapGroup = zoomLayer.append("g").attr("class", "countries");
 
+// Mountain range/plateau terrain patches — appended after mapGroup so they
+// paint over the flat country fill, purely decorative (pointer-events:none
+// in CSS so clicks still reach the country underneath).
+const terrainGroup = zoomLayer.append("g").attr("class", "terrain-layer");
+
 // Tissot's indicatrix overlay — appended after mapGroup so it paints on top
 const tissotGroup = zoomLayer.append("g").attr("class", "tissot-layer");
 
@@ -231,6 +236,7 @@ function updateGlobeBackground() {
   oceanRect.classed("globe-bg", currentProjectionId === "orthographic");
 }
 let worldData = null;
+let terrainData = null;
 
 // ============================================================
 // PROJECTION FACTORY
@@ -294,6 +300,27 @@ function renderMap(projection) {
     });
 
   paths.attr("d", path);
+
+  renderTerrain(terrainGroup, projection);
+}
+
+// Draws the terrain patches (mountains, deserts, forest-basin proxies —
+// see fetch_geodata.py's "kind" property). Positional (unkeyed) join like
+// the Tissot circles — terrainData is a fixed array loaded once, and some
+// Natural Earth features share the same name (e.g. two "Transantarctic
+// Mountains" entries), which breaks a name-keyed join. Always on (no
+// toggle — purely decorative terrain texture).
+function renderTerrain(group, projection) {
+  const path = d3.geoPath().projection(projection);
+
+  const patches = group.selectAll("path.terrain-patch").data(terrainData.features);
+
+  patches
+    .enter()
+    .append("path")
+    .attr("class", (d) => `terrain-patch terrain-${d.properties.kind}`)
+    .merge(patches)
+    .attr("d", path);
 }
 
 // ============================================================
@@ -371,6 +398,8 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null) {
       projection.alpha(t);
       if (clipFrom !== null) projection.clipAngle(clipFrom + (clipTo - clipFrom) * t);
       countries.attr("d", (d) => pathFn(d) || "");
+      renderTerrain(terrainGroup, projection);
+      if (tissotVisible) renderTissot(tissotGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -416,6 +445,8 @@ function animateRotation(fromRot, toRot, duration) {
         fromRot[1] + (toRot[1] - fromRot[1]) * t,
       ]);
       countries.attr("d", (d) => pathFn(d) || "");
+      renderTerrain(terrainGroup, projection);
+      if (tissotVisible) renderTissot(tissotGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -776,9 +807,30 @@ svg.call(globeDrag);
 // it and gently centers/zooms the camera on it — the user can then
 // pan/zoom away freely, the selection doesn't lock the camera.
 // ============================================================
-const searchInput   = document.getElementById("country-search-input");
-const searchResults = document.getElementById("country-search-results");
-const clearBtn       = document.getElementById("country-search-clear");
+const searchToggleBtn = document.getElementById("country-search-toggle");
+const searchPanel     = document.getElementById("country-search-panel");
+const searchInput     = document.getElementById("country-search-input");
+const searchResults   = document.getElementById("country-search-results");
+const clearBtn        = document.getElementById("country-search-clear");
+
+// Reveals the search panel (used both by the toggle button and whenever a
+// selection needs its "Reset view" control to stay reachable — see
+// selectCountry below).
+function openSearchPanel() {
+  searchPanel.hidden = false;
+  searchToggleBtn.classList.add("active");
+}
+
+searchToggleBtn.addEventListener("click", () => {
+  if (searchPanel.hidden) {
+    openSearchPanel();
+    searchInput.focus();
+  } else {
+    searchPanel.hidden = true;
+    searchToggleBtn.classList.remove("active");
+    hideResults();
+  }
+});
 
 let selectedCountryName = null;
 
@@ -829,6 +881,7 @@ function selectCountry(feature) {
   searchInput.value = selectedCountryName;
   clearBtn.hidden = false;
   hideResults();
+  openSearchPanel(); // keep the "Reset view" control reachable, e.g. after a direct map click
 
   if (compareMode) comparePanels.forEach(applySelectionToPanel);
 }
@@ -1256,8 +1309,12 @@ svg.node().addEventListener("click", handleFlightPathClick);
 // INIT — fetch GeoJSON then render
 // ============================================================
 async function init() {
-  const response = await fetch("/data/world.geojson");
-  worldData = await response.json();
+  const [worldResponse, terrainResponse] = await Promise.all([
+    fetch("/data/world.geojson"),
+    fetch("/data/terrain.geojson"),
+  ]);
+  worldData = await worldResponse.json();
+  terrainData = await terrainResponse.json();
 
   const initialProj = PROJECTIONS.find((p) => p.id === currentProjectionId);
   buildSidebar();
