@@ -391,6 +391,20 @@ body {
   fill: var(--accent);
 }
 
+/* Mountain range/plateau terrain patches — a fixed earthy brown regardless
+   of theme (real-world terrain color, not a theme accent), low opacity so
+   country borders stay visible underneath. Pointer-events off so it never
+   steals clicks from the country paths underneath it. */
+.terrain-layer {
+  pointer-events: none;
+}
+
+.mountain-patch {
+  fill: #8a6642;
+  fill-opacity: 0.35;
+  stroke: none;
+}
+
 /* Tissot's indicatrix overlay — pointer-events off so it never
    steals clicks from the country paths underneath it. */
 .tissot-layer {
