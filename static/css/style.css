@@ -369,6 +369,27 @@ body {
   height: 100%;
 }
 
+#camera-reset-btn {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  line-height: 1;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+#camera-reset-btn:hover {
+  background: var(--active-bg);
+  border-color: var(--active-border);
+}
+
 .ocean {
   fill: var(--bg-ocean);
 }
