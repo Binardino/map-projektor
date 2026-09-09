@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-09 — Camera reset on projection switch
+
+### Changed
+- Switching projection now dezooms/re-centers the free camera back to the standard view before running the morph, instead of carrying over whatever pan/zoom the user left it at — fixes inconsistent framing when switching in/out of Mercator (or any projection) while zoomed in
+- New reset-view button (bottom-right corner of the map) resets the camera to the standard view at any time
+
 ## 2026-09-09 — Collapsible country search
 
 ### Changed
