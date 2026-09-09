@@ -399,6 +399,7 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null) {
       if (clipFrom !== null) projection.clipAngle(clipFrom + (clipTo - clipFrom) * t);
       countries.attr("d", (d) => pathFn(d) || "");
       renderTerrain(terrainGroup, projection);
+      if (tissotVisible) renderTissot(tissotGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -445,6 +446,7 @@ function animateRotation(fromRot, toRot, duration) {
       ]);
       countries.attr("d", (d) => pathFn(d) || "");
       renderTerrain(terrainGroup, projection);
+      if (tissotVisible) renderTissot(tissotGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
