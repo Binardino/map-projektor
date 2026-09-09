@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-09 — Mountain terrain overlay
+
+### Added
+- Mountain range/plateau terrain patches (Alps, Andes, Himalayas, Rockies...) rendered as light brown patches on the main map, decorative only — sourced from Natural Earth's physical regions dataset since it has no dedicated forest layer, so forest patches are not covered by this pass
+- New `/data/terrain.geojson` route and pipeline step in `scripts/fetch_geodata.py`
+
 ## 2026-09-08 — UX feedback pass: colors, camera, Mercator, default view
 
 ### Changed
