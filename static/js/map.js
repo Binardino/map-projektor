@@ -304,14 +304,15 @@ function renderMap(projection) {
   renderTerrain(terrainGroup, projection);
 }
 
-// Draws the mountain range/plateau patches, keyed by name like country
-// paths. Always on (no toggle — purely decorative terrain texture).
+// Draws the mountain range/plateau patches. Positional (unkeyed) join like
+// the Tissot circles — terrainData is a fixed array loaded once, and some
+// Natural Earth features share the same name (e.g. two "Transantarctic
+// Mountains" entries), which breaks a name-keyed join. Always on (no
+// toggle — purely decorative terrain texture).
 function renderTerrain(group, projection) {
   const path = d3.geoPath().projection(projection);
 
-  const patches = group
-    .selectAll("path.mountain-patch")
-    .data(terrainData.features, (d) => d.properties.name);
+  const patches = group.selectAll("path.mountain-patch").data(terrainData.features);
 
   patches.enter().append("path").attr("class", "mountain-patch").merge(patches).attr("d", path);
 }
