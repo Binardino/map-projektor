@@ -753,9 +753,30 @@ svg.call(globeDrag);
 // it and gently centers/zooms the camera on it — the user can then
 // pan/zoom away freely, the selection doesn't lock the camera.
 // ============================================================
-const searchInput   = document.getElementById("country-search-input");
-const searchResults = document.getElementById("country-search-results");
-const clearBtn       = document.getElementById("country-search-clear");
+const searchToggleBtn = document.getElementById("country-search-toggle");
+const searchPanel     = document.getElementById("country-search-panel");
+const searchInput     = document.getElementById("country-search-input");
+const searchResults   = document.getElementById("country-search-results");
+const clearBtn        = document.getElementById("country-search-clear");
+
+// Reveals the search panel (used both by the toggle button and whenever a
+// selection needs its "Reset view" control to stay reachable — see
+// selectCountry below).
+function openSearchPanel() {
+  searchPanel.hidden = false;
+  searchToggleBtn.classList.add("active");
+}
+
+searchToggleBtn.addEventListener("click", () => {
+  if (searchPanel.hidden) {
+    openSearchPanel();
+    searchInput.focus();
+  } else {
+    searchPanel.hidden = true;
+    searchToggleBtn.classList.remove("active");
+    hideResults();
+  }
+});
 
 let selectedCountryName = null;
 
@@ -806,6 +827,7 @@ function selectCountry(feature) {
   searchInput.value = selectedCountryName;
   clearBtn.hidden = false;
   hideResults();
+  openSearchPanel(); // keep the "Reset view" control reachable, e.g. after a direct map click
 
   if (compareMode) comparePanels.forEach(applySelectionToPanel);
 }
