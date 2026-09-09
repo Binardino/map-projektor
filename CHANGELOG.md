@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-09 — Terrain overlay: mountains, deserts, forest basins
+
+### Added
+- Terrain patches rendered decoratively on the main map, sourced from Natural Earth's physical regions dataset: mountain ranges/plateaus in brown (Alps, Andes, Himalayas, Rockies...), deserts in sandy tan (Sahara, Gobi, Kalahari, Atacama...), and the Amazon/Congo basins in green as a rough proxy for tropical rainforest extent — Natural Earth has no dedicated forest layer, so this is an approximation, not real canopy data
+- New `/data/terrain.geojson` route and pipeline step in `scripts/fetch_geodata.py`
+
 ## 2026-09-09 — Animated distortion grid
 
 ### Changed

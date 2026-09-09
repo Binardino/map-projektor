@@ -391,6 +391,32 @@ body {
   fill: var(--accent);
 }
 
+/* Terrain patches (mountains, deserts, forest-basin proxies) — fixed
+   real-world colors regardless of theme (terrain color, not a theme
+   accent), low opacity so country borders stay visible underneath.
+   Pointer-events off so it never steals clicks from the country paths
+   underneath it. */
+.terrain-layer {
+  pointer-events: none;
+}
+
+.terrain-patch {
+  stroke: none;
+  fill-opacity: 0.35;
+}
+
+.terrain-mountain {
+  fill: #8a6642;
+}
+
+.terrain-desert {
+  fill: #d9b768;
+}
+
+.terrain-forest {
+  fill: #3f7d4a;
+}
+
 /* Tissot's indicatrix overlay — pointer-events off so it never
    steals clicks from the country paths underneath it. */
 .tissot-layer {
