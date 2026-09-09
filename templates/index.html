@@ -18,11 +18,14 @@
         <p class="tagline">Universal Converter</p>
       </div>
       <div id="country-search">
-        <div id="country-search-box">
-          <input type="text" id="country-search-input" placeholder="Search a country…" autocomplete="off" />
-          <button id="country-search-clear" title="Reset view" hidden>✕</button>
+        <button id="country-search-toggle" aria-label="Search a country" title="Search a country">🔍 Search a country</button>
+        <div id="country-search-panel" hidden>
+          <div id="country-search-box">
+            <input type="text" id="country-search-input" placeholder="Search a country…" autocomplete="off" />
+            <button id="country-search-clear" title="Reset view" hidden>✕</button>
+          </div>
+          <ul id="country-search-results" hidden></ul>
         </div>
-        <ul id="country-search-results" hidden></ul>
       </div>
       <nav id="projection-list">
         <!-- Populated by map.js from the PROJECTIONS array -->

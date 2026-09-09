@@ -96,6 +96,33 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+#country-search-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 8px;
+  font-family: var(--font-family);
+  font-size: 12px;
+  background: var(--bg-app);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+#country-search-toggle:hover,
+#country-search-toggle.active {
+  background: var(--active-bg);
+  color: var(--text-primary);
+  border-color: var(--active-border);
+}
+
+#country-search-panel {
+  margin-top: 8px;
+}
+
 #country-search-box {
   display: flex;
   align-items: center;

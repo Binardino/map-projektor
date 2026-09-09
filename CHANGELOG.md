@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-09 — Collapsible country search
+
+### Changed
+- Country search is now hidden behind a search icon button instead of a top-level input, per UX designer feedback; selecting a country (via search or a direct map click) still reopens the panel so its "Reset view" control stays reachable
+
 ## 2026-09-09 — Terrain overlay: mountains, deserts, forest basins
 
 ### Added
