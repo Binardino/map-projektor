@@ -469,10 +469,12 @@ async function polarTransition(fromDef, toDef) {
 async function transitionTo(newProjId) {
   isAnimating = true;
 
-  // The camera (pan/zoom transform on zoomLayer, see CAMERA PAN & ZOOM) lives
-  // outside mapGroup and is independent of any selection or projection — it
-  // stays exactly where the user left it across the morph, no dezoom/rezoom
-  // needed.
+  // Reset the free camera (pan/zoom on zoomLayer, see CAMERA PAN & ZOOM)
+  // to the default centered view before starting the morph, so every
+  // projection switch lands on that projection's own standard framing
+  // instead of carrying over whatever pan/zoom the user left it at.
+  await resetCamera();
+
   const fromDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
   const toDef   = PROJECTIONS.find((p) => p.id === newProjId);
 
@@ -712,6 +714,27 @@ const zoom = d3.zoom()
   });
 
 svg.call(zoom);
+
+const CAMERA_IDENTITY_EPSILON = 0.001;
+
+function isCameraAtIdentity() {
+  return (
+    Math.abs(currentZoomTransform.k - 1) < CAMERA_IDENTITY_EPSILON &&
+    Math.abs(currentZoomTransform.x) < CAMERA_IDENTITY_EPSILON &&
+    Math.abs(currentZoomTransform.y) < CAMERA_IDENTITY_EPSILON
+  );
+}
+
+// Animates the camera back to the default centered view. Returns a promise
+// so callers (e.g. transitionTo) can await it before proceeding; resolves
+// immediately if the camera is already at rest.
+function resetCamera(duration = 500) {
+  if (isCameraAtIdentity()) return Promise.resolve();
+  return svg.transition().duration(duration).call(zoom.transform, d3.zoomIdentity).end();
+}
+
+const cameraResetBtn = document.getElementById("camera-reset-btn");
+cameraResetBtn.addEventListener("click", () => resetCamera());
 
 // ============================================================
 // GLOBE ROTATION (orthographic only)
