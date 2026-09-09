@@ -304,7 +304,8 @@ function renderMap(projection) {
   renderTerrain(terrainGroup, projection);
 }
 
-// Draws the mountain range/plateau patches. Positional (unkeyed) join like
+// Draws the terrain patches (mountains, deserts, forest-basin proxies —
+// see fetch_geodata.py's "kind" property). Positional (unkeyed) join like
 // the Tissot circles — terrainData is a fixed array loaded once, and some
 // Natural Earth features share the same name (e.g. two "Transantarctic
 // Mountains" entries), which breaks a name-keyed join. Always on (no
@@ -312,9 +313,14 @@ function renderMap(projection) {
 function renderTerrain(group, projection) {
   const path = d3.geoPath().projection(projection);
 
-  const patches = group.selectAll("path.mountain-patch").data(terrainData.features);
+  const patches = group.selectAll("path.terrain-patch").data(terrainData.features);
 
-  patches.enter().append("path").attr("class", "mountain-patch").merge(patches).attr("d", path);
+  patches
+    .enter()
+    .append("path")
+    .attr("class", (d) => `terrain-patch terrain-${d.properties.kind}`)
+    .merge(patches)
+    .attr("d", path);
 }
 
 // ============================================================
