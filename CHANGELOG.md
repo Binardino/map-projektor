@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-09 — Animated distortion grid
+
+### Changed
+- The Tissot's Indicatrix distortion grid now redraws on every frame of a projection transition (both regular blends and the polar fold/spin/unfold route) instead of only refreshing once the transition finishes
+
 ## 2026-09-08 — UX feedback pass: colors, camera, Mercator, default view
 
 ### Changed
