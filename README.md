@@ -47,7 +47,7 @@ The app needs a simplified world GeoJSON file. This step requires internet acces
 poetry run python scripts/fetch_geodata.py
 ```
 
-This downloads Natural Earth 110m country boundaries, simplifies geometries with the Douglas-Peucker algorithm, and saves the result to `app/data/world.geojson`. It also fetches Natural Earth's physical regions dataset, keeps the mountain range/plateau features, and saves them to `app/data/terrain.geojson` for the decorative terrain overlay.
+This downloads Natural Earth 110m country boundaries, simplifies geometries with the Douglas-Peucker algorithm, and saves the result to `app/data/world.geojson`. It also fetches Natural Earth's physical regions dataset, keeps the mountain range/plateau and desert features plus the Amazon/Congo basins (a rough proxy for tropical forest, since Natural Earth has no forest layer), and saves them to `app/data/terrain.geojson` for the decorative terrain overlay.
 
 ### Run the server
 
