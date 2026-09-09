@@ -11,11 +11,21 @@ SOURCE_URL = (
 # Natural Earth has no dedicated "forest" layer, but its physical regions
 # dataset includes real mountain range/plateau polygons (Alps, Himalayas,
 # Andes, Rockies...) via the FEATURECLA field — used for the terrain overlay.
+# Deserts have their own FEATURECLA too (Sahara, Gobi, Kalahari...). Tropical
+# forests have no polygon of their own, so the two relevant "Basin" features
+# (river drainage basins, not canopy) stand in as an approximation — picked
+# by name rather than the whole Basin class, since most of it (Great Basin,
+# Tarim Basin...) is arid, not forest.
 TERRAIN_SOURCE_URL = (
     "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/"
     "master/geojson/ne_50m_geography_regions_polys.geojson"
 )
-MOUNTAIN_FEATURECLASSES = {"Range/mtn", "Plateau"}
+TERRAIN_FEATURECLASSES = {
+    "Range/mtn": "mountain",
+    "Plateau":   "mountain",
+    "Desert":    "desert",
+}
+FOREST_BASIN_NAMES = {"AMAZON BASIN", "CONGO BASIN"}
 
 OUTPUT_PATH = pathlib.Path(__file__).parent.parent / "app" / "data" / "world.geojson"
 TERRAIN_OUTPUT_PATH = pathlib.Path(__file__).parent.parent / "app" / "data" / "terrain.geojson"
@@ -68,8 +78,8 @@ def simplify_feature(feature, tolerance):
         print(f"Warning : {e}")
         return None
 
-def simplify_terrain_feature(feature, tolerance):
-    """Simplify a mountain-range/plateau feature, same treatment as simplify_feature."""
+def simplify_terrain_feature(feature, tolerance, kind):
+    """Simplify a terrain feature, same treatment as simplify_feature, tagged with its kind."""
     try:
         geometry = shape(feature["geometry"])
         simplified = geometry.simplify(tolerance, preserve_topology=True)
@@ -82,6 +92,7 @@ def simplify_terrain_feature(feature, tolerance):
             "type"       : "Feature",
             "properties" : {
                 "name": feature["properties"].get("NAME", "Unknown"),
+                "kind": kind,
             },
             "geometry": round_coordinates(mapping(clipped), COORDINATE_PRECISION)
         }
@@ -91,18 +102,28 @@ def simplify_terrain_feature(feature, tolerance):
         return None
 
 def fetch_terrain():
-    """Fetch Natural Earth physical regions, keep mountain ranges/plateaus, simplify, save."""
+    """Fetch Natural Earth physical regions, keep mountains/plateaus/deserts and the
+    two named forest-basin proxies, simplify, save with a "kind" property per feature."""
     print(f"Fetching {TERRAIN_SOURCE_URL} ...")
     response = requests.get(TERRAIN_SOURCE_URL, timeout=30)
     response.raise_for_status()
     print(f"  → fetch OK ({response.status_code})")
 
-    data     = response.json()
-    features = [f for f in data["features"] if f["properties"].get("FEATURECLA") in MOUNTAIN_FEATURECLASSES]
+    data = response.json()
 
     simplified_features = []
-    for raw in features:
-        simp = simplify_terrain_feature(raw, SIMPLIFY_TOLERANCE)
+    for raw in data["features"]:
+        featurecla = raw["properties"].get("FEATURECLA")
+        name       = raw["properties"].get("NAME")
+
+        if featurecla in TERRAIN_FEATURECLASSES:
+            kind = TERRAIN_FEATURECLASSES[featurecla]
+        elif featurecla == "Basin" and name in FOREST_BASIN_NAMES:
+            kind = "forest"
+        else:
+            continue
+
+        simp = simplify_terrain_feature(raw, SIMPLIFY_TOLERANCE, kind)
         if simp is not None:
             simplified_features.append(simp)
 
