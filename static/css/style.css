@@ -189,6 +189,29 @@ body {
   color: var(--text-primary);
 }
 
+#add-to-truesize-btn {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 10px;
+  font-family: var(--font-family);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.15s, color 0.15s;
+}
+
+#add-to-truesize-btn:hover {
+  background: var(--active-bg);
+  border-color: var(--active-border);
+  color: var(--text-primary);
+}
+
 /* ============================================================
    COMPARE TOGGLE
    ============================================================ */
@@ -554,6 +577,22 @@ body {
    own darker backdrop instead of the flat-map ocean color, per UX feedback. */
 .ocean.globe-bg {
   fill: var(--bg-globe);
+}
+
+/* Sphere boundary — a real shape drawn on top of the ocean rect. Its fill
+   matches the ocean rect so flat projections look unchanged; the stroke
+   only shows in orthographic (see .globe-sphere.active), where it's the
+   only thing separating the globe disc from the void background. */
+.globe-sphere {
+  fill: var(--bg-ocean);
+  stroke: none;
+}
+
+.globe-sphere.active {
+  stroke: var(--accent);
+  stroke-width: 1.5px;
+  stroke-opacity: 0.8;
+  vector-effect: non-scaling-stroke;
 }
 
 .country {

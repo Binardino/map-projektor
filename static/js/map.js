@@ -208,6 +208,11 @@ const oceanRect = svg.append("rect").attr("class", "ocean").attr("width", WIDTH)
 // below). Everything that pans/zooms with the map lives inside it.
 const zoomLayer = svg.append("g").attr("class", "viewport");
 
+// Sphere outline — a distinct shape (not just the background rect) so the
+// globe's edge is visible against the void backdrop in orthographic view.
+// Appended before mapGroup so countries paint on top of it.
+const globeSphere = zoomLayer.append("path").attr("class", "globe-sphere");
+
 // Group that holds all country <path> elements
 const mapGroup = zoomLayer.append("g").attr("class", "countries");
 
@@ -237,7 +242,9 @@ let isAnimating = false;
 // The globe view needs its own darker backdrop instead of the flat-map
 // ocean color for the space outside the sphere disc.
 function updateGlobeBackground() {
-  oceanRect.classed("globe-bg", currentProjectionId === "orthographic");
+  const isGlobe = currentProjectionId === "orthographic";
+  oceanRect.classed("globe-bg", isGlobe);
+  globeSphere.classed("active", isGlobe);
 }
 let worldData = null;
 let terrainData = null;
@@ -286,8 +293,18 @@ function makeProjection(projDef, rotationOverride = null) {
 // ============================================================
 // RENDER — draw or update country paths for a given projection
 // ============================================================
+// Draws the sphere's own boundary as a real shape (ocean-colored, with a
+// stroke) rather than relying on the background rect, so the globe's edge
+// reads clearly against the void backdrop in orthographic view.
+function renderGlobeSphere(pathEl, projection) {
+  const path = d3.geoPath().projection(projection);
+  pathEl.attr("d", path({ type: "Sphere" }));
+}
+
 function renderMap(projection) {
   const path = d3.geoPath().projection(projection);
+
+  renderGlobeSphere(globeSphere, projection);
 
   // D3 data join keyed by country name — handles enter/update/exit
   const paths = mapGroup
@@ -402,6 +419,7 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null) {
       projection.alpha(t);
       if (clipFrom !== null) projection.clipAngle(clipFrom + (clipTo - clipFrom) * t);
       countries.attr("d", (d) => pathFn(d) || "");
+      renderGlobeSphere(globeSphere, projection);
       renderTerrain(terrainGroup, projection);
       if (tissotVisible) renderTissot(tissotGroup, projection);
       if (elapsed >= duration) {
@@ -449,6 +467,7 @@ function animateRotation(fromRot, toRot, duration) {
         fromRot[1] + (toRot[1] - fromRot[1]) * t,
       ]);
       countries.attr("d", (d) => pathFn(d) || "");
+      renderGlobeSphere(globeSphere, projection);
       renderTerrain(terrainGroup, projection);
       if (tissotVisible) renderTissot(tissotGroup, projection);
       if (elapsed >= duration) {
@@ -817,6 +836,16 @@ const searchPanel     = document.getElementById("country-search-panel");
 const searchInput     = document.getElementById("country-search-input");
 const searchResults   = document.getElementById("country-search-results");
 const clearBtn        = document.getElementById("country-search-clear");
+const addToTrueSizeBtn = document.getElementById("add-to-truesize-btn");
+
+// Shortcut into the True Size Of... tool (see TRUE SIZE COMPARE below) —
+// avoids re-searching the same country there once it's already selected here.
+addToTrueSizeBtn.addEventListener("click", () => {
+  if (!selectedCountryName) return;
+  addTrueSizeCountry(selectedCountryName);
+  trueSizePanel.hidden = false;
+  trueSizeToggleBtn.classList.add("active");
+});
 
 // Reveals the search panel (used both by the toggle button and whenever a
 // selection needs its "Reset view" control to stay reachable — see
@@ -885,6 +914,7 @@ function selectCountry(feature) {
 
   searchInput.value = selectedCountryName;
   clearBtn.hidden = false;
+  addToTrueSizeBtn.hidden = false;
   hideResults();
   openSearchPanel(); // keep the "Reset view" control reachable, e.g. after a direct map click
 
@@ -901,6 +931,7 @@ function clearSelection() {
 
   searchInput.value = "";
   clearBtn.hidden = true;
+  addToTrueSizeBtn.hidden = true;
 
   if (compareMode) comparePanels.forEach(applySelectionToPanel);
 }
@@ -990,9 +1021,11 @@ function buildComparePanel(panelEl, initialProjId) {
 
   const panelOceanRect = svg.append("rect").attr("class", "ocean").attr("width", width).attr("height", height);
   const zoomLayer = svg.append("g").attr("class", "viewport");
+  const panelGlobeSphere = zoomLayer.append("path").attr("class", "globe-sphere");
   const panel = {
     projId: initialProjId,
     oceanRect: panelOceanRect,
+    globeSphere: panelGlobeSphere,
     mapGroup: zoomLayer.append("g").attr("class", "countries"),
     tissotGroup: zoomLayer.append("g").attr("class", "tissot-layer"),
     flightPathGroup: zoomLayer.append("g").attr("class", "flightpath-layer"),
@@ -1028,7 +1061,10 @@ function buildComparePanel(panelEl, initialProjId) {
       .data(worldData.features, (d) => d.properties.name);
     paths.enter().append("path").attr("class", "country").attr("d", pathFn);
     paths.attr("d", pathFn);
-    panel.oceanRect.classed("globe-bg", panel.projId === "orthographic");
+    const isGlobe = panel.projId === "orthographic";
+    panel.oceanRect.classed("globe-bg", isGlobe);
+    renderGlobeSphere(panel.globeSphere, projection);
+    panel.globeSphere.classed("active", isGlobe);
   };
   panel.render();
 
