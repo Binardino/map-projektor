@@ -56,6 +56,14 @@
         <button id="tissot-toggle">Show Distortion Grid</button>
         <button id="flightpath-toggle">Draw Flight Path</button>
         <p id="flightpath-distance" hidden></p>
+        <button id="truesize-toggle" aria-label="Compare true size" title="Compare true size">Compare True Size</button>
+        <div id="truesize-panel" hidden>
+          <div id="truesize-search-box">
+            <input type="text" id="truesize-search-input" placeholder="Add a country…" autocomplete="off" />
+          </div>
+          <ul id="truesize-search-results" hidden></ul>
+          <ul id="truesize-selected-list"></ul>
+        </div>
       </div>
     </aside>
 
