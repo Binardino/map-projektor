@@ -1006,6 +1006,14 @@ function buildComparePanel(panelEl, initialProjId) {
     });
   svg.call(panel.zoom);
 
+  // Same click-to-place-A/B as the main view (see FLIGHT PATH), using this
+  // panel's own projection and zoom transform to invert the click.
+  svg.node().addEventListener("click", (event) => {
+    const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
+    const projection = fitProjection(projDef, projDef.d3fn(), panel.width, panel.height);
+    handleFlightPathClick(event, svg.node(), panel.zoomTransform, projection);
+  });
+
   panel.render = () => {
     const projDef     = PROJECTIONS.find((p) => p.id === panel.projId);
     const projection  = fitProjection(projDef, projDef.d3fn(), panel.width, panel.height);
@@ -1256,10 +1264,7 @@ function refreshFlightPath() {
   renderFlightPath(flightPathGroup, makeProjection(currentDef, currentRecenterRotate));
 
   if (compareMode && comparePanels) {
-    // Panels don't get a flightPathGroup until Task 3 wires it up — skip
-    // those so this doesn't crash in the meantime.
     comparePanels.forEach((panel) => {
-      if (!panel.flightPathGroup) return;
       const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
       renderFlightPath(panel.flightPathGroup, fitProjection(projDef, projDef.d3fn(), panel.width, panel.height));
     });
