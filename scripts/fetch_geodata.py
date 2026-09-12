@@ -2,6 +2,7 @@ import requests
 import json
 import pathlib
 from shapely.geometry import mapping, shape, box as shapely_box
+from shapely.ops import unary_union
 
 SOURCE_URL = (
     "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/"
@@ -9,12 +10,16 @@ SOURCE_URL = (
 )
 
 # Natural Earth has no dedicated "forest" layer, but its physical regions
-# dataset includes real mountain range/plateau polygons (Alps, Himalayas,
-# Andes, Rockies...) via the FEATURECLA field — used for the terrain overlay.
-# Deserts have their own FEATURECLA too (Sahara, Gobi, Kalahari...). Tropical
-# forests have no polygon of their own, so the two relevant "Basin" features
-# (river drainage basins, not canopy) stand in as an approximation — picked
-# by name rather than the whole Basin class, since most of it (Great Basin,
+# dataset includes real mountain range polygons (Alps, Himalayas, Andes,
+# Rockies...) via the FEATURECLA field — used for the terrain overlay.
+# "Plateau" is deliberately excluded: it covers large elevated-but-flat
+# regions (Brazilian Highlands, the Mexican Altiplano, Australia's Western
+# Plateau...) that read as "100% mountain" on the map despite not being
+# rugged terrain — confirmed visually, see CHANGELOG. Deserts have their
+# own FEATURECLA too (Sahara, Gobi, Kalahari...). Tropical forests have no
+# polygon of their own, so the two relevant "Basin" features (river
+# drainage basins, not canopy) stand in as an approximation — picked by
+# name rather than the whole Basin class, since most of it (Great Basin,
 # Tarim Basin...) is arid, not forest.
 TERRAIN_SOURCE_URL = (
     "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/"
@@ -22,7 +27,6 @@ TERRAIN_SOURCE_URL = (
 )
 TERRAIN_FEATURECLASSES = {
     "Range/mtn": "mountain",
-    "Plateau":   "mountain",
     "Desert":    "desert",
 }
 FOREST_BASIN_NAMES = {"AMAZON BASIN", "CONGO BASIN"}
@@ -78,32 +82,10 @@ def simplify_feature(feature, tolerance):
         print(f"Warning : {e}")
         return None
 
-def simplify_terrain_feature(feature, tolerance, kind):
-    """Simplify a terrain feature, same treatment as simplify_feature, tagged with its kind."""
-    try:
-        geometry = shape(feature["geometry"])
-        simplified = geometry.simplify(tolerance, preserve_topology=True)
-        clipped   = simplified.intersection(ANTIMERIDIAN_CLIP)
-
-        if clipped.is_empty:
-            return None
-
-        return {
-            "type"       : "Feature",
-            "properties" : {
-                "name": feature["properties"].get("NAME", "Unknown"),
-                "kind": kind,
-            },
-            "geometry": round_coordinates(mapping(clipped), COORDINATE_PRECISION)
-        }
-
-    except Exception as e:
-        print(f"Warning : {e}")
-        return None
-
 def fetch_terrain():
-    """Fetch Natural Earth physical regions, keep mountains/plateaus/deserts and the
-    two named forest-basin proxies, simplify, save with a "kind" property per feature."""
+    """Fetch Natural Earth physical regions, keep mountains/deserts and the two
+    named forest-basin proxies, dissolve same-kind polygons into one shape each,
+    simplify, save with a "kind" property per feature."""
     print(f"Fetching {TERRAIN_SOURCE_URL} ...")
     response = requests.get(TERRAIN_SOURCE_URL, timeout=30)
     response.raise_for_status()
@@ -111,7 +93,7 @@ def fetch_terrain():
 
     data = response.json()
 
-    simplified_features = []
+    geometries_by_kind = {}
     for raw in data["features"]:
         featurecla = raw["properties"].get("FEATURECLA")
         name       = raw["properties"].get("NAME")
@@ -123,9 +105,28 @@ def fetch_terrain():
         else:
             continue
 
-        simp = simplify_terrain_feature(raw, SIMPLIFY_TOLERANCE, kind)
-        if simp is not None:
-            simplified_features.append(simp)
+        geometries_by_kind.setdefault(kind, []).append(shape(raw["geometry"]))
+
+    # Dissolve each kind's polygons into a single shape before simplifying.
+    # Natural Earth splits real massifs into many adjacent/overlapping named
+    # sub-ranges (e.g. dozens of individual Alps sub-massifs) — left as
+    # separate features, their semi-transparent CSS fill stacks wherever
+    # they overlap, showing up as visibly darker blotches instead of one
+    # even color.
+    simplified_features = []
+    for kind, geometries in geometries_by_kind.items():
+        merged     = unary_union(geometries)
+        simplified = merged.simplify(SIMPLIFY_TOLERANCE, preserve_topology=True)
+        clipped    = simplified.intersection(ANTIMERIDIAN_CLIP)
+
+        if clipped.is_empty:
+            continue
+
+        simplified_features.append({
+            "type"       : "Feature",
+            "properties" : {"kind": kind},
+            "geometry"   : round_coordinates(mapping(clipped), COORDINATE_PRECISION),
+        })
 
     dict_feature = {"type"     : "FeatureCollection",
                     "features" : simplified_features}

@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-12 — Terrain overlay cleanup
+
+### Fixed
+- Removed "Plateau" from the mountain terrain classification — it was grouping large elevated-but-flat regions (Brazilian Highlands, Mexican Altiplano, Australia's Western Plateau) with real mountain ranges, making Spain, Portugal, Mexico, and Brazil render as almost entirely "mountain". Verified against country geometries: Spain 18%, Portugal 0%, Mexico 44%, Brazil 6%, Australia 10% mountain coverage, down from near 100%
+- Dissolved overlapping same-kind terrain polygons (`shapely.unary_union`) into one shape per kind before export — adjacent/overlapping named sub-ranges no longer stack their semi-transparent fill into visibly darker blotches
+- Australia's East coast mountain band (Great Dividing Range) remains visually broad — a real limitation of Natural Earth's generalization at this data resolution, not a classification bug
+
 ## 2026-09-12 — Globe sphere outline
 
 ### Fixed
