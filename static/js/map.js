@@ -990,15 +990,20 @@ function buildComparePanel(panelEl, initialProjId) {
     oceanRect: panelOceanRect,
     mapGroup: zoomLayer.append("g").attr("class", "countries"),
     tissotGroup: zoomLayer.append("g").attr("class", "tissot-layer"),
+    flightPathGroup: zoomLayer.append("g").attr("class", "flightpath-layer"),
     svg,
     width,
     height,
+    zoomTransform: d3.zoomIdentity,
   };
 
   // Same free pan/zoom as the main view, independent per panel.
   panel.zoom = d3.zoom()
     .scaleExtent(MAIN_ZOOM_SCALE_EXTENT)
-    .on("zoom", (event) => zoomLayer.attr("transform", event.transform));
+    .on("zoom", (event) => {
+      panel.zoomTransform = event.transform;
+      zoomLayer.attr("transform", event.transform);
+    });
   svg.call(panel.zoom);
 
   panel.render = () => {
