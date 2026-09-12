@@ -189,6 +189,29 @@ body {
   color: var(--text-primary);
 }
 
+#add-to-truesize-btn {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 10px;
+  font-family: var(--font-family);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.15s, color 0.15s;
+}
+
+#add-to-truesize-btn:hover {
+  background: var(--active-bg);
+  border-color: var(--active-border);
+  color: var(--text-primary);
+}
+
 /* ============================================================
    COMPARE TOGGLE
    ============================================================ */
