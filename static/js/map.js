@@ -291,8 +291,18 @@ function makeProjection(projDef, rotationOverride = null) {
 // ============================================================
 // RENDER — draw or update country paths for a given projection
 // ============================================================
+// Draws the sphere's own boundary as a real shape (ocean-colored, with a
+// stroke) rather than relying on the background rect, so the globe's edge
+// reads clearly against the void backdrop in orthographic view.
+function renderGlobeSphere(pathEl, projection) {
+  const path = d3.geoPath().projection(projection);
+  pathEl.attr("d", path({ type: "Sphere" }));
+}
+
 function renderMap(projection) {
   const path = d3.geoPath().projection(projection);
+
+  renderGlobeSphere(globeSphere, projection);
 
   // D3 data join keyed by country name — handles enter/update/exit
   const paths = mapGroup
