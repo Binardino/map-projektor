@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-12 — "Compare its true size" shortcut from country search
+
+### Added
+- New "Compare its true size" button, shown whenever a country is selected via the main search (or a direct map click) — adds it straight to the True Size Of... draggable list without having to search for it again in that tool's own panel
+
 ## 2026-09-11 — "True Size Of..." country comparison
 
 ### Added
