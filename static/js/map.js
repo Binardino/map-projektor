@@ -529,6 +529,7 @@ async function transitionTo(newProjId) {
   refreshTissot();
   refreshRecenterAvailability();
   refreshFlightPath();
+  resetTrueSizeOnProjectionSwitch();
 
   isAnimating = false;
 }
@@ -1335,6 +1336,11 @@ svg.node().addEventListener("click", (event) => handleFlightPathClick(event));
 // globe drag) — the shapes live in truesizeGroup, inside the main map's
 // svg, which is already hidden while comparing (see mapContainerEl.hidden
 // above), so nothing extra is needed to keep it out of compare mode.
+//
+// Drag only moves a shape on screen (a transform layered on top of its
+// true-position `d`); switching projection snaps every shape back to its
+// true geographic position under the new projection instead of trying to
+// carry the drag offset over — the offsets are cleared, not preserved.
 // ============================================================
 const TRUESIZE_PALETTE = ["#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6", "#1abc9c", "#e67e22", "#95a5a6"];
 
@@ -1399,10 +1405,6 @@ function renderTrueSizeList() {
   });
 }
 
-// Drag only moves a shape on screen (a transform layered on top of its
-// true-position `d`); switching projection snaps every shape back to its
-// true geographic position under the new projection instead of trying to
-// carry the drag offset over — the offsets are cleared, not preserved.
 const trueSizeDrag = d3.drag().on("drag", function (event, feature) {
   const name = feature.properties.name;
   const offset = trueSizeOffsets.get(name) || { x: 0, y: 0 };
@@ -1444,6 +1446,12 @@ function renderTrueSizeShapes() {
       const offset = trueSizeOffsets.get(d.properties.name) || { x: 0, y: 0 };
       return `translate(${offset.x},${offset.y})`;
     });
+}
+
+function resetTrueSizeOnProjectionSwitch() {
+  if (trueSizeOrder.length === 0) return;
+  trueSizeOffsets.clear();
+  renderTrueSizeShapes();
 }
 
 trueSizeInput.addEventListener("input", () => {

@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-11 — "True Size Of..." country comparison
+
+### Added
+- New "Compare True Size" tool in the sidebar (dedicated search + checklist, independent from the main country search): pick several countries, each spawns as a draggable, colored silhouette at its true geographic position under the current projection
+- Shapes can be dragged freely anywhere on the map to compare apparent sizes; switching projection snaps every shape back to its true geographic position under the new projection rather than keeping the dragged offset
+- Colors cycle through a fixed palette in the order countries are added; unchecking a country (✕ in the list) removes its shape
+- Scoped to the main view only, same precedent as the terrain overlay and globe-drag rotation — not available in comparison mode
+
 ## 2026-09-11 — Flight path in comparison mode
 
 ### Fixed
