@@ -1068,7 +1068,6 @@ function applySelectionToPanel(panel) {
 
 compareToggleBtn.addEventListener("click", () => {
   compareMode = !compareMode;
-  if (compareMode && flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
   compareToggleBtn.classList.toggle("active", compareMode);
   projectionListEl.classList.toggle("disabled-list", compareMode);
   document.getElementById("recenter-list").classList.toggle("disabled-list", compareMode);
@@ -1204,7 +1203,9 @@ tissotToggleBtn.addEventListener("click", () => {
 // Endpoints are stored as [lon, lat] — projection-independent, like
 // the Tissot grid points — so refreshFlightPath() can re-project and
 // redraw them after any projection switch, the same pattern as
-// refreshTissot(). Mutually exclusive with country selection and
+// refreshTissot(). Also mirrored onto both compare-mode panels the same
+// way Tissot is: one shared A/B pair, each panel just reprojects it with
+// its own projection. Mutually exclusive with country selection and
 // recenter presets (same convention those two already use with each
 // other): turning flight-path mode on clears both; selecting a
 // country or a recenter preset turns flight-path mode off.
