@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-11 — Flight path in comparison mode
+
+### Fixed
+- The flight-path tool now works in comparison mode: each panel gets its own `flightPathGroup` and click handler (using that panel's own projection/zoom), instead of the click handler being wired only to the (hidden-in-compare) main map — previously nothing happened when clicking a panel with the tool active
+- Removed the compare↔flight-path mutual exclusion, no longer needed now that both can render together; the A/B endpoints remain a single shared pair mirrored onto both panels, same convention as the Tissot overlay
+
 ## 2026-09-09 — Camera reset on projection switch
 
 ### Changed
