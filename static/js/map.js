@@ -1009,9 +1009,11 @@ function buildComparePanel(panelEl, initialProjId) {
 
   const panelOceanRect = svg.append("rect").attr("class", "ocean").attr("width", width).attr("height", height);
   const zoomLayer = svg.append("g").attr("class", "viewport");
+  const panelGlobeSphere = zoomLayer.append("path").attr("class", "globe-sphere");
   const panel = {
     projId: initialProjId,
     oceanRect: panelOceanRect,
+    globeSphere: panelGlobeSphere,
     mapGroup: zoomLayer.append("g").attr("class", "countries"),
     tissotGroup: zoomLayer.append("g").attr("class", "tissot-layer"),
     flightPathGroup: zoomLayer.append("g").attr("class", "flightpath-layer"),
@@ -1047,7 +1049,10 @@ function buildComparePanel(panelEl, initialProjId) {
       .data(worldData.features, (d) => d.properties.name);
     paths.enter().append("path").attr("class", "country").attr("d", pathFn);
     paths.attr("d", pathFn);
-    panel.oceanRect.classed("globe-bg", panel.projId === "orthographic");
+    const isGlobe = panel.projId === "orthographic";
+    panel.oceanRect.classed("globe-bg", isGlobe);
+    renderGlobeSphere(panel.globeSphere, projection);
+    panel.globeSphere.classed("active", isGlobe);
   };
   panel.render();
 
