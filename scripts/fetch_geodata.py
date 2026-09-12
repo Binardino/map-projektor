@@ -9,12 +9,16 @@ SOURCE_URL = (
 )
 
 # Natural Earth has no dedicated "forest" layer, but its physical regions
-# dataset includes real mountain range/plateau polygons (Alps, Himalayas,
-# Andes, Rockies...) via the FEATURECLA field — used for the terrain overlay.
-# Deserts have their own FEATURECLA too (Sahara, Gobi, Kalahari...). Tropical
-# forests have no polygon of their own, so the two relevant "Basin" features
-# (river drainage basins, not canopy) stand in as an approximation — picked
-# by name rather than the whole Basin class, since most of it (Great Basin,
+# dataset includes real mountain range polygons (Alps, Himalayas, Andes,
+# Rockies...) via the FEATURECLA field — used for the terrain overlay.
+# "Plateau" is deliberately excluded: it covers large elevated-but-flat
+# regions (Brazilian Highlands, the Mexican Altiplano, Australia's Western
+# Plateau...) that read as "100% mountain" on the map despite not being
+# rugged terrain — confirmed visually, see CHANGELOG. Deserts have their
+# own FEATURECLA too (Sahara, Gobi, Kalahari...). Tropical forests have no
+# polygon of their own, so the two relevant "Basin" features (river
+# drainage basins, not canopy) stand in as an approximation — picked by
+# name rather than the whole Basin class, since most of it (Great Basin,
 # Tarim Basin...) is arid, not forest.
 TERRAIN_SOURCE_URL = (
     "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/"
@@ -22,7 +26,6 @@ TERRAIN_SOURCE_URL = (
 )
 TERRAIN_FEATURECLASSES = {
     "Range/mtn": "mountain",
-    "Plateau":   "mountain",
     "Desert":    "desert",
 }
 FOREST_BASIN_NAMES = {"AMAZON BASIN", "CONGO BASIN"}
