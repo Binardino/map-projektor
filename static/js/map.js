@@ -819,6 +819,15 @@ const searchResults   = document.getElementById("country-search-results");
 const clearBtn        = document.getElementById("country-search-clear");
 const addToTrueSizeBtn = document.getElementById("add-to-truesize-btn");
 
+// Shortcut into the True Size Of... tool (see TRUE SIZE COMPARE below) —
+// avoids re-searching the same country there once it's already selected here.
+addToTrueSizeBtn.addEventListener("click", () => {
+  if (!selectedCountryName) return;
+  addTrueSizeCountry(selectedCountryName);
+  trueSizePanel.hidden = false;
+  trueSizeToggleBtn.classList.add("active");
+});
+
 // Reveals the search panel (used both by the toggle button and whenever a
 // selection needs its "Reset view" control to stay reachable — see
 // selectCountry below).
