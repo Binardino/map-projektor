@@ -208,6 +208,11 @@ const oceanRect = svg.append("rect").attr("class", "ocean").attr("width", WIDTH)
 // below). Everything that pans/zooms with the map lives inside it.
 const zoomLayer = svg.append("g").attr("class", "viewport");
 
+// Sphere outline — a distinct shape (not just the background rect) so the
+// globe's edge is visible against the void backdrop in orthographic view.
+// Appended before mapGroup so countries paint on top of it.
+const globeSphere = zoomLayer.append("path").attr("class", "globe-sphere");
+
 // Group that holds all country <path> elements
 const mapGroup = zoomLayer.append("g").attr("class", "countries");
 
