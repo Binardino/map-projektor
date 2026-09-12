@@ -836,6 +836,16 @@ const searchPanel     = document.getElementById("country-search-panel");
 const searchInput     = document.getElementById("country-search-input");
 const searchResults   = document.getElementById("country-search-results");
 const clearBtn        = document.getElementById("country-search-clear");
+const addToTrueSizeBtn = document.getElementById("add-to-truesize-btn");
+
+// Shortcut into the True Size Of... tool (see TRUE SIZE COMPARE below) —
+// avoids re-searching the same country there once it's already selected here.
+addToTrueSizeBtn.addEventListener("click", () => {
+  if (!selectedCountryName) return;
+  addTrueSizeCountry(selectedCountryName);
+  trueSizePanel.hidden = false;
+  trueSizeToggleBtn.classList.add("active");
+});
 
 // Reveals the search panel (used both by the toggle button and whenever a
 // selection needs its "Reset view" control to stay reachable — see
@@ -904,6 +914,7 @@ function selectCountry(feature) {
 
   searchInput.value = selectedCountryName;
   clearBtn.hidden = false;
+  addToTrueSizeBtn.hidden = false;
   hideResults();
   openSearchPanel(); // keep the "Reset view" control reachable, e.g. after a direct map click
 
@@ -920,6 +931,7 @@ function clearSelection() {
 
   searchInput.value = "";
   clearBtn.hidden = true;
+  addToTrueSizeBtn.hidden = true;
 
   if (compareMode) comparePanels.forEach(applySelectionToPanel);
 }

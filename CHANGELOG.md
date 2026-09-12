@@ -8,6 +8,11 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 - The Orthographic (globe) view now draws the sphere's own edge as a real shape (ocean-colored, with a stroke), instead of relying on the flat background rect — previously the globe disc and the void behind it were painted the same color, so the globe's boundary was invisible
 - Also added to both comparison panels when either shows Orthographic
 
+## 2026-09-12 — "Compare its true size" shortcut from country search
+
+### Added
+- New "Compare its true size" button, shown whenever a country is selected via the main search (or a direct map click) — adds it straight to the True Size Of... draggable list without having to search for it again in that tool's own panel
+
 ## 2026-09-11 — "True Size Of..." country comparison
 
 ### Added
