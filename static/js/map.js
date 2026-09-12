@@ -242,7 +242,9 @@ let isAnimating = false;
 // The globe view needs its own darker backdrop instead of the flat-map
 // ocean color for the space outside the sphere disc.
 function updateGlobeBackground() {
-  oceanRect.classed("globe-bg", currentProjectionId === "orthographic");
+  const isGlobe = currentProjectionId === "orthographic";
+  oceanRect.classed("globe-bg", isGlobe);
+  globeSphere.classed("active", isGlobe);
 }
 let worldData = null;
 let terrainData = null;
