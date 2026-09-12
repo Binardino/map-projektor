@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-12 — Globe sphere outline
+
+### Fixed
+- The Orthographic (globe) view now draws the sphere's own edge as a real shape (ocean-colored, with a stroke), instead of relying on the flat background rect — previously the globe disc and the void behind it were painted the same color, so the globe's boundary was invisible
+- Also added to both comparison panels when either shows Orthographic
+
 ## 2026-09-12 — "Compare its true size" shortcut from country search
 
 ### Added
