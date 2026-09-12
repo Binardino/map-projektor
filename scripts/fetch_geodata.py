@@ -2,6 +2,7 @@ import requests
 import json
 import pathlib
 from shapely.geometry import mapping, shape, box as shapely_box
+from shapely.ops import unary_union
 
 SOURCE_URL = (
     "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/"
