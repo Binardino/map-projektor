@@ -1320,6 +1320,116 @@ function handleFlightPathClick(event, svgNode = svg.node(), zoomTransform = curr
 svg.node().addEventListener("click", (event) => handleFlightPathClick(event));
 
 // ============================================================
+// TRUE SIZE COMPARE
+//
+// Lets the user add several countries as freely draggable silhouettes
+// spawned at their true geographic position under the current projection
+// (like thetruesizeof.com, generalized to all 17 projections here).
+// Independent from the main country search (Feature 1) since that one is
+// single-select/highlight-only. Colors cycle through a fixed palette in
+// add order. Scoped to the main view only (like the terrain overlay and
+// globe drag) — the shapes live in truesizeGroup, inside the main map's
+// svg, which is already hidden while comparing (see mapContainerEl.hidden
+// above), so nothing extra is needed to keep it out of compare mode.
+// ============================================================
+const TRUESIZE_PALETTE = ["#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6", "#1abc9c", "#e67e22", "#95a5a6"];
+
+const trueSizeToggleBtn = document.getElementById("truesize-toggle");
+const trueSizePanel     = document.getElementById("truesize-panel");
+const trueSizeInput     = document.getElementById("truesize-search-input");
+const trueSizeResults   = document.getElementById("truesize-search-results");
+const trueSizeListEl    = document.getElementById("truesize-selected-list");
+
+let trueSizeOrder = []; // country names, in the order they were added
+const trueSizeColors  = new Map(); // name -> color, assigned once at add time
+const trueSizeOffsets = new Map(); // name -> {x, y} drag offset, on top of the true position
+let trueSizeNextColorIndex = 0;
+
+trueSizeToggleBtn.addEventListener("click", () => {
+  trueSizePanel.hidden = !trueSizePanel.hidden;
+  trueSizeToggleBtn.classList.toggle("active", !trueSizePanel.hidden);
+  if (!trueSizePanel.hidden) trueSizeInput.focus();
+});
+
+function hideTrueSizeResults() {
+  trueSizeResults.hidden = true;
+  trueSizeResults.innerHTML = "";
+}
+
+function addTrueSizeCountry(name) {
+  if (trueSizeOrder.includes(name)) return;
+  trueSizeOrder.push(name);
+  trueSizeColors.set(name, TRUESIZE_PALETTE[trueSizeNextColorIndex % TRUESIZE_PALETTE.length]);
+  trueSizeNextColorIndex++;
+  renderTrueSizeList();
+  renderTrueSizeShapes();
+}
+
+function removeTrueSizeCountry(name) {
+  trueSizeOrder = trueSizeOrder.filter((n) => n !== name);
+  trueSizeColors.delete(name);
+  trueSizeOffsets.delete(name);
+  renderTrueSizeList();
+  renderTrueSizeShapes();
+}
+
+function renderTrueSizeList() {
+  trueSizeListEl.innerHTML = "";
+  trueSizeOrder.forEach((name) => {
+    const li = document.createElement("li");
+
+    const swatch = document.createElement("span");
+    swatch.className = "truesize-swatch";
+    swatch.style.background = trueSizeColors.get(name);
+
+    const label = document.createElement("span");
+    label.textContent = name;
+
+    const removeBtn = document.createElement("button");
+    removeBtn.textContent = "✕";
+    removeBtn.title = "Remove";
+    removeBtn.addEventListener("click", () => removeTrueSizeCountry(name));
+
+    li.append(swatch, label, removeBtn);
+    trueSizeListEl.appendChild(li);
+  });
+}
+
+trueSizeInput.addEventListener("input", () => {
+  const query = trueSizeInput.value.trim().toLowerCase();
+  if (!query || !worldData) {
+    hideTrueSizeResults();
+    return;
+  }
+  const matches = worldData.features
+    .filter((f) => !trueSizeOrder.includes(f.properties.name))
+    .filter((f) => f.properties.name.toLowerCase().includes(query))
+    .sort((a, b) => {
+      const nameA = a.properties.name.toLowerCase();
+      const nameB = b.properties.name.toLowerCase();
+      return nameA.indexOf(query) - nameB.indexOf(query);
+    })
+    .slice(0, 8);
+
+  trueSizeResults.innerHTML = "";
+  matches.forEach((feature) => {
+    const li = document.createElement("li");
+    li.textContent = feature.properties.name;
+    li.addEventListener("click", () => {
+      addTrueSizeCountry(feature.properties.name);
+      trueSizeInput.value = "";
+      hideTrueSizeResults();
+    });
+    trueSizeResults.appendChild(li);
+  });
+  trueSizeResults.hidden = matches.length === 0;
+});
+
+trueSizeInput.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") hideTrueSizeResults();
+});
+
+// ============================================================
 // INIT — fetch GeoJSON then render
 // ============================================================
 async function init() {
