@@ -1281,15 +1281,18 @@ flightPathToggleBtn.addEventListener("click", () => {
 });
 
 // 1st click places A, 2nd places B and draws the route, 3rd starts over.
-function handleFlightPathClick(event) {
+// Shared by the main view and each compare-mode panel (see buildComparePanel),
+// each passing its own svg node / zoom transform / projection to invert the click.
+function handleFlightPathClick(event, svgNode = svg.node(), zoomTransform = currentZoomTransform, projection = makeProjection(
+  PROJECTIONS.find((p) => p.id === currentProjectionId),
+  currentRecenterRotate
+)) {
   if (!flightPathMode || isAnimating) return;
 
-  const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  const projection = makeProjection(currentDef, currentRecenterRotate);
   // Undo the free camera pan/zoom (see CAMERA PAN & ZOOM) to get back to the
   // coordinate space the projection itself draws in before inverting.
-  const [sx, sy] = d3.pointer(event, svg.node());
-  const [x, y] = currentZoomTransform.invert([sx, sy]);
+  const [sx, sy] = d3.pointer(event, svgNode);
+  const [x, y] = zoomTransform.invert([sx, sy]);
   const coords = projection.invert([x, y]);
   if (!coords) return; // click landed outside the rendered sphere
 
@@ -1303,7 +1306,7 @@ function handleFlightPathClick(event) {
   }
   refreshFlightPath();
 }
-svg.node().addEventListener("click", handleFlightPathClick);
+svg.node().addEventListener("click", (event) => handleFlightPathClick(event));
 
 // ============================================================
 // INIT — fetch GeoJSON then render
