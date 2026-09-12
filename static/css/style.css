@@ -261,6 +261,135 @@ body {
 }
 
 /* ============================================================
+   TRUE SIZE COMPARE — dedicated search + checklist, main view only
+   ============================================================ */
+#truesize-toggle {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 0 12px 4px;
+  padding: 7px 10px;
+  font-family: var(--font-family);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.15s, color 0.15s;
+}
+
+#truesize-toggle:hover,
+#truesize-toggle.active {
+  background: var(--active-bg);
+  border-color: var(--active-border);
+  color: var(--text-primary);
+}
+
+#truesize-panel {
+  position: relative;
+  margin: 0 12px 10px;
+}
+
+#truesize-search-box {
+  margin-top: 6px;
+}
+
+#truesize-search-input {
+  width: 100%;
+  padding: 6px 8px;
+  font-family: var(--font-family);
+  font-size: 12px;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+#truesize-search-input:focus {
+  outline: none;
+  border-color: var(--active-border);
+}
+
+#truesize-search-results {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 10;
+  max-height: 180px;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-top: none;
+}
+
+#truesize-search-results li {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+#truesize-search-results li:hover {
+  background: var(--active-bg);
+  color: var(--text-primary);
+}
+
+#truesize-selected-list {
+  list-style: none;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#truesize-selected-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+#truesize-selected-list .truesize-swatch {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+#truesize-selected-list button {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 2px 6px;
+  font-size: 10px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+#truesize-selected-list button:hover {
+  color: var(--text-primary);
+  border-color: var(--active-border);
+}
+
+.truesize-layer {
+  pointer-events: none;
+}
+
+.truesize-shape {
+  cursor: move;
+  pointer-events: auto;
+  fill-opacity: 0.55;
+  stroke-width: 1.5px;
+}
+
+/* ============================================================
    TOOLS PANEL — secondary actions, de-emphasized vs. the
    promoted projection list / theme switcher above
    ============================================================ */
