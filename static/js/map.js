@@ -222,6 +222,10 @@ const tissotGroup = zoomLayer.append("g").attr("class", "tissot-layer");
 // Flight path overlay — appended after tissotGroup so the arc paints on top
 const flightPathGroup = zoomLayer.append("g").attr("class", "flightpath-layer");
 
+// True-size country shapes — appended last so dragged shapes paint on top
+// of everything else. Main view only (not mirrored to compare panels).
+const truesizeGroup = zoomLayer.append("g").attr("class", "truesize-layer");
+
 // ============================================================
 // APPLICATION STATE
 // ============================================================
@@ -1393,6 +1397,53 @@ function renderTrueSizeList() {
     li.append(swatch, label, removeBtn);
     trueSizeListEl.appendChild(li);
   });
+}
+
+// Drag only moves a shape on screen (a transform layered on top of its
+// true-position `d`); switching projection snaps every shape back to its
+// true geographic position under the new projection instead of trying to
+// carry the drag offset over — the offsets are cleared, not preserved.
+const trueSizeDrag = d3.drag().on("drag", function (event, feature) {
+  const name = feature.properties.name;
+  const offset = trueSizeOffsets.get(name) || { x: 0, y: 0 };
+  offset.x += event.dx;
+  offset.y += event.dy;
+  trueSizeOffsets.set(name, offset);
+  d3.select(this).attr("transform", `translate(${offset.x},${offset.y})`);
+});
+
+// Redraws every selected shape at its true geographic position under the
+// current projection, preserving each shape's drag offset (add/remove and
+// other refresh call sites use this — only a projection switch clears
+// offsets, see resetTrueSizeOnProjectionSwitch).
+function renderTrueSizeShapes() {
+  const projDef    = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const projection = makeProjection(projDef, currentRecenterRotate);
+  const pathFn     = d3.geoPath().projection(projection);
+
+  const features = trueSizeOrder
+    .map((name) => worldData.features.find((f) => f.properties.name === name))
+    .filter(Boolean);
+
+  const shapes = truesizeGroup
+    .selectAll("path.truesize-shape")
+    .data(features, (d) => d.properties.name);
+
+  shapes.exit().remove();
+
+  shapes
+    .enter()
+    .append("path")
+    .attr("class", "truesize-shape")
+    .call(trueSizeDrag)
+    .merge(shapes)
+    .attr("d", pathFn)
+    .attr("fill", (d) => trueSizeColors.get(d.properties.name))
+    .attr("stroke", (d) => trueSizeColors.get(d.properties.name))
+    .attr("transform", (d) => {
+      const offset = trueSizeOffsets.get(d.properties.name) || { x: 0, y: 0 };
+      return `translate(${offset.x},${offset.y})`;
+    });
 }
 
 trueSizeInput.addEventListener("input", () => {
