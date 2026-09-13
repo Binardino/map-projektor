@@ -16,6 +16,7 @@
       <div id="sidebar-header">
         <h1>Map<br/>Projektor</h1>
         <p class="tagline">Universal Converter</p>
+        <button id="help-trigger" aria-label="How it works" title="How it works">?</button>
       </div>
       <div id="country-search">
         <button id="country-search-toggle" aria-label="Search a country" title="Search a country">🔍 Search a country</button>
@@ -92,6 +93,16 @@
         </div>
       </div>
     </main>
+
+    <div id="help-modal-backdrop" hidden>
+      <div id="help-modal" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">
+        <button id="help-modal-close" aria-label="Close">✕</button>
+        <h2 id="help-modal-title">How it works</h2>
+        <div id="help-modal-body">
+          <!-- Populated by map.js -->
+        </div>
+      </div>
+    </div>
 
   </div>
 

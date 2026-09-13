@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-12 — Onboarding help modal
+
+### Added
+- Help modal explaining the app's core principle (no projection can preserve shape, area, distance and direction all at once) plus a short pointer to each control — opens automatically on first visit (`localStorage` flag) and reopenable at any time via a new "?" button in the sidebar header
+
 ## 2026-09-12 — Per-projection tradeoffs panel
 
 ### Added

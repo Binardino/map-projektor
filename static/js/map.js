@@ -1641,6 +1641,65 @@ trueSizeInput.addEventListener("keydown", (event) => {
 });
 
 // ============================================================
+// HELP MODAL
+//
+// Onboarding / "how it works" — one reusable modal, opened
+// automatically on the very first visit (localStorage flag) and
+// reopenable at any time via the "?" trigger in the sidebar header.
+// ============================================================
+const HELP_SEEN_KEY = "mapProjektorHelpSeen";
+
+// Static onboarding copy — the core idea the whole app demonstrates,
+// plus a short pointer to each control, in the order they appear in
+// the sidebar.
+const HELP_MODAL_CONTENT = `
+  <p>The Earth is a sphere. Every flat map is a projection of that sphere
+  onto a plane — and no projection can preserve shape, area, distance, and
+  direction all at once. Each one picks a different tradeoff.</p>
+  <p>This app lets you compare 17 of them side by side, morph between
+  them, and see exactly how each one bends the world to make its own
+  compromise.</p>
+  <p><strong>Projection list</strong> — click any name to morph into it.
+  <strong>Compare Projections</strong> shows two side by side.
+  <strong>Recenter View</strong> shifts which region sits at the center —
+  the usual Europe-centered map is a convention, not a neutral default.</p>
+  <p><strong>Show Distortion Grid</strong> draws Tissot's indicatrix, a
+  grid of equal-size circles that reveals exactly where and how much each
+  projection stretches things. <strong>Draw Flight Path</strong> lets you
+  click two points to see the real shortest route between them and how
+  its curve changes per projection. <strong>Compare True Size</strong>
+  spawns draggable country silhouettes so you can hold them up against
+  each other at their true relative size.</p>
+`;
+
+const helpTriggerBtn    = document.getElementById("help-trigger");
+const helpModalBackdrop = document.getElementById("help-modal-backdrop");
+const helpModalCloseBtn = document.getElementById("help-modal-close");
+document.getElementById("help-modal-body").innerHTML = HELP_MODAL_CONTENT;
+
+function openHelpModal() {
+  helpModalBackdrop.hidden = false;
+  localStorage.setItem(HELP_SEEN_KEY, "1");
+}
+
+function closeHelpModal() {
+  helpModalBackdrop.hidden = true;
+}
+
+helpTriggerBtn.addEventListener("click", openHelpModal);
+helpModalCloseBtn.addEventListener("click", closeHelpModal);
+
+helpModalBackdrop.addEventListener("click", (event) => {
+  if (event.target === helpModalBackdrop) closeHelpModal();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !helpModalBackdrop.hidden) closeHelpModal();
+});
+
+if (!localStorage.getItem(HELP_SEEN_KEY)) openHelpModal();
+
+// ============================================================
 // INIT — fetch GeoJSON then render
 // ============================================================
 async function init() {
