@@ -17,6 +17,11 @@ const PROJECTIONS = [
     description:
       "Preserves angles (conformal). Severely distorts area near the poles. " +
       "The standard for maritime navigation for centuries.",
+    tradeoffs: {
+      preserves: "Angles and shapes locally (conformal) — a straight line on the map is a constant compass bearing.",
+      distorts: "Area, dramatically, away from the equator — Greenland appears larger than Africa despite being 14x smaller.",
+      bestFor: "Nautical and aviation navigation, web maps at street-level zoom.",
+    },
     d3fn: () => d3.geoMercator(),
   },
   {
@@ -27,6 +32,11 @@ const PROJECTIONS = [
     description:
       "Maps longitude and latitude directly to x and y. Simple but distorts " +
       "both shape and area away from the equator.",
+    tradeoffs: {
+      preserves: "Nothing exactly, but distances along meridians and the equator are true to scale.",
+      distorts: "Both shape and area, worsening toward the poles — a 1:1 lon/lat grid is not a neutral choice.",
+      bestFor: "Simplicity and raw geographic data (it's just the coordinates), not display accuracy.",
+    },
     d3fn: () => d3.geoEquirectangular(),
   },
   {
@@ -37,6 +47,11 @@ const PROJECTIONS = [
     description:
       "Equal-area cylindrical: every country is shown at its true relative size. " +
       "A direct political response to Mercator — Africa appears far larger than Europe.",
+    tradeoffs: {
+      preserves: "Area exactly — every landmass is shown at its true relative size.",
+      distorts: "Shape severely near the equator and poles — continents look visibly stretched vertically.",
+      bestFor: "Thematic maps where relative size matters more than recognizable shape (population, resources).",
+    },
     // parallel(45) is the standard that makes this equal-area (James Gall, 1855;
     // re-popularised by Arno Peters in 1973, sparking the "Peters controversy")
     d3fn: () => d3.geoCylindricalEqualArea().parallel(45),
@@ -49,6 +64,11 @@ const PROJECTIONS = [
     description:
       "Visual compromise: neither conformal nor equal-area, but aesthetically " +
       "pleasing. Used by National Geographic from 1988 to 1998.",
+    tradeoffs: {
+      preserves: "Nothing exactly — it's a table-based compromise, tuned by eye rather than a strict formula.",
+      distorts: "Everything a little (area, shape, distance) rather than any one thing a lot.",
+      bestFor: "General-purpose reference world maps where no single property needs to be exact.",
+    },
     d3fn: () => d3.geoRobinson(),
   },
   {
@@ -59,6 +79,11 @@ const PROJECTIONS = [
     description:
       "Equal-area projection. Shapes are distorted near the edges but all " +
       "regions are represented at their true relative size.",
+    tradeoffs: {
+      preserves: "Area exactly, within an elliptical world outline.",
+      distorts: "Shape strongly near the outer edge of the ellipse, especially at high latitudes.",
+      bestFor: "Global thematic maps (e.g. star charts, world distributions) where area is what matters.",
+    },
     d3fn: () => d3.geoMollweide(),
   },
   {
@@ -69,6 +94,11 @@ const PROJECTIONS = [
     description:
       "Designed by Tom Patterson for attractive world maps. A smooth compromise " +
       "between conformal and equal-area with gently rounded poles.",
+    tradeoffs: {
+      preserves: "Nothing exactly — another eyeballed compromise, tuned specifically to look natural at a glance.",
+      distorts: "Area and shape both, mildly, worst at high latitudes near the rounded poles.",
+      bestFor: "Wall maps and general reference where visual appeal matters more than any measurable property.",
+    },
     d3fn: () => d3.geoNaturalEarth1(),
   },
   {
@@ -79,6 +109,11 @@ const PROJECTIONS = [
     description:
       "Modern equal-area projection inspired by Robinson's aesthetics. " +
       "Designed as an answer to Gall-Peters: true sizes without the stretching.",
+    tradeoffs: {
+      preserves: "Area exactly, while keeping shapes visibly less stretched than Gall-Peters.",
+      distorts: "Shape moderately near the poles, though far less severely than older equal-area projections.",
+      bestFor: "Modern replacement for Gall-Peters — true-size thematic maps that still look natural.",
+    },
     d3fn: () => d3.geoEqualEarth(),
   },
   {
@@ -89,6 +124,11 @@ const PROJECTIONS = [
     description:
       "Equal-area projection with poles drawn as lines half the equator's length. " +
       "A favourite for thematic world maps of climate and population.",
+    tradeoffs: {
+      preserves: "Area exactly, with a rounded outline that reads comfortably at world scale.",
+      distorts: "Shape at high latitudes, where landmasses compress toward the half-length pole lines.",
+      bestFor: "Thematic climate/population maps — the same equal-area guarantee as Mollweide, gentler shape.",
+    },
     d3fn: () => d3.geoEckert4(),
   },
   {
@@ -99,6 +139,11 @@ const PROJECTIONS = [
     description:
       "One of the oldest pseudocylindrical projections. Equal-area, but strong " +
       "shearing distortion appears near the edges.",
+    tradeoffs: {
+      preserves: "Area exactly, and distance is true along the equator and every meridian.",
+      distorts: "Shape severely at the outer edges — a strong diagonal shear near high longitudes at high latitudes.",
+      bestFor: "Historical interest and equal-area work that specifically needs true meridian distances.",
+    },
     d3fn: () => d3.geoSinusoidal(),
   },
   {
@@ -109,6 +154,11 @@ const PROJECTIONS = [
     description:
       "Simulates viewing Earth from infinite distance — the 'space view'. " +
       "Only one hemisphere is visible at a time.",
+    tradeoffs: {
+      preserves: "The visual perspective of a globe seen from space — the only projection here that looks like a sphere.",
+      distorts: "Area and shape increasingly toward the visible edge (the limb), where the surface is nearly edge-on.",
+      bestFor: "Intuitive 'globe' views and showing a single hemisphere or region in spatial context.",
+    },
     d3fn: () => d3.geoOrthographic(),
   },
   {
@@ -119,6 +169,11 @@ const PROJECTIONS = [
     description:
       "Preserves area accurately across the entire map from a central anchor point. " +
       "Unlike Mercator, Greenland and Africa appear at their true relative sizes.",
+    tradeoffs: {
+      preserves: "Area exactly from its center point outward, and direction from that same center.",
+      distorts: "Shape more and more with distance from the center — regions near the antipode get squeezed into the outer rim.",
+      bestFor: "Maps centered on one point of interest where true area from that point matters (e.g. flight-range studies).",
+    },
     d3fn: () => d3.geoAzimuthalEqualArea(),
   },
   {
@@ -129,6 +184,11 @@ const PROJECTIONS = [
     description:
       "Azimuthal equidistant centred on the North Pole — the view on the United " +
       "Nations emblem. Distances measured from the pole are true to scale.",
+    tradeoffs: {
+      preserves: "Distance from the North Pole to anywhere else — that's the one property equidistant guarantees.",
+      distorts: "Area and shape severely near the outer edge, where Antarctica is stretched into a ring around the map.",
+      bestFor: "Polar-region maps and anything where 'distance from this one point' is the property that matters.",
+    },
     // clipAngle(179) trims a 1° cap around the antipode (the South Pole),
     // where this projection is singular — Antarctica renders as the outer ring
     d3fn: () => d3.geoAzimuthalEquidistant().rotate([0, -90]).clipAngle(179),
@@ -141,6 +201,11 @@ const PROJECTIONS = [
     description:
       "Azimuthal equidistant centred on the South Pole. Antarctica sits at the " +
       "centre, surrounded by the Southern Ocean and every other continent.",
+    tradeoffs: {
+      preserves: "Distance from the South Pole to anywhere else, same guarantee as the North Polar view mirrored.",
+      distorts: "Area and shape severely near the outer edge, where the Arctic is stretched into the outer ring instead.",
+      bestFor: "Southern-hemisphere and Antarctic-focused maps — a viewpoint almost never seen on a default world map.",
+    },
     d3fn: () => d3.geoAzimuthalEquidistant().rotate([0, 90]).clipAngle(179),
   },
   {
@@ -151,6 +216,11 @@ const PROJECTIONS = [
     description:
       "Conic equal-area projection with two standard parallels. Best for " +
       "mid-latitude regions. Official projection for US Census maps.",
+    tradeoffs: {
+      preserves: "Area exactly, and shape stays accurate between its two standard parallels (here 20°N and 50°N).",
+      distorts: "Shape more and more the further a region sits from those two parallels — poor for global/equatorial use.",
+      bestFor: "Mid-latitude regional maps of a single country or continent (its original purpose: the continental US).",
+    },
     // Recentred for a world view — default is tuned for the USA
     d3fn: () => d3.geoAlbers().rotate([0, 0]).parallels([20, 50]).scale(153),
   },
@@ -162,6 +232,11 @@ const PROJECTIONS = [
     description:
       "Minimises the combined distortion of area, angles, and distances. " +
       "Adopted by the National Geographic Society in 1998.",
+    tradeoffs: {
+      preserves: "Nothing exactly, but keeps area, angle, and distance distortion all simultaneously low.",
+      distorts: "A little of everything by design — the explicit tradeoff its name promises (a 'tripel' compromise).",
+      bestFor: "General-purpose world reference maps — National Geographic's current standard for this reason.",
+    },
     d3fn: () => d3.geoWinkel3(),
   },
   {
@@ -172,6 +247,11 @@ const PROJECTIONS = [
     description:
       "Modified azimuthal projection with an elliptical boundary. " +
       "Reduces polar distortion compared to cylindrical projections.",
+    tradeoffs: {
+      preserves: "Nothing exactly — neither conformal nor equal-area, a geometric compromise built for a pleasing outline.",
+      distorts: "Both shape and area, moderately, worst near the outer edge of the ellipse.",
+      bestFor: "Historical/reference use — mostly superseded today by its equal-area descendant, Hammer.",
+    },
     d3fn: () => d3.geoAitoff(),
   },
   {
@@ -182,6 +262,11 @@ const PROJECTIONS = [
     description:
       "Equal-area modification of the Aitoff projection. Widely used in " +
       "astronomy to map the entire celestial sphere.",
+    tradeoffs: {
+      preserves: "Area exactly, inheriting Aitoff's pleasing elliptical outline.",
+      distorts: "Shape near the outer edge of the ellipse, though less severely than Aitoff or Mollweide.",
+      bestFor: "Whole-sky/whole-world equal-area maps — astronomy's default for all-sky projections.",
+    },
     d3fn: () => d3.geoHammer(),
   },
 ];
@@ -556,10 +641,41 @@ async function transitionTo(newProjId) {
 // ============================================================
 // INFO PANEL
 // ============================================================
+const infoTradeoffsToggle  = document.getElementById("info-tradeoffs-toggle");
+const infoTradeoffsContent = document.getElementById("info-tradeoffs-content");
+
+function renderTradeoffs(tradeoffs) {
+  infoTradeoffsContent.innerHTML = "";
+  [
+    ["Preserves", tradeoffs.preserves],
+    ["Distorts", tradeoffs.distorts],
+    ["Best for", tradeoffs.bestFor],
+  ].forEach(([term, definition]) => {
+    const dt = document.createElement("dt");
+    dt.textContent = term;
+    const dd = document.createElement("dd");
+    dd.textContent = definition;
+    infoTradeoffsContent.append(dt, dd);
+  });
+}
+
+infoTradeoffsToggle.addEventListener("click", () => {
+  const expanded = infoTradeoffsToggle.getAttribute("aria-expanded") === "true";
+  infoTradeoffsToggle.setAttribute("aria-expanded", String(!expanded));
+  infoTradeoffsContent.hidden = expanded;
+});
+
 function updateInfo(projDef) {
   document.getElementById("info-name").textContent        = projDef.name;
   document.getElementById("info-family").textContent      = projDef.family;
   document.getElementById("info-description").textContent = projDef.description;
+
+  renderTradeoffs(projDef.tradeoffs);
+  // Collapse on every projection change — the tradeoffs shown are only
+  // ever for the projection currently active, so an expanded state
+  // shouldn't silently carry over to the next one.
+  infoTradeoffsToggle.setAttribute("aria-expanded", "false");
+  infoTradeoffsContent.hidden = true;
 }
 
 // ============================================================

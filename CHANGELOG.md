@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-12 — Per-projection tradeoffs panel
+
+### Added
+- `#projection-info` now has a collapsible "Preserves & distorts" section for the active projection, listing what it preserves, what it distorts, and what it's best suited for — collapses automatically on every projection switch
+
 ## 2026-09-12 — Terrain overlay cleanup
 
 ### Fixed

@@ -743,6 +743,48 @@ body {
   line-height: 1.6;
 }
 
+#info-tradeoffs-toggle {
+  display: block;
+  margin-top: 8px;
+  padding: 0;
+  font-family: var(--font-family);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+#info-tradeoffs-toggle:hover {
+  color: var(--text-primary);
+}
+
+#info-tradeoffs-content {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+#info-tradeoffs-content dt {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+#info-tradeoffs-content dt:first-child {
+  margin-top: 0;
+}
+
+#info-tradeoffs-content dd {
+  margin: 2px 0 0;
+}
+
 /* ============================================================
    THEME SWITCHER
    ============================================================ */
