@@ -765,13 +765,25 @@ compareCardCloseBtn.addEventListener("click", closeCompareCard);
 // ============================================================
 function buildSidebar() {
   const nav = document.getElementById("projection-list");
+  let lastFamily = null;
 
   PROJECTIONS.forEach((proj) => {
+    // PROJECTIONS is grouped contiguously by family (see its reorder
+    // commit) — a family header goes up front, once per group, instead
+    // of repeating the family as a caption on every single button.
+    if (proj.family !== lastFamily) {
+      const header = document.createElement("p");
+      header.className = "proj-family-header";
+      header.textContent = proj.family;
+      nav.appendChild(header);
+      lastFamily = proj.family;
+    }
+
     const btn = document.createElement("button");
     btn.className      = "proj-btn";
     btn.id             = `btn-${proj.id}`;
     btn.dataset.projId = proj.id;
-    btn.innerHTML      = `${proj.name}<span class="proj-family">${proj.family}</span>`;
+    btn.textContent    = proj.name;
     btn.addEventListener("click", () => switchProjection(proj.id));
     nav.appendChild(btn);
   });

@@ -290,13 +290,16 @@ body {
   cursor: not-allowed;
 }
 
-.proj-btn .proj-family {
-  display: block;
-  font-size: 9px;
+.proj-family-header {
+  padding: 12px 14px 4px;
+  font-size: 10px;
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-top: 2px;
+}
+
+.proj-family-header:first-child {
+  padding-top: 4px;
 }
 
 /* ============================================================
