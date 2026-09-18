@@ -6,7 +6,7 @@
 :root {
   --bg-app:     #f7efee;
   --bg-sidebar: #f7efee;
-  --bg-ocean:   #1b2733;
+  --bg-ocean:   #7fc9fb;
   --bg-globe:   #1b2733;
 
   --color-country:  #f4dbd8;
@@ -420,24 +420,25 @@ body {
   }
 }
 
+/* The base rect behind everything is always the dark "void" color, on
+   every projection — not just orthographic. It only actually shows
+   through in the empty corners of non-rectangular projections (Mollweide,
+   Sinusoidal, Hammer, Aitoff, Winkel Tripel, the orthographic globe...);
+   rectangular ones (Mercator, Equirectangular, ...) fully cover it with
+   .globe-sphere below, so it's invisible there. */
 .ocean {
-  fill: var(--bg-ocean);
-}
-
-/* --bg-ocean and --bg-globe are now the same color everywhere — the dark
-   backdrop that used to be exclusive to the orthographic globe's void is
-   the standard map background for every projection. Kept as two separate
-   tokens (rather than merging them) since .globe-bg is still toggled by
-   JS to distinguish the globe view structurally, even though the color
-   no longer differs. */
-.ocean.globe-bg {
   fill: var(--bg-globe);
 }
 
-/* Sphere boundary — a real shape drawn on top of the ocean rect. Its fill
-   matches the ocean rect so flat projections look unchanged; the stroke
-   only shows in orthographic (see .globe-sphere.active), where it's the
-   only thing separating the globe disc from the void background. */
+/* Sphere/projection outline — a real shape drawn on top of the ocean
+   rect, traced from the {type: "Sphere"} geometry of whichever
+   projection is active, so it hugs that projection's true silhouette
+   (a rectangle for cylindrical ones, an ellipse for pseudocylindrical/
+   pseudoazimuthal ones, a circle for orthographic). This is what
+   actually renders as "the ocean" — light blue, same on every
+   projection. The stroke only shows in orthographic (see
+   .globe-sphere.active), where it's the only thing separating the
+   globe disc from the void background. */
 .globe-sphere {
   fill: var(--bg-ocean);
   stroke: none;
@@ -787,7 +788,7 @@ body {
 body[data-theme="dark"] {
   --bg-app:     #292929;
   --bg-sidebar: #292929;
-  --bg-ocean:   #060f1c;
+  --bg-ocean:   #2264aa;
   --bg-globe:   #060f1c;
 
   --color-country:  #173753;

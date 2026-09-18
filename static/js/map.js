@@ -324,11 +324,13 @@ const truesizeGroup = zoomLayer.append("g").attr("class", "truesize-layer");
 let currentProjectionId = "orthographic";
 let isAnimating = false;
 
-// The globe view needs its own darker backdrop instead of the flat-map
-// ocean color for the space outside the sphere disc.
+// The sphere-outline stroke only shows in orthographic — it's the only
+// projection where the disc needs a visible edge separating it from the
+// void background (see .globe-sphere.active); every other projection's
+// {type: "Sphere"} outline already reaches the void's own dark color at
+// its non-rectangular corners, so no border is needed there.
 function updateGlobeBackground() {
   const isGlobe = currentProjectionId === "orthographic";
-  oceanRect.classed("globe-bg", isGlobe);
   globeSphere.classed("active", isGlobe);
 }
 let worldData = null;
@@ -1194,7 +1196,6 @@ function buildComparePanel(panelEl, initialProjId) {
     paths.enter().append("path").attr("class", "country").attr("d", pathFn);
     paths.attr("d", pathFn);
     const isGlobe = panel.projId === "orthographic";
-    panel.oceanRect.classed("globe-bg", isGlobe);
     renderGlobeSphere(panel.globeSphere, projection);
     panel.globeSphere.classed("active", isGlobe);
   };
