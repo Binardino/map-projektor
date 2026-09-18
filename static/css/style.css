@@ -6,7 +6,7 @@
 :root {
   --bg-app:     #f7efee;
   --bg-sidebar: #f7efee;
-  --bg-ocean:   #7fc9fb;
+  --bg-ocean:   #1b2733;
   --bg-globe:   #1b2733;
 
   --color-country:  #f4dbd8;
@@ -447,8 +447,12 @@ body {
   fill: var(--bg-ocean);
 }
 
-/* Orthographic (globe) view: the space outside the sphere disc needs its
-   own darker backdrop instead of the flat-map ocean color, per UX feedback. */
+/* --bg-ocean and --bg-globe are now the same color everywhere — the dark
+   backdrop that used to be exclusive to the orthographic globe's void is
+   the standard map background for every projection. Kept as two separate
+   tokens (rather than merging them) since .globe-bg is still toggled by
+   JS to distinguish the globe view structurally, even though the color
+   no longer differs. */
 .ocean.globe-bg {
   fill: var(--bg-globe);
 }
@@ -831,7 +835,7 @@ body {
 body[data-theme="dark"] {
   --bg-app:     #292929;
   --bg-sidebar: #292929;
-  --bg-ocean:   #2264aa;
+  --bg-ocean:   #060f1c;
   --bg-globe:   #060f1c;
 
   --color-country:  #173753;
