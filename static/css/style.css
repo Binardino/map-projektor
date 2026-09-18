@@ -900,24 +900,11 @@ body {
   color: var(--text-muted);
 }
 
-#theme-select {
-  flex: 1;
-  min-width: 0;
-  padding: 4px 6px;
-  font-size: 11px;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-primary);
+#theme-toggle {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
   cursor: pointer;
-  font-family: var(--font-family);
-  border-radius: 2px;
-}
-
-#theme-select:hover,
-#theme-select:focus {
-  background: var(--active-bg);
-  border-color: var(--active-border);
-  color: var(--text-primary);
 }
 
 /* ============================================================

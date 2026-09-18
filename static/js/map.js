@@ -1730,11 +1730,11 @@ init();
 // ============================================================
 const THEME_STORAGE_KEY = "mapProjektorTheme";
 
-const themeSelect = document.getElementById("theme-select");
+const themeToggle = document.getElementById("theme-toggle");
 
 function applyTheme(theme) {
   document.body.setAttribute("data-theme", theme);
-  themeSelect.value = theme;
+  themeToggle.checked = theme === "dark";
 }
 
 const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -1742,7 +1742,8 @@ if (savedTheme !== null) {
   applyTheme(savedTheme);
 }
 
-themeSelect.addEventListener("change", () => {
-  applyTheme(themeSelect.value);
-  localStorage.setItem(THEME_STORAGE_KEY, themeSelect.value);
+themeToggle.addEventListener("change", () => {
+  const theme = themeToggle.checked ? "dark" : "";
+  applyTheme(theme);
+  localStorage.setItem(THEME_STORAGE_KEY, theme);
 });
