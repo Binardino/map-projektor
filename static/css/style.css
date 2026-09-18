@@ -190,12 +190,13 @@ body {
   padding: 10px 12px;
 }
 
-.panel-label {
-  font-size: 10px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 6px;
+/* Bold section heading — "Select a projection" / "Select a view" —
+   distinct from the smaller, muted .proj-family-header captions below it. */
+.section-title {
+  padding: 12px 14px 8px;
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--text-primary);
 }
 
 #recenter-list {
@@ -270,10 +271,6 @@ body {
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--text-muted);
-}
-
-.proj-family-header:first-child {
-  padding-top: 4px;
 }
 
 /* ============================================================
