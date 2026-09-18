@@ -1133,30 +1133,35 @@ function applySelectionToPanel(panel) {
   panel.svg.transition().duration(600).call(panel.zoom.transform, transform);
 }
 
-compareToggleBtn.addEventListener("click", () => {
-  compareMode = !compareMode;
-  compareToggleBtn.classList.toggle("active", compareMode);
-  projectionListEl.classList.toggle("disabled-list", compareMode);
-  document.getElementById("recenter-list").classList.toggle("disabled-list", compareMode);
-  mapContainerEl.hidden   = compareMode;
-  infoEl.hidden           = compareMode;
-  compareContainer.hidden = !compareMode;
+// compareToggleBtn currently has no sidebar UI (see remove(ui) commit) — the
+// listener is guarded so the rest of the script still loads; wire a new
+// trigger to it whenever the tools UI is rebuilt.
+if (compareToggleBtn) {
+  compareToggleBtn.addEventListener("click", () => {
+    compareMode = !compareMode;
+    compareToggleBtn.classList.toggle("active", compareMode);
+    projectionListEl.classList.toggle("disabled-list", compareMode);
+    document.getElementById("recenter-list").classList.toggle("disabled-list", compareMode);
+    mapContainerEl.hidden   = compareMode;
+    infoEl.hidden           = compareMode;
+    compareContainer.hidden = !compareMode;
 
-  if (!compareMode) return;
+    if (!compareMode) return;
 
-  if (!comparePanels) {
-    const panelEls = document.querySelectorAll(".compare-panel");
-    const rightDefaultId = PROJECTIONS.some((p) => p.id === "gallPeters") ? "gallPeters" : PROJECTIONS[1].id;
-    comparePanels = [
-      buildComparePanel(panelEls[0], currentProjectionId),
-      buildComparePanel(panelEls[1], rightDefaultId),
-    ];
-  } else {
-    comparePanels.forEach((p) => p.render());
-  }
-  comparePanels.forEach(applySelectionToPanel);
-  refreshTissot();
-});
+    if (!comparePanels) {
+      const panelEls = document.querySelectorAll(".compare-panel");
+      const rightDefaultId = PROJECTIONS.some((p) => p.id === "gallPeters") ? "gallPeters" : PROJECTIONS[1].id;
+      comparePanels = [
+        buildComparePanel(panelEls[0], currentProjectionId),
+        buildComparePanel(panelEls[1], rightDefaultId),
+      ];
+    } else {
+      comparePanels.forEach((p) => p.render());
+    }
+    comparePanels.forEach(applySelectionToPanel);
+    refreshTissot();
+  });
+}
 
 // ============================================================
 // MOBILE SIDEBAR TOGGLE
@@ -1251,11 +1256,14 @@ function refreshTissot() {
   }
 }
 
-tissotToggleBtn.addEventListener("click", () => {
-  tissotVisible = !tissotVisible;
-  tissotToggleBtn.classList.toggle("active", tissotVisible);
-  refreshTissot();
-});
+// See the compareToggleBtn note above — same guard, same reason.
+if (tissotToggleBtn) {
+  tissotToggleBtn.addEventListener("click", () => {
+    tissotVisible = !tissotVisible;
+    tissotToggleBtn.classList.toggle("active", tissotVisible);
+    refreshTissot();
+  });
+}
 
 // ============================================================
 // FLIGHT PATH / GREAT CIRCLE
@@ -1316,6 +1324,7 @@ function renderFlightPath(group, projection) {
 }
 
 function updateFlightPathDistanceLabel() {
+  if (!flightPathDistanceEl) return; // no sidebar UI right now, see remove(ui) commit
   if (flightPathA && flightPathB) {
     const km = Math.round(d3.geoDistance(flightPathA, flightPathB) * EARTH_RADIUS_KM);
     flightPathDistanceEl.textContent = `Distance: ${km.toLocaleString()} km`;
@@ -1349,14 +1358,17 @@ function setFlightPathMode(active) {
   refreshFlightPath();
 }
 
-flightPathToggleBtn.addEventListener("click", () => {
-  if (isAnimating) return;
-  if (!flightPathMode) {
-    clearSelection();
-    resetRecenter();
-  }
-  setFlightPathMode(!flightPathMode);
-});
+// See the compareToggleBtn note above — same guard, same reason.
+if (flightPathToggleBtn) {
+  flightPathToggleBtn.addEventListener("click", () => {
+    if (isAnimating) return;
+    if (!flightPathMode) {
+      clearSelection();
+      resetRecenter();
+    }
+    setFlightPathMode(!flightPathMode);
+  });
+}
 
 // 1st click places A, 2nd places B and draws the route, 3rd starts over.
 // Shared by the main view and each compare-mode panel (see buildComparePanel),
@@ -1417,11 +1429,14 @@ const trueSizeColors  = new Map(); // name -> color, assigned once at add time
 const trueSizeOffsets = new Map(); // name -> {x, y} drag offset, on top of the true position
 let trueSizeNextColorIndex = 0;
 
-trueSizeToggleBtn.addEventListener("click", () => {
-  trueSizePanel.hidden = !trueSizePanel.hidden;
-  trueSizeToggleBtn.classList.toggle("active", !trueSizePanel.hidden);
-  if (!trueSizePanel.hidden) trueSizeInput.focus();
-});
+// See the compareToggleBtn note above — same guard, same reason.
+if (trueSizeToggleBtn) {
+  trueSizeToggleBtn.addEventListener("click", () => {
+    trueSizePanel.hidden = !trueSizePanel.hidden;
+    trueSizeToggleBtn.classList.toggle("active", !trueSizePanel.hidden);
+    if (!trueSizePanel.hidden) trueSizeInput.focus();
+  });
+}
 
 function hideTrueSizeResults() {
   trueSizeResults.hidden = true;
@@ -1516,39 +1531,42 @@ function resetTrueSizeOnProjectionSwitch() {
   renderTrueSizeShapes();
 }
 
-trueSizeInput.addEventListener("input", () => {
-  const query = trueSizeInput.value.trim().toLowerCase();
-  if (!query || !worldData) {
-    hideTrueSizeResults();
-    return;
-  }
-  const matches = worldData.features
-    .filter((f) => !trueSizeOrder.includes(f.properties.name))
-    .filter((f) => f.properties.name.toLowerCase().includes(query))
-    .sort((a, b) => {
-      const nameA = a.properties.name.toLowerCase();
-      const nameB = b.properties.name.toLowerCase();
-      return nameA.indexOf(query) - nameB.indexOf(query);
-    })
-    .slice(0, 8);
-
-  trueSizeResults.innerHTML = "";
-  matches.forEach((feature) => {
-    const li = document.createElement("li");
-    li.textContent = feature.properties.name;
-    li.addEventListener("click", () => {
-      addTrueSizeCountry(feature.properties.name);
-      trueSizeInput.value = "";
+// See the compareToggleBtn note above — same guard, same reason.
+if (trueSizeInput) {
+  trueSizeInput.addEventListener("input", () => {
+    const query = trueSizeInput.value.trim().toLowerCase();
+    if (!query || !worldData) {
       hideTrueSizeResults();
-    });
-    trueSizeResults.appendChild(li);
-  });
-  trueSizeResults.hidden = matches.length === 0;
-});
+      return;
+    }
+    const matches = worldData.features
+      .filter((f) => !trueSizeOrder.includes(f.properties.name))
+      .filter((f) => f.properties.name.toLowerCase().includes(query))
+      .sort((a, b) => {
+        const nameA = a.properties.name.toLowerCase();
+        const nameB = b.properties.name.toLowerCase();
+        return nameA.indexOf(query) - nameB.indexOf(query);
+      })
+      .slice(0, 8);
 
-trueSizeInput.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") hideTrueSizeResults();
-});
+    trueSizeResults.innerHTML = "";
+    matches.forEach((feature) => {
+      const li = document.createElement("li");
+      li.textContent = feature.properties.name;
+      li.addEventListener("click", () => {
+        addTrueSizeCountry(feature.properties.name);
+        trueSizeInput.value = "";
+        hideTrueSizeResults();
+      });
+      trueSizeResults.appendChild(li);
+    });
+    trueSizeResults.hidden = matches.length === 0;
+  });
+
+  trueSizeInput.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") hideTrueSizeResults();
+  });
+}
 
 // ============================================================
 // HELP MODAL
