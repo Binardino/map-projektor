@@ -941,47 +941,12 @@ const globeDrag = d3.drag()
 svg.call(globeDrag);
 
 // ============================================================
-// COUNTRY SEARCH & SELECTION
+// COUNTRY SELECTION
 //
-// Selecting a country (via search or a click on the map) highlights
-// it and gently centers/zooms the camera on it — the user can then
+// Selecting a country (via a click on the map) highlights it and
+// gently centers/zooms the camera on it — the user can then
 // pan/zoom away freely, the selection doesn't lock the camera.
 // ============================================================
-const searchToggleBtn = document.getElementById("country-search-toggle");
-const searchPanel     = document.getElementById("country-search-panel");
-const searchInput     = document.getElementById("country-search-input");
-const searchResults   = document.getElementById("country-search-results");
-const clearBtn        = document.getElementById("country-search-clear");
-const addToTrueSizeBtn = document.getElementById("add-to-truesize-btn");
-
-// Shortcut into the True Size Of... tool (see TRUE SIZE COMPARE below) —
-// avoids re-searching the same country there once it's already selected here.
-addToTrueSizeBtn.addEventListener("click", () => {
-  if (!selectedCountryName) return;
-  addTrueSizeCountry(selectedCountryName);
-  trueSizePanel.hidden = false;
-  trueSizeToggleBtn.classList.add("active");
-});
-
-// Reveals the search panel (used both by the toggle button and whenever a
-// selection needs its "Reset view" control to stay reachable — see
-// selectCountry below).
-function openSearchPanel() {
-  searchPanel.hidden = false;
-  searchToggleBtn.classList.add("active");
-}
-
-searchToggleBtn.addEventListener("click", () => {
-  if (searchPanel.hidden) {
-    openSearchPanel();
-    searchInput.focus();
-  } else {
-    searchPanel.hidden = true;
-    searchToggleBtn.classList.remove("active");
-    hideResults();
-  }
-});
-
 let selectedCountryName = null;
 
 // Bounding-box fit for `feature` under `projDef`, capped to a gentle zoom
@@ -1028,12 +993,6 @@ function selectCountry(feature) {
     .translate(-fit.cx, -fit.cy);
   svg.transition().duration(600).call(zoom.transform, transform);
 
-  searchInput.value = selectedCountryName;
-  clearBtn.hidden = false;
-  addToTrueSizeBtn.hidden = false;
-  hideResults();
-  openSearchPanel(); // keep the "Reset view" control reachable, e.g. after a direct map click
-
   if (compareMode) comparePanels.forEach(applySelectionToPanel);
 }
 
@@ -1045,57 +1004,8 @@ function clearSelection() {
 
   mapGroup.selectAll("path.country").classed("selected", false);
 
-  searchInput.value = "";
-  clearBtn.hidden = true;
-  addToTrueSizeBtn.hidden = true;
-
   if (compareMode) comparePanels.forEach(applySelectionToPanel);
 }
-
-function hideResults() {
-  searchResults.hidden = true;
-  searchResults.innerHTML = "";
-}
-
-function showResults(matches) {
-  searchResults.innerHTML = "";
-  matches.forEach((feature) => {
-    const li = document.createElement("li");
-    li.textContent = feature.properties.name;
-    li.addEventListener("click", () => selectCountry(feature));
-    searchResults.appendChild(li);
-  });
-  searchResults.hidden = matches.length === 0;
-}
-
-searchInput.addEventListener("input", () => {
-  const query = searchInput.value.trim().toLowerCase();
-  if (!query || !worldData) {
-    hideResults();
-    return;
-  }
-  const matches = worldData.features
-    .filter((f) => f.properties.name.toLowerCase().includes(query))
-    .sort((a, b) => {
-      const nameA = a.properties.name.toLowerCase();
-      const nameB = b.properties.name.toLowerCase();
-      return nameA.indexOf(query) - nameB.indexOf(query);
-    })
-    .slice(0, 8);
-  showResults(matches);
-});
-
-searchInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    const query = searchInput.value.trim().toLowerCase();
-    const match = worldData?.features.find((f) => f.properties.name.toLowerCase().includes(query));
-    if (match) selectCountry(match);
-  } else if (event.key === "Escape") {
-    clearSelection();
-  }
-});
-
-clearBtn.addEventListener("click", clearSelection);
 
 // ============================================================
 // SIDE-BY-SIDE COMPARISON MODE
