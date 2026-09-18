@@ -418,6 +418,31 @@ body {
   color: white;
 }
 
+/* Hover tooltips, desktop only — no touch/mobile layout exists yet for
+   this toolbar (see backlog), so there's no tap-friendly equivalent. */
+@media (hover: hover) and (pointer: fine) {
+  .tool-btn[data-tooltip] {
+    position: relative;
+  }
+
+  .tool-btn[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    right: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #292929;
+    color: white;
+    font-family: var(--font-family);
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 20;
+  }
+}
+
 .ocean {
   fill: var(--bg-ocean);
 }
