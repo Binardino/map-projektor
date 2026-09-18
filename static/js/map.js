@@ -1209,7 +1209,7 @@ sidebarBackdrop.addEventListener("click", closeSidebar);
 // Toggled on demand; recomputed on projection switch and (if
 // active) mirrored onto both comparison panels.
 // ============================================================
-const tissotToggleBtn = document.getElementById("tissot-toggle");
+const tissotToggleBtn = document.getElementById("grid-toggle-btn");
 
 const TISSOT_STEP   = 30; // degrees between grid points
 const TISSOT_RADIUS = 4;  // degrees — the geographic circle radius
@@ -1268,11 +1268,13 @@ function refreshTissot() {
   }
 }
 
-// See the compareToggleBtn note above — same guard, same reason.
+// Now wired to the right-side toolbar's grid icon (see map-tools in
+// index.html) instead of the removed sidebar tools panel.
 if (tissotToggleBtn) {
   tissotToggleBtn.addEventListener("click", () => {
     tissotVisible = !tissotVisible;
     tissotToggleBtn.classList.toggle("active", tissotVisible);
+    tissotToggleBtn.setAttribute("aria-pressed", String(tissotVisible));
     refreshTissot();
   });
 }
