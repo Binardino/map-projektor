@@ -1717,11 +1717,13 @@ const HELP_MODAL_CONTENT = `
   each other at their true relative size.</p>
 `;
 
-const helpTriggerBtn    = document.getElementById("help-trigger");
 const helpModalBackdrop = document.getElementById("help-modal-backdrop");
 const helpModalCloseBtn = document.getElementById("help-modal-close");
 document.getElementById("help-modal-body").innerHTML = HELP_MODAL_CONTENT;
 
+// No manual re-open trigger anymore (the sidebar's "?" button is gone,
+// per the Figma spec) — this only ever shows itself once, automatically,
+// on a visitor's first load (see the HELP_SEEN_KEY check below).
 function openHelpModal() {
   helpModalBackdrop.hidden = false;
   localStorage.setItem(HELP_SEEN_KEY, "1");
@@ -1731,7 +1733,6 @@ function closeHelpModal() {
   helpModalBackdrop.hidden = true;
 }
 
-helpTriggerBtn.addEventListener("click", openHelpModal);
 helpModalCloseBtn.addEventListener("click", closeHelpModal);
 
 helpModalBackdrop.addEventListener("click", (event) => {
@@ -1771,19 +1772,20 @@ init();
 // ============================================================
 // THEME SWITCHER
 // Persists the chosen theme in localStorage so it survives page
-// reloads and stays constant across projection switches.
+// reloads and stays constant across projection switches. The
+// toolbar's icon (see map-tools) is the only control for this now —
+// the sidebar used to have its own checkbox too, dropped as a
+// duplicate once the toolbar icon existed.
 // ============================================================
 const THEME_STORAGE_KEY = "mapProjektorTheme";
 
-const themeToggle    = document.getElementById("theme-toggle");
-const themeToggleBtn = document.getElementById("theme-toggle-btn"); // right-side toolbar icon, mirrors the sidebar checkbox
+const themeToggleBtn = document.getElementById("theme-toggle-btn");
 
 // Unlike the grid/compare/info tool icons, this one is a plain on/off
 // switch, never shown as "selected" (no .active class) — see the Figma
 // spec's note that light/dark has no selected state, just two positions.
 function applyTheme(theme) {
   document.body.setAttribute("data-theme", theme);
-  themeToggle.checked = theme === "dark";
   themeToggleBtn.setAttribute("aria-pressed", String(theme === "dark"));
 }
 
@@ -1792,11 +1794,8 @@ if (savedTheme !== null) {
   applyTheme(savedTheme);
 }
 
-function toggleTheme() {
+themeToggleBtn.addEventListener("click", () => {
   const theme = document.body.getAttribute("data-theme") === "dark" ? "" : "dark";
   applyTheme(theme);
   localStorage.setItem(THEME_STORAGE_KEY, theme);
-}
-
-themeToggle.addEventListener("change", toggleTheme);
-themeToggleBtn.addEventListener("click", toggleTheme);
+});
