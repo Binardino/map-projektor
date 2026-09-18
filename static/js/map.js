@@ -209,22 +209,6 @@ const PROJECTIONS = [
     d3fn: () => d3.geoAzimuthalEquidistant().rotate([0, 90]).clipAngle(179),
   },
   {
-    id: "albers",
-    name: "Albers",
-    family: "Conic",
-    year: 1805,
-    description:
-      "Conic equal-area projection with two standard parallels. Best for " +
-      "mid-latitude regions. Official projection for US Census maps.",
-    tradeoffs: {
-      preserves: "Area exactly, and shape stays accurate between its two standard parallels (here 20°N and 50°N).",
-      distorts: "Shape more and more the further a region sits from those two parallels — poor for global/equatorial use.",
-      bestFor: "Mid-latitude regional maps of a single country or continent (its original purpose: the continental US).",
-    },
-    // Recentred for a world view — default is tuned for the USA
-    d3fn: () => d3.geoAlbers().rotate([0, 0]).parallels([20, 50]).scale(153),
-  },
-  {
     id: "winkelTripel",
     name: "Winkel Tripel",
     family: "Pseudoazimuthal",
@@ -268,6 +252,22 @@ const PROJECTIONS = [
       bestFor: "Whole-sky/whole-world equal-area maps — astronomy's default for all-sky projections.",
     },
     d3fn: () => d3.geoHammer(),
+  },
+  {
+    id: "albers",
+    name: "Albers",
+    family: "Conic",
+    year: 1805,
+    description:
+      "Conic equal-area projection with two standard parallels. Best for " +
+      "mid-latitude regions. Official projection for US Census maps.",
+    tradeoffs: {
+      preserves: "Area exactly, and shape stays accurate between its two standard parallels (here 20°N and 50°N).",
+      distorts: "Shape more and more the further a region sits from those two parallels — poor for global/equatorial use.",
+      bestFor: "Mid-latitude regional maps of a single country or continent (its original purpose: the continental US).",
+    },
+    // Recentred for a world view — default is tuned for the USA
+    d3fn: () => d3.geoAlbers().rotate([0, 0]).parallels([20, 50]).scale(153),
   },
 ];
 
