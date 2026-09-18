@@ -565,11 +565,9 @@ body {
   min-height: 0;
 }
 
-/* Floating card triggered by the toolbar's "i" icon (see map-tools) —
-   optional, off by default, instead of the old always-visible strip
-   under the map. Base text sizes are trimmed since it's a compact
-   popover now, not a full-width bar. */
-#projection-info {
+/* Shared shell for the map's floating popovers (info, compare) — same
+   slot to the left of the toolbar, only one shown at a time. */
+.floating-card {
   position: absolute;
   top: 16px;
   right: 64px;
@@ -582,6 +580,11 @@ body {
   border: 1px solid var(--border);
 }
 
+/* #projection-info itself needs no rules beyond .floating-card above —
+   triggered by the toolbar's "i" icon (see map-tools), optional, off by
+   default, instead of the old always-visible strip under the map. Base
+   text sizes are trimmed since it's a compact popover now, not a
+   full-width bar. */
 #info-name {
   font-size: 15px;
   font-weight: bold;
@@ -642,6 +645,65 @@ body {
 
 #info-tradeoffs-content dd {
   margin: 2px 0 0;
+}
+
+/* Compare card shell, triggered by the toolbar's comparison icon — a
+   Figma-spec placeholder for now (see feat(toolbar) commit history):
+   the two selects don't drive any comparison logic yet, since that
+   behavior is being redesigned separately. */
+#compare-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Same [hidden]-vs-display:flex precedence issue as #compare-container
+   above — the explicit display:flex here needs an explicit override. */
+#compare-card[hidden] {
+  display: none;
+}
+
+.floating-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.floating-card-title {
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.floating-card-close {
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.floating-card-close:hover {
+  color: var(--text-primary);
+}
+
+.floating-card-description {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+#compare-card select {
+  width: 100%;
+  padding: 8px 10px;
+  font-family: var(--font-family);
+  font-size: 12px;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
 }
 
 /* ============================================================

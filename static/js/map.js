@@ -689,7 +689,76 @@ infoToggleBtn.addEventListener("click", () => {
   infoPanelEl.hidden = !infoVisible;
   infoToggleBtn.classList.toggle("active", infoVisible);
   infoToggleBtn.setAttribute("aria-pressed", String(infoVisible));
+
+  // Only one toolbar popover at a time — see closeCompareCard below.
+  if (infoVisible) closeCompareCard();
 });
+
+// ============================================================
+// COMPARE CARD (toolbar shell)
+//
+// Figma-spec placeholder for the comparison icon: a card with two
+// selects. Deliberately NOT wired to any comparison logic yet — the
+// existing side-by-side compareToggleBtn/compareMode feature further
+// below is being redesigned, so this only builds the shell for now.
+// ============================================================
+const compareCardToggleBtn    = document.getElementById("compare-toggle-btn");
+const compareCardCloseBtn     = document.getElementById("compare-card-close");
+const compareCardEl           = document.getElementById("compare-card");
+const compareProjectionSelect = document.getElementById("compare-projection-select");
+const compareCountrySelect    = document.getElementById("compare-country-select");
+
+PROJECTIONS.forEach((proj) => {
+  const option = document.createElement("option");
+  option.value = proj.id;
+  option.textContent = proj.name;
+  compareProjectionSelect.appendChild(option);
+});
+
+let compareCardVisible = false;
+
+function closeCompareCard() {
+  compareCardVisible = false;
+  compareCardEl.hidden = true;
+  compareCardToggleBtn.classList.remove("active");
+  compareCardToggleBtn.setAttribute("aria-pressed", "false");
+}
+
+function openCompareCard() {
+  compareCardVisible = true;
+  compareCardEl.hidden = false;
+  compareCardToggleBtn.classList.add("active");
+  compareCardToggleBtn.setAttribute("aria-pressed", "true");
+
+  // Country options depend on the geodata fetch in init() — populate once
+  // it's available instead of duplicating a fixed list here.
+  if (worldData && compareCountrySelect.options.length === 1) {
+    worldData.features
+      .map((f) => f.properties.name)
+      .sort()
+      .forEach((name) => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        compareCountrySelect.appendChild(option);
+      });
+  }
+
+  // Only one toolbar popover at a time — mirrors the info-card guard above.
+  if (infoVisible) {
+    infoVisible = false;
+    infoPanelEl.hidden = true;
+    infoToggleBtn.classList.remove("active");
+    infoToggleBtn.setAttribute("aria-pressed", "false");
+  }
+}
+
+compareCardToggleBtn.addEventListener("click", () => {
+  if (compareCardVisible) closeCompareCard();
+  else openCompareCard();
+});
+
+compareCardCloseBtn.addEventListener("click", closeCompareCard);
 
 // ============================================================
 // SIDEBAR — built dynamically from PROJECTIONS

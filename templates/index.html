@@ -53,12 +53,25 @@
           </button>
           <button id="info-toggle-btn" class="tool-btn" aria-pressed="false" aria-label="About this projection" title="About this projection">i</button>
         </div>
-        <div id="projection-info" hidden>
+        <div id="projection-info" class="floating-card" hidden>
           <span id="info-name"></span>
           <span id="info-family"></span>
           <p id="info-description"></p>
           <button id="info-tradeoffs-toggle" aria-expanded="false">Preserves & distorts ▾</button>
           <dl id="info-tradeoffs-content" hidden></dl>
+        </div>
+        <div id="compare-card" class="floating-card" hidden>
+          <div class="floating-card-header">
+            <p class="floating-card-title">Compare</p>
+            <button id="compare-card-close" class="floating-card-close" aria-label="Close">✕</button>
+          </div>
+          <p class="floating-card-description">Compare the size of a country with another projection</p>
+          <select id="compare-country-select">
+            <option value="" disabled selected>Choose a country</option>
+          </select>
+          <select id="compare-projection-select">
+            <option value="" disabled selected>Choose a projection</option>
+          </select>
         </div>
       </div>
 
