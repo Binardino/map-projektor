@@ -214,7 +214,6 @@ body {
    ============================================================ */
 #recenter-panel {
   padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
 }
 
 .panel-label {
