@@ -341,6 +341,37 @@ body {
   border-color: var(--active-border);
 }
 
+/* ============================================================
+   MAP TOOLBAR — right-side icon pills (zoom, then tools below).
+   ============================================================ */
+#zoom-controls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  width: 40px;
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+#zoom-controls button {
+  width: 40px;
+  height: 40px;
+  font-family: var(--font-family);
+  font-size: 18px;
+  line-height: 1;
+  background: var(--bg-sidebar);
+  color: var(--text-primary);
+  border: none;
+  cursor: pointer;
+}
+
+#zoom-in-btn {
+  border-bottom: 1px solid var(--border);
+}
+
 .ocean {
   fill: var(--bg-ocean);
 }

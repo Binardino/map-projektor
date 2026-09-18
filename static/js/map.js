@@ -907,6 +907,18 @@ function resetCamera(duration = 500) {
 const cameraResetBtn = document.getElementById("camera-reset-btn");
 cameraResetBtn.addEventListener("click", () => resetCamera());
 
+const zoomInBtn  = document.getElementById("zoom-in-btn");
+const zoomOutBtn = document.getElementById("zoom-out-btn");
+const ZOOM_STEP  = 1.3; // multiplicative factor per click, same feel as one mouse-wheel notch
+
+zoomInBtn.addEventListener("click", () => {
+  svg.transition().duration(200).call(zoom.scaleBy, ZOOM_STEP);
+});
+
+zoomOutBtn.addEventListener("click", () => {
+  svg.transition().duration(200).call(zoom.scaleBy, 1 / ZOOM_STEP);
+});
+
 // ============================================================
 // GLOBE ROTATION (orthographic only)
 //
