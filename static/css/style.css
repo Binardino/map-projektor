@@ -347,7 +347,7 @@ body {
    ============================================================ */
 #zoom-controls {
   position: absolute;
-  top: 16px;
+  top: 56px;
   right: 16px;
   z-index: 10;
   display: flex;
@@ -375,7 +375,7 @@ body {
 
 #map-tools {
   position: absolute;
-  top: 72px;
+  top: 112px;
   right: 16px;
   z-index: 10;
   display: flex;
@@ -569,7 +569,7 @@ body {
    slot to the left of the toolbar, only one shown at a time. */
 .floating-card {
   position: absolute;
-  top: 16px;
+  top: 56px;
   right: 64px;
   z-index: 10;
   width: 260px;
