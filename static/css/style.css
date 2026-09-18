@@ -19,7 +19,7 @@
   --active-bg:     #5fecac;
   --active-border: #5fecac;
 
-  --font-family:    'Georgia', 'Times New Roman', serif;
+  --font-family:    'Quicksand', 'Georgia', sans-serif;
   --font-size-base: 14px;
   --sidebar-width:  220px;
 }
@@ -83,7 +83,22 @@ body {
 #projection-list {
   overflow-y: auto;
   flex: 1;
-  padding: 8px 0;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-primary) transparent;
+}
+
+#projection-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+#projection-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#projection-list::-webkit-scrollbar-thumb {
+  background: var(--text-primary);
+  border-radius: 3px;
 }
 
 /* ============================================================
@@ -187,22 +202,16 @@ body {
    RECENTER PRESETS
    ============================================================ */
 #recenter-panel {
-  padding: 10px 12px;
+  padding: 10px 0;
 }
 
-/* Bold section heading — "Select a projection" / "Select a view" —
+/* Semi-bold section heading — "Select a projection" / "Select a view" —
    distinct from the smaller, muted .proj-family-header captions below it. */
 .section-title {
-  padding: 12px 14px 8px;
+  padding: 12px 16px 8px;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
   color: var(--text-primary);
-}
-
-#recenter-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
 #recenter-list.disabled-list {
@@ -210,54 +219,36 @@ body {
   pointer-events: none;
 }
 
-.recenter-btn {
-  text-align: left;
-  padding: 6px 8px;
-  font-family: var(--font-family);
-  font-size: 11px;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: 2px;
-  transition: background 0.15s, color 0.15s;
-}
-
-.recenter-btn:hover,
-.recenter-btn.active {
-  background: var(--active-bg);
-  border-color: var(--active-border);
-  color: var(--text-primary);
-}
-
 /* ============================================================
-   SIDEBAR BUTTONS
+   SIDEBAR BUTTONS — shared rounded-pill style for both the
+   projection list and the recenter/view list, matching Figma:
+   inset from the sidebar edge (margin, not full-bleed), rounded
+   corners, a 50%-accent hover tint distinct from the full-accent
+   selected state.
    ============================================================ */
-.proj-btn {
+.sidebar-btn {
   display: block;
-  width: 100%;
   text-align: left;
   background: none;
   border: none;
-  border-left: 3px solid transparent;
-  padding: 8px 14px;
+  border-radius: 8px;
+  margin: 0 12px 4px;
+  padding: 12px 12px 12px 16px;
   cursor: pointer;
-  color: var(--text-muted);
+  color: var(--text-primary);
   font-family: var(--font-family);
-  font-size: 13px;
-  transition: background 0.15s, color 0.15s;
+  font-size: 16px;
+  font-weight: 400;
+  transition: background 0.15s;
 }
 
-.proj-btn:hover {
-  background: var(--active-bg);
-  color: var(--text-primary);
+.sidebar-btn:hover {
+  background: color-mix(in srgb, var(--accent) 50%, var(--bg-sidebar));
 }
 
-.proj-btn.active {
+.sidebar-btn.active {
   background: var(--active-bg);
-  border-left-color: var(--active-border);
-  color: var(--text-primary);
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .proj-btn:disabled {
@@ -266,8 +257,9 @@ body {
 }
 
 .proj-family-header {
-  padding: 12px 14px 4px;
+  padding: 12px 16px 4px;
   font-size: 10px;
+  font-weight: 500;
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--text-muted);

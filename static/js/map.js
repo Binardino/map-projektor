@@ -782,7 +782,7 @@ function buildSidebar() {
     }
 
     const btn = document.createElement("button");
-    btn.className      = "proj-btn";
+    btn.className      = "sidebar-btn proj-btn";
     btn.id             = `btn-${proj.id}`;
     btn.dataset.projId = proj.id;
     btn.textContent    = proj.name;
@@ -845,7 +845,7 @@ function buildRecenterPanel() {
   const nav = document.getElementById("recenter-list");
   RECENTER_PRESETS.forEach((preset) => {
     const btn = document.createElement("button");
-    btn.className = "recenter-btn" + (preset.id === "world" ? " active" : "");
+    btn.className = "sidebar-btn recenter-btn" + (preset.id === "world" ? " active" : "");
     btn.dataset.presetId = preset.id;
     btn.title = preset.description;
     btn.textContent = preset.name;
