@@ -678,6 +678,19 @@ function updateInfo(projDef) {
   infoTradeoffsContent.hidden = true;
 }
 
+// The info card is opt-in now (see the toolbar's "i" icon in
+// map-container) instead of an always-visible strip under the map.
+const infoToggleBtn = document.getElementById("info-toggle-btn");
+const infoPanelEl   = document.getElementById("projection-info");
+let infoVisible = false;
+
+infoToggleBtn.addEventListener("click", () => {
+  infoVisible = !infoVisible;
+  infoPanelEl.hidden = !infoVisible;
+  infoToggleBtn.classList.toggle("active", infoVisible);
+  infoToggleBtn.setAttribute("aria-pressed", String(infoVisible));
+});
+
 // ============================================================
 // SIDEBAR — built dynamically from PROJECTIONS
 // ============================================================
@@ -1155,8 +1168,17 @@ if (compareToggleBtn) {
     projectionListEl.classList.toggle("disabled-list", compareMode);
     document.getElementById("recenter-list").classList.toggle("disabled-list", compareMode);
     mapContainerEl.hidden   = compareMode;
-    infoEl.hidden           = compareMode;
     compareContainer.hidden = !compareMode;
+
+    // The info card takes real estate the two compare panels need — force
+    // it closed on entering compare mode; leaving compare mode doesn't
+    // reopen it, same as any other time the "i" icon hasn't been clicked.
+    if (compareMode && infoVisible) {
+      infoVisible = false;
+      infoEl.hidden = true;
+      infoToggleBtn.classList.remove("active");
+      infoToggleBtn.setAttribute("aria-pressed", "false");
+    }
 
     if (!compareMode) return;
 

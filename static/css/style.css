@@ -300,7 +300,8 @@ body {
 }
 
 /* ============================================================
-   MAIN AREA — map + info strip
+   MAIN AREA — map (+ its floating toolbar/info overlays) and,
+   when active, the compare-mode panels
    ============================================================ */
 #main {
   flex: 1;
@@ -564,31 +565,41 @@ body {
   min-height: 0;
 }
 
+/* Floating card triggered by the toolbar's "i" icon (see map-tools) —
+   optional, off by default, instead of the old always-visible strip
+   under the map. Base text sizes are trimmed since it's a compact
+   popover now, not a full-width bar. */
 #projection-info {
-  padding: 12px 20px;
-  border-top: 1px solid var(--border);
+  position: absolute;
+  top: 16px;
+  right: 64px;
+  z-index: 10;
+  width: 260px;
+  max-width: calc(100% - 96px);
+  padding: 14px 16px;
+  border-radius: 12px;
   background: var(--bg-sidebar);
-  min-height: 64px;
+  border: 1px solid var(--border);
 }
 
 #info-name {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: bold;
-  margin-right: 10px;
+  margin-right: 8px;
 }
 
 #info-family {
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
 #info-description {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-muted);
   margin-top: 6px;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 #info-tradeoffs-toggle {
@@ -596,7 +607,7 @@ body {
   margin-top: 8px;
   padding: 0;
   font-family: var(--font-family);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   background: none;
@@ -611,8 +622,8 @@ body {
 
 #info-tradeoffs-content {
   margin-top: 8px;
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: 11px;
+  line-height: 1.5;
   color: var(--text-muted);
 }
 
@@ -620,7 +631,7 @@ body {
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-muted);
   margin-top: 8px;
 }
