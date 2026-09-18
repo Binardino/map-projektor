@@ -1672,11 +1672,16 @@ init();
 // ============================================================
 const THEME_STORAGE_KEY = "mapProjektorTheme";
 
-const themeToggle = document.getElementById("theme-toggle");
+const themeToggle    = document.getElementById("theme-toggle");
+const themeToggleBtn = document.getElementById("theme-toggle-btn"); // right-side toolbar icon, mirrors the sidebar checkbox
 
+// Unlike the grid/compare/info tool icons, this one is a plain on/off
+// switch, never shown as "selected" (no .active class) — see the Figma
+// spec's note that light/dark has no selected state, just two positions.
 function applyTheme(theme) {
   document.body.setAttribute("data-theme", theme);
   themeToggle.checked = theme === "dark";
+  themeToggleBtn.setAttribute("aria-pressed", String(theme === "dark"));
 }
 
 const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -1684,8 +1689,11 @@ if (savedTheme !== null) {
   applyTheme(savedTheme);
 }
 
-themeToggle.addEventListener("change", () => {
-  const theme = themeToggle.checked ? "dark" : "";
+function toggleTheme() {
+  const theme = document.body.getAttribute("data-theme") === "dark" ? "" : "dark";
   applyTheme(theme);
   localStorage.setItem(THEME_STORAGE_KEY, theme);
-});
+}
+
+themeToggle.addEventListener("change", toggleTheme);
+themeToggleBtn.addEventListener("click", toggleTheme);
