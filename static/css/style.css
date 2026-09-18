@@ -1,24 +1,23 @@
 /* ============================================================
-   CSS VARIABLES — Theme: Blue (default)
-   To switch themes, edit only this :root block.
-   The sidebar and interface reuse the country colour so the
-   whole UI stays coherent with the map.
+   CSS VARIABLES — Theme: Light (default), aligned with the
+   Figma design tokens. Only two modes exist: this :root block
+   (light) and the body[data-theme="dark"] override below.
    ============================================================ */
 :root {
-  --bg-app:     #fbeeec;
-  --bg-sidebar: #f4dbd8;
+  --bg-app:     #f7efee;
+  --bg-sidebar: #f7efee;
   --bg-ocean:   #7fc9fb;
   --bg-globe:   #1b2733;
 
   --color-country:  #f4dbd8;
   --stroke-country: #23343f;
 
-  --text-primary:  #2d3f5e;
-  --text-muted:    #93706a;
-  --accent:        #3d7cc9;
-  --border:        #e2c3bd;
-  --active-bg:     #edcac4;
-  --active-border: #3d7cc9;
+  --text-primary:  #292929;
+  --text-muted:    #6f6f6f;
+  --accent:        #5fecac;
+  --border:        #292929;
+  --active-bg:     #5fecac;
+  --active-border: #5fecac;
 
   --font-family:    'Georgia', 'Times New Roman', serif;
   --font-size-base: 14px;
@@ -988,150 +987,24 @@ body {
 }
 
 /* ============================================================
-   THEME OVERRIDES — each block overrides the :root variables
+   DARK MODE — the only override of the :root (light) variables.
+   Sidebar/text tokens match the Figma dark frame; map-rendering
+   tokens (ocean/globe/country) are unspecified by the design and
+   keep their existing values for visual continuity.
    ============================================================ */
-
-/* Forest — dark teal interface built around the country green */
-body[data-theme="forest"] {
-  --bg-app:     #04211c;
-  --bg-sidebar: #0a3129;
-  --bg-ocean:   #309bc5;
-  --bg-globe:   #021410;
-
-  --color-country:  #0fd2ab;
-  --stroke-country: #076b55;
-
-  --text-primary:  #dcf8ef;
-  --text-muted:    #55a08c;
-  --accent:        #0fd2ab;
-  --border:        #124c3f;
-  --active-bg:     #0f4638;
-  --active-border: #0fd2ab;
-}
-
-/* Dark Mode — sidebar shares the country navy; light strokes
-   keep borders readable on the dark landmasses */
 body[data-theme="dark"] {
-  --bg-app:     #0f2137;
-  --bg-sidebar: #173753;
+  --bg-app:     #292929;
+  --bg-sidebar: #292929;
   --bg-ocean:   #2264aa;
   --bg-globe:   #060f1c;
 
   --color-country:  #173753;
   --stroke-country: #4180b8;
 
-  --text-primary:  #d3e4f5;
-  --text-muted:    #7ba1c6;
-  --accent:        #4aa0e8;
-  --border:        #235078;
-  --active-bg:     #1f4a70;
-  --active-border: #4aa0e8;
-}
-
-/* Desert Dusk — warm sand and terracotta land on a muted teal sea */
-body[data-theme="desert-dusk"] {
-  --bg-app:     #f7ece0;
-  --bg-sidebar: #efd9c2;
-  --bg-ocean:   #3f6f7a;
-  --bg-globe:   #2a1f18;
-
-  --color-country:  #e8c9a3;
-  --stroke-country: #a3703f;
-
-  --text-primary:  #4a2e1e;
-  --text-muted:    #8a6a4f;
-  --accent:        #c1622c;
-  --border:        #dfc0a0;
-  --active-bg:     #e6c39c;
-  --active-border: #c1622c;
-}
-
-/* Midnight Atlas — ink navy with a brass-gold accent */
-body[data-theme="midnight-atlas"] {
-  --bg-app:     #10151f;
-  --bg-sidebar: #171e2c;
-  --bg-ocean:   #0c1a2e;
-  --bg-globe:   #0a0d14;
-
-  --color-country:  #2a3448;
-  --stroke-country: #c9a24b;
-
-  --text-primary:  #e9edf3;
-  --text-muted:    #8b93a6;
-  --accent:        #d4af5a;
-  --border:        #2a3344;
-  --active-bg:     #232c3d;
-  --active-border: #d4af5a;
-}
-
-/* Copper Coast — deep teal ocean, copper landmass */
-body[data-theme="copper-coast"] {
-  --bg-app:     #f5efe9;
-  --bg-sidebar: #e8dcd0;
-  --bg-ocean:   #2e6b6e;
-  --bg-globe:   #1a1410;
-
-  --color-country:  #ecd3b8;
-  --stroke-country: #b5713c;
-
-  --text-primary:  #2c2420;
-  --text-muted:    #7a6a5c;
-  --accent:        #b5561f;
-  --border:        #dcc9b4;
-  --active-bg:     #e4c8a8;
-  --active-border: #b5561f;
-}
-
-/* Emerald Cartography — deep forest ocean, soft green landmass */
-body[data-theme="emerald-cartography"] {
-  --bg-app:     #f4f7f2;
-  --bg-sidebar: #dfe9db;
-  --bg-ocean:   #1f4d3f;
-  --bg-globe:   #0c150f;
-
-  --color-country:  #cfe3c6;
-  --stroke-country: #3f7a5a;
-
-  --text-primary:  #14261d;
-  --text-muted:    #567760;
-  --accent:        #1f6e4a;
-  --border:        #c6d9bd;
-  --active-bg:     #c9e0bd;
-  --active-border: #1f6e4a;
-}
-
-/* Dusty Rose Meridian — refined take on the default palette */
-body[data-theme="dusty-rose-meridian"] {
-  --bg-app:     #f7edea;
-  --bg-sidebar: #ecdad3;
-  --bg-ocean:   #4a6b8a;
-  --bg-globe:   #241a1f;
-
-  --color-country:  #eecfc4;
-  --stroke-country: #a8746a;
-
-  --text-primary:  #3a2c34;
-  --text-muted:    #8a6d68;
-  --accent:        #b3563f;
-  --border:        #e0c4b8;
-  --active-bg:     #e7c9ba;
-  --active-border: #b3563f;
-}
-
-/* Amber Compass — charcoal ocean, warm amber landmass */
-body[data-theme="amber-compass"] {
-  --bg-app:     #fbf3e7;
-  --bg-sidebar: #f0e0c4;
-  --bg-ocean:   #2b3a4a;
-  --bg-globe:   #14110a;
-
-  --color-country:  #f0d29b;
-  --stroke-country: #a9762f;
-
-  --text-primary:  #2e2413;
-  --text-muted:    #7d6a48;
-  --accent:        #c17f17;
-  --border:        #e6d0a4;
-  --active-bg:     #ecd6a8;
-  --active-border: #c17f17;
+  --text-primary:  #ffffff;
+  --text-muted:    #b8b8b8;
+  --accent:        #34835f;
+  --border:        #ffffff;
+  --active-bg:     #34835f;
+  --active-border: #34835f;
 }
