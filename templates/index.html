@@ -33,8 +33,12 @@
         <svg id="map-svg"></svg>
         <button id="camera-reset-btn" aria-label="Reset to standard view" title="Reset to standard view">⌖</button>
         <div id="zoom-controls">
-          <button id="zoom-in-btn" aria-label="Zoom in" title="Zoom in">+</button>
-          <button id="zoom-out-btn" aria-label="Zoom out" title="Zoom out">−</button>
+          <button id="zoom-in-btn" aria-label="Zoom in" title="Zoom in">
+            <svg width="16" height="16" viewBox="0 0 16.5 16.5" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.25 0.75V15.75M15.75 8.25H0.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button id="zoom-out-btn" aria-label="Zoom out" title="Zoom out">
+            <svg width="15" height="2" viewBox="0 0 15.5 1.5" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.75 0.75H14.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
         <div id="map-tools">
           <button id="grid-toggle-btn" class="tool-btn" aria-pressed="false" aria-label="Show/hide distortion grid" data-tooltip="Show/hide distortion grid">
