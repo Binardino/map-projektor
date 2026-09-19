@@ -1000,9 +1000,6 @@ function resetCamera(duration = 500) {
   return svg.transition().duration(duration).call(zoom.transform, d3.zoomIdentity).end();
 }
 
-const cameraResetBtn = document.getElementById("camera-reset-btn");
-cameraResetBtn.addEventListener("click", () => resetCamera());
-
 const zoomInBtn  = document.getElementById("zoom-in-btn");
 const zoomOutBtn = document.getElementById("zoom-out-btn");
 const ZOOM_STEP  = 1.3; // multiplicative factor per click, same feel as one mouse-wheel notch
