@@ -70,9 +70,10 @@
             <button id="compare-card-close" class="floating-card-close" aria-label="Close">✕</button>
           </div>
           <p class="floating-card-description">Compare the size of a country with another projection</p>
-          <select id="compare-country-select">
-            <option value="" disabled selected>Choose a country</option>
-          </select>
+          <div id="compare-country-picker">
+            <input type="text" id="compare-country-input" placeholder="Choose a country…" autocomplete="off" />
+            <ul id="compare-country-results" hidden></ul>
+          </div>
           <select id="compare-projection-select">
             <option value="" disabled selected>Choose a projection</option>
           </select>

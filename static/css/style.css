@@ -120,6 +120,22 @@ body {
   stroke-width: 1.5px;
 }
 
+/* Compare-mode highlight — the selected country redrawn on top of the
+   map under its own (possibly different) projection. Fixed color per
+   spec, not a theme token. */
+.compare-highlight-layer {
+  pointer-events: none;
+}
+
+.compare-highlight {
+  fill: #fa6048;
+  fill-opacity: 0.5;
+  stroke: #fa6048;
+  stroke-opacity: 1;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
 /* ============================================================
    HELP MODAL — onboarding / "how it works", reused for both the
    first-visit intro and the on-demand "?" trigger
@@ -663,6 +679,50 @@ body {
   color: #292929;
   border: 1px solid #d1cdcd;
   border-radius: 4px;
+}
+
+/* Searchable country picker — an input instead of a plain <select> so
+   typing can filter the (potentially 190+ item) alphabetical list. */
+#compare-country-picker {
+  position: relative;
+}
+
+#compare-country-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: var(--font-family);
+  font-size: 16px;
+  background: #ffffff;
+  color: #292929;
+  border: 1px solid #d1cdcd;
+  border-radius: 4px;
+}
+
+#compare-country-results {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 20;
+  margin-top: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  list-style: none;
+  background: #ffffff;
+  border: 1px solid #d1cdcd;
+  border-radius: 4px;
+}
+
+#compare-country-results li {
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #292929;
+  cursor: pointer;
+}
+
+#compare-country-results li:hover,
+#compare-country-results li.highlighted {
+  background: #f0f0f0;
 }
 
 /* ============================================================

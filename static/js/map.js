@@ -316,6 +316,10 @@ const flightPathGroup = zoomLayer.append("g").attr("class", "flightpath-layer");
 // of everything else. Main view only (not mirrored to compare panels).
 const truesizeGroup = zoomLayer.append("g").attr("class", "truesize-layer");
 
+// Compare-mode country highlight — appended last of all so it always
+// paints on top. See COMPARE CARD below.
+const compareHighlightGroup = zoomLayer.append("g").attr("class", "compare-highlight-layer");
+
 // ============================================================
 // APPLICATION STATE
 // ============================================================
@@ -686,18 +690,20 @@ infoToggleBtn.addEventListener("click", () => {
 infoCloseBtn.addEventListener("click", () => setInfoVisible(false));
 
 // ============================================================
-// COMPARE CARD (toolbar shell)
+// COMPARE CARD
 //
-// Figma-spec placeholder for the comparison icon: a card with two
-// selects. Deliberately NOT wired to any comparison logic yet — the
-// existing side-by-side compareToggleBtn/compareMode feature further
-// below is being redesigned, so this only builds the shell for now.
+// Pick a country (searchable, alphabetical) and it's redrawn on top of
+// the map as a red highlight, under its own projection — independent of
+// whatever projection the main map/sidebar has active. Lets you see how
+// the same country's shape/size changes between two projections at a
+// glance: the base map (unchanged) vs. the highlighted overlay.
 // ============================================================
 const compareCardToggleBtn    = document.getElementById("compare-toggle-btn");
 const compareCardCloseBtn     = document.getElementById("compare-card-close");
 const compareCardEl           = document.getElementById("compare-card");
 const compareProjectionSelect = document.getElementById("compare-projection-select");
-const compareCountrySelect    = document.getElementById("compare-country-select");
+const compareCountryInput     = document.getElementById("compare-country-input");
+const compareCountryResults   = document.getElementById("compare-country-results");
 
 PROJECTIONS.forEach((proj) => {
   const option = document.createElement("option");
@@ -706,13 +712,94 @@ PROJECTIONS.forEach((proj) => {
   compareProjectionSelect.appendChild(option);
 });
 
-let compareCardVisible = false;
+let compareCardVisible     = false;
+let compareCountryNames    = null; // populated lazily once worldData is ready — full alphabetical list
+let compareSelectedCountry = null;
+let compareProjectionId    = null; // null until a country is picked, then defaults to currentProjectionId
+
+// Redraws (or clears) the highlighted country under compareProjectionId.
+// Shares the main map's zoomLayer, so it pans/zooms together with it —
+// the point is comparing two projections' shapes side by side on the
+// same canvas, not tracking a separate camera.
+function refreshCompareHighlight() {
+  compareHighlightGroup.selectAll("*").remove();
+  if (!compareSelectedCountry || !worldData) return;
+
+  const feature = worldData.features.find((f) => f.properties.name === compareSelectedCountry);
+  if (!feature) return;
+
+  const projDef = PROJECTIONS.find((p) => p.id === compareProjectionId) || PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const pathFn  = d3.geoPath().projection(makeProjection(projDef));
+  compareHighlightGroup.append("path").attr("class", "compare-highlight").attr("d", pathFn(feature));
+}
+
+function hideCompareCountryResults() {
+  compareCountryResults.hidden = true;
+  compareCountryResults.innerHTML = "";
+}
+
+function showCompareCountryResults(names) {
+  compareCountryResults.innerHTML = "";
+  names.forEach((name) => {
+    const li = document.createElement("li");
+    li.textContent = name;
+    li.addEventListener("click", () => selectCompareCountry(name));
+    compareCountryResults.appendChild(li);
+  });
+  compareCountryResults.hidden = names.length === 0;
+}
+
+function selectCompareCountry(name) {
+  compareSelectedCountry = name;
+  compareCountryInput.value = name;
+  hideCompareCountryResults();
+
+  // First pick since the card opened (or since it was last cleared):
+  // default the projection to whatever the main map is currently showing.
+  if (compareProjectionId === null) {
+    compareProjectionId = currentProjectionId;
+    compareProjectionSelect.value = currentProjectionId;
+  }
+  refreshCompareHighlight();
+}
+
+compareCountryInput.addEventListener("input", () => {
+  const query = compareCountryInput.value.trim().toLowerCase();
+  if (!compareCountryNames) return;
+  const matches = query
+    ? compareCountryNames.filter((name) => name.toLowerCase().includes(query))
+    : compareCountryNames;
+  showCompareCountryResults(matches.slice(0, 8));
+});
+
+compareCountryInput.addEventListener("focus", () => {
+  if (compareCountryNames) showCompareCountryResults(compareCountryNames.slice(0, 8));
+});
+
+compareCountryInput.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") hideCompareCountryResults();
+});
+
+compareProjectionSelect.addEventListener("change", () => {
+  compareProjectionId = compareProjectionSelect.value;
+  refreshCompareHighlight();
+});
+
+function resetCompareSelection() {
+  compareSelectedCountry = null;
+  compareProjectionId = null;
+  compareCountryInput.value = "";
+  compareProjectionSelect.value = "";
+  hideCompareCountryResults();
+  refreshCompareHighlight();
+}
 
 function closeCompareCard() {
   compareCardVisible = false;
   compareCardEl.hidden = true;
   compareCardToggleBtn.classList.remove("active");
   compareCardToggleBtn.setAttribute("aria-pressed", "false");
+  resetCompareSelection();
 }
 
 function openCompareCard() {
@@ -721,18 +808,10 @@ function openCompareCard() {
   compareCardToggleBtn.classList.add("active");
   compareCardToggleBtn.setAttribute("aria-pressed", "true");
 
-  // Country options depend on the geodata fetch in init() — populate once
-  // it's available instead of duplicating a fixed list here.
-  if (worldData && compareCountrySelect.options.length === 1) {
-    worldData.features
-      .map((f) => f.properties.name)
-      .sort()
-      .forEach((name) => {
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        compareCountrySelect.appendChild(option);
-      });
+  // Country names depend on the geodata fetch in init() — populate the
+  // alphabetical list once it's available instead of duplicating it here.
+  if (worldData && !compareCountryNames) {
+    compareCountryNames = [...new Set(worldData.features.map((f) => f.properties.name))].sort();
   }
 
   // Only one toolbar popover at a time — mirrors the info-card guard above.
