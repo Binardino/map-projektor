@@ -629,7 +629,6 @@ async function transitionTo(newProjId) {
   renderMap(makeProjection(toDef));
 
   currentProjectionId = newProjId;
-  setActiveButton(newProjId);
   updateInfo(toDef);
   updateGlobeBackground();
   refreshTissot();
@@ -950,6 +949,7 @@ function switchProjection(newProjId) {
   if (!PROJECTIONS.find((p) => p.id === newProjId)) return;
   closeSidebar(); // no-op on desktop; on mobile, reveals the map after picking
   resetRecenter(); // presets don't survive a projection change, see RECENTER PRESETS note
+  setActiveButton(newProjId); // highlight immediately — don't wait for the ~1.4-2.3s morph to finish
   transitionTo(newProjId);
 }
 
