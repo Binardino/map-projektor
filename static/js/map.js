@@ -298,6 +298,11 @@ const zoomLayer = svg.append("g").attr("class", "viewport");
 // Appended before mapGroup so countries paint on top of it.
 const globeSphere = zoomLayer.append("path").attr("class", "globe-sphere");
 
+// Second sphere shape, used only to crossfade during clip-angle-animated
+// blends (see animateBlend's `crossfade` branch) — kept empty/transparent
+// otherwise.
+const globeSphereFade = zoomLayer.append("path").attr("class", "globe-sphere").style("opacity", 0);
+
 // Group that holds all country <path> elements
 const mapGroup = zoomLayer.append("g").attr("class", "countries");
 
@@ -390,6 +395,9 @@ function makeProjection(projDef, rotationOverride = null) {
 function renderGlobeSphere(pathEl, projection) {
   const path = d3.geoPath().projection(projection);
   pathEl.attr("d", path({ type: "Sphere" }));
+  // Keep the crossfade companion shape inert outside of animateBlend's
+  // crossfade branch, so it never lingers visible after a normal render.
+  if (pathEl === globeSphere) globeSphereFade.style("opacity", 0).attr("d", null);
 }
 
 function renderMap(projection) {
@@ -497,9 +505,28 @@ function clipAngleOf(projDef) {
 }
 
 // Drives one blend from alpha 0 → 1, optionally morphing the clip circle.
-function animateBlend(projection, duration, clipFrom = null, clipTo = null) {
+//
+// fromSphereProj/toSphereProj (only passed for clip-angle-animated blends,
+// which always pair orthographic with something else — see clipAngleOf)
+// are each endpoint's own plain, unblended projection. They're there
+// because tracing the special {type: "Sphere"} whole-globe marker THROUGH
+// the live blended+clip-animating projection collapses to a degenerate
+// sliver at some intermediate t — a d3 clip-circle edge case specific to
+// blending orthographic's raw function (only valid within 90° of center)
+// against one that isn't. Countries and terrain render fine through the
+// same blend; only this synthetic outline breaks. Sidestepped entirely by
+// crossfading between the two endpoints' own (always well-behaved) static
+// sphere shapes instead of animating one continuously-blended shape.
+function animateBlend(projection, duration, clipFrom = null, clipTo = null, fromSphereProj = null, toSphereProj = null) {
   const pathFn    = d3.geoPath().projection(projection);
   const countries = mapGroup.selectAll("path.country");
+
+  const crossfade = clipFrom !== null && fromSphereProj && toSphereProj;
+  if (crossfade) {
+    const spherePath = d3.geoPath();
+    globeSphere.attr("d", spherePath.projection(fromSphereProj)({ type: "Sphere" })).style("opacity", 1);
+    globeSphereFade.attr("d", spherePath.projection(toSphereProj)({ type: "Sphere" })).style("opacity", 0);
+  }
 
   return new Promise((resolve) => {
     const timer = d3.timer((elapsed) => {
@@ -507,11 +534,17 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null) {
       projection.alpha(t);
       if (clipFrom !== null) projection.clipAngle(clipFrom + (clipTo - clipFrom) * t);
       countries.attr("d", (d) => pathFn(d) || "");
-      renderGlobeSphere(globeSphere, projection);
+      if (crossfade) {
+        globeSphere.style("opacity", 1 - t);
+        globeSphereFade.style("opacity", t);
+      } else {
+        renderGlobeSphere(globeSphere, projection);
+      }
       renderTerrain(terrainGroup, projection);
       if (tissotVisible) renderTissot(tissotGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
+        if (crossfade) globeSphere.style("opacity", null);
         resolve();
       }
     });
@@ -519,12 +552,14 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null) {
 }
 
 function animateTransition(fromDef, toDef, duration) {
-  const projection = blendProjection(makeProjection(fromDef), makeProjection(toDef));
+  const fromProjection = makeProjection(fromDef);
+  const toProjection   = makeProjection(toDef);
+  const projection     = blendProjection(fromProjection, toProjection);
   const clipFrom = clipAngleOf(fromDef);
   const clipTo   = clipAngleOf(toDef);
   // Only azimuthal-hemisphere transitions need the circle clip; other
   // pairs keep D3's default antimeridian clipping untouched.
-  if (clipFrom !== clipTo) return animateBlend(projection, duration, clipFrom, clipTo);
+  if (clipFrom !== clipTo) return animateBlend(projection, duration, clipFrom, clipTo, fromProjection, toProjection);
   return animateBlend(projection, duration);
 }
 
@@ -577,9 +612,19 @@ function animatePolarUnfold(rotation, foldToGlobe, duration) {
   const projection = foldToGlobe
     ? blendProjection(disc, globe, rotation)
     : blendProjection(globe, disc, rotation);
+
+  // Rotated clones purely for animateBlend's crossfade sphere shapes (see
+  // its comment) — globe/disc above are deliberately built unrotated
+  // (blendProjection's wrapper carries the rotation instead), but the
+  // crossfade needs each endpoint's shape as it actually appears on
+  // screen, rotation included.
+  const globeAtRotation = d3.geoOrthographic().rotate(rotation).fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+  const discAtRotation  = d3.geoAzimuthalEquidistant().clipAngle(179).rotate(rotation)
+    .fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+
   return foldToGlobe
-    ? animateBlend(projection, duration, 179, 90)
-    : animateBlend(projection, duration, 90, 179);
+    ? animateBlend(projection, duration, 179, 90, discAtRotation, globeAtRotation)
+    : animateBlend(projection, duration, 90, 179, globeAtRotation, discAtRotation);
 }
 
 async function polarTransition(fromDef, toDef) {
