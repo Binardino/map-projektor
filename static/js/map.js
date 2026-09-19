@@ -402,10 +402,7 @@ function renderMap(projection) {
     .enter()
     .append("path")
     .attr("class", "country")
-    .attr("d", path)
-    .on("click", (event, d) => {
-      if (!flightPathMode) selectCountry(d);
-    });
+    .attr("d", path);
 
   paths.attr("d", path);
 
