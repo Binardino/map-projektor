@@ -305,8 +305,9 @@ body {
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: 8px;
   width: 40px;
+  border-radius: 100px;
+  overflow: hidden;
 }
 
 #zoom-controls button {
@@ -315,16 +316,19 @@ body {
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 100px;
   background: var(--bg-sidebar);
   color: var(--text-primary);
   border: none;
   cursor: pointer;
 }
 
+#zoom-in-btn {
+  border-bottom: 1px solid var(--border);
+}
+
 #map-tools {
   position: absolute;
-  top: 196px;
+  top: 188px;
   right: 12px;
   z-index: 10;
   display: flex;
