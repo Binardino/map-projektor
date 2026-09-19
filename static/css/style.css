@@ -21,7 +21,7 @@
 
   --font-family:    'Quicksand', 'Georgia', sans-serif;
   --font-size-base: 14px;
-  --sidebar-width:  220px;
+  --sidebar-width:  240px;
 }
 
 /* ============================================================
@@ -61,7 +61,9 @@ body {
 }
 
 #sidebar-header {
-  padding: 20px 16px 14px;
+  /* Extra top/bottom padding makes up for the title now being one line
+     instead of two, keeping the header's total height about the same. */
+  padding: 31px 16px 25px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -203,6 +205,7 @@ body {
    ============================================================ */
 #recenter-panel {
   padding: 10px 0;
+  border-top: 1px solid var(--border);
 }
 
 /* Semi-bold section heading — "Select a projection" / "Select a view" —
