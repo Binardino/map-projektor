@@ -639,9 +639,10 @@ async function transitionTo(newProjId) {
 // ============================================================
 // INFO PANEL
 // ============================================================
-const infoTradeoffsToggle  = document.getElementById("info-tradeoffs-toggle");
 const infoTradeoffsContent = document.getElementById("info-tradeoffs-content");
 
+// Always fully shown now (no expand/collapse) — matches the Figma card,
+// which has no toggle, just the three terms laid out directly.
 function renderTradeoffs(tradeoffs) {
   infoTradeoffsContent.innerHTML = "";
   [
@@ -657,40 +658,32 @@ function renderTradeoffs(tradeoffs) {
   });
 }
 
-infoTradeoffsToggle.addEventListener("click", () => {
-  const expanded = infoTradeoffsToggle.getAttribute("aria-expanded") === "true";
-  infoTradeoffsToggle.setAttribute("aria-expanded", String(!expanded));
-  infoTradeoffsContent.hidden = expanded;
-});
-
 function updateInfo(projDef) {
-  document.getElementById("info-name").textContent        = projDef.name;
-  document.getElementById("info-family").textContent      = projDef.family;
-  document.getElementById("info-description").textContent = projDef.description;
-
+  document.getElementById("info-name").textContent = projDef.name;
   renderTradeoffs(projDef.tradeoffs);
-  // Collapse on every projection change — the tradeoffs shown are only
-  // ever for the projection currently active, so an expanded state
-  // shouldn't silently carry over to the next one.
-  infoTradeoffsToggle.setAttribute("aria-expanded", "false");
-  infoTradeoffsContent.hidden = true;
 }
 
 // The info card is opt-in now (see the toolbar's "i" icon in
 // map-container) instead of an always-visible strip under the map.
 const infoToggleBtn = document.getElementById("info-toggle-btn");
+const infoCloseBtn  = document.getElementById("info-close-btn");
 const infoPanelEl   = document.getElementById("projection-info");
 let infoVisible = false;
 
-infoToggleBtn.addEventListener("click", () => {
-  infoVisible = !infoVisible;
+function setInfoVisible(visible) {
+  infoVisible = visible;
   infoPanelEl.hidden = !infoVisible;
   infoToggleBtn.classList.toggle("active", infoVisible);
   infoToggleBtn.setAttribute("aria-pressed", String(infoVisible));
+}
 
+infoToggleBtn.addEventListener("click", () => {
+  setInfoVisible(!infoVisible);
   // Only one toolbar popover at a time — see closeCompareCard below.
   if (infoVisible) closeCompareCard();
 });
+
+infoCloseBtn.addEventListener("click", () => setInfoVisible(false));
 
 // ============================================================
 // COMPARE CARD (toolbar shell)
@@ -743,12 +736,7 @@ function openCompareCard() {
   }
 
   // Only one toolbar popover at a time — mirrors the info-card guard above.
-  if (infoVisible) {
-    infoVisible = false;
-    infoPanelEl.hidden = true;
-    infoToggleBtn.classList.remove("active");
-    infoToggleBtn.setAttribute("aria-pressed", "false");
-  }
+  if (infoVisible) setInfoVisible(false);
 }
 
 compareCardToggleBtn.addEventListener("click", () => {
@@ -1122,7 +1110,6 @@ function clearSelection() {
 // ============================================================
 const compareToggleBtn = document.getElementById("compare-toggle");
 const mapContainerEl   = document.getElementById("map-container");
-const infoEl           = document.getElementById("projection-info");
 const compareContainer = document.getElementById("compare-container");
 const projectionListEl = document.getElementById("projection-list");
 
@@ -1249,12 +1236,7 @@ if (compareToggleBtn) {
     // The info card takes real estate the two compare panels need — force
     // it closed on entering compare mode; leaving compare mode doesn't
     // reopen it, same as any other time the "i" icon hasn't been clicked.
-    if (compareMode && infoVisible) {
-      infoVisible = false;
-      infoEl.hidden = true;
-      infoToggleBtn.classList.remove("active");
-      infoToggleBtn.setAttribute("aria-pressed", "false");
-    }
+    if (compareMode && infoVisible) setInfoVisible(false);
 
     if (!compareMode) return;
 

@@ -58,11 +58,11 @@
           <button id="info-toggle-btn" class="tool-btn" aria-pressed="false" aria-label="Information" data-tooltip="Information">i</button>
         </div>
         <div id="projection-info" class="floating-card" hidden>
-          <span id="info-name"></span>
-          <span id="info-family"></span>
-          <p id="info-description"></p>
-          <button id="info-tradeoffs-toggle" aria-expanded="false">Preserves & distorts ▾</button>
-          <dl id="info-tradeoffs-content" hidden></dl>
+          <div class="floating-card-header">
+            <p id="info-name" class="floating-card-title"></p>
+            <button id="info-close-btn" class="floating-card-close" aria-label="Close">✕</button>
+          </div>
+          <dl id="info-tradeoffs-content"></dl>
         </div>
         <div id="compare-card" class="floating-card" hidden>
           <div class="floating-card-header">

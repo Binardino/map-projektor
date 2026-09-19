@@ -560,78 +560,71 @@ body {
   min-height: 0;
 }
 
-/* Shared shell for the map's floating popovers (info, compare) — same
-   slot to the left of the toolbar, only one shown at a time. */
+/* Shared shell for the map's floating popovers (info, compare) — bottom
+   right of the map, only one shown at a time. Figma hardcodes a dark
+   card regardless of the light/dark toggle (like the tool tooltips), so
+   this uses fixed colors instead of the --bg-sidebar/--text-* tokens. */
 .floating-card {
   position: absolute;
-  top: 84px;
-  right: 60px;
+  bottom: 16px;
+  right: 16px;
   z-index: 10;
-  width: 260px;
-  max-width: calc(100% - 96px);
-  padding: 14px 16px;
+  width: 339px;
+  max-width: calc(100% - 32px);
+  padding: 20px;
   border-radius: 12px;
-  background: var(--bg-sidebar);
-  border: 1px solid var(--border);
+  background: #292929;
+  color: #ffffff;
 }
 
-/* #projection-info itself needs no rules beyond .floating-card above —
-   triggered by the toolbar's "i" icon (see map-tools), optional, off by
-   default, instead of the old always-visible strip under the map. Base
-   text sizes are trimmed since it's a compact popover now, not a
-   full-width bar. */
-#info-name {
-  font-size: 15px;
+.floating-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.floating-card-title {
+  font-size: 24px;
   font-weight: bold;
-  margin-right: 8px;
 }
 
-#info-family {
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-#info-description {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 6px;
-  line-height: 1.5;
-}
-
-#info-tradeoffs-toggle {
-  display: block;
-  margin-top: 8px;
+.floating-card-close {
   padding: 0;
-  font-family: var(--font-family);
-  font-size: 10px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: #ffffff;
   cursor: pointer;
+  opacity: 0.7;
 }
 
-#info-tradeoffs-toggle:hover {
-  color: var(--text-primary);
+.floating-card-close:hover {
+  opacity: 1;
 }
 
-#info-tradeoffs-content {
-  margin-top: 8px;
-  font-size: 11px;
+.floating-card-description {
+  font-size: 16px;
+  color: #d9d9d9;
   line-height: 1.5;
-  color: var(--text-muted);
+}
+
+/* #info-name reuses .floating-card-title via its class in the HTML;
+   #info-tradeoffs-content lays the three terms out inline (Figma flattens
+   them into one running paragraph — this keeps them as distinguishable
+   label/value pairs instead, at the same 16px size). */
+#info-tradeoffs-content {
+  margin-top: 16px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #d9d9d9;
 }
 
 #info-tradeoffs-content dt {
   font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 9px;
-  color: var(--text-muted);
-  margin-top: 8px;
+  color: #ffffff;
+  margin-top: 12px;
 }
 
 #info-tradeoffs-content dt:first-child {
@@ -649,7 +642,7 @@ body {
 #compare-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
 }
 
 /* Same [hidden]-vs-display:flex precedence issue as #compare-container
@@ -658,46 +651,17 @@ body {
   display: none;
 }
 
-.floating-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.floating-card-title {
-  font-size: 15px;
-  font-weight: bold;
-}
-
-.floating-card-close {
-  padding: 0;
-  width: 20px;
-  height: 20px;
-  font-size: 11px;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-.floating-card-close:hover {
-  color: var(--text-primary);
-}
-
-.floating-card-description {
-  font-size: 12px;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
+/* Always-white input fields per Figma, regardless of theme — the card
+   itself is a fixed dark color (see .floating-card), so these need their
+   own fixed light styling rather than the theme's --bg-app/--border. */
 #compare-card select {
   width: 100%;
-  padding: 8px 10px;
+  padding: 12px 16px;
   font-family: var(--font-family);
-  font-size: 12px;
-  background: var(--bg-app);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
+  font-size: 16px;
+  background: #ffffff;
+  color: #292929;
+  border: 1px solid #d1cdcd;
   border-radius: 4px;
 }
 
