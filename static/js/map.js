@@ -293,37 +293,43 @@ const oceanRect = svg.append("rect").attr("class", "ocean").attr("width", WIDTH)
 // below). Everything that pans/zooms with the map lives inside it.
 const zoomLayer = svg.append("g").attr("class", "viewport");
 
+// Single wrapper for every world-space layer, so the South America
+// (upside-down) mirror flip (see animateRecenterFlip) animates ONE
+// group's transform instead of seven separate transitions — cheaper to
+// run, and guarantees every layer stays perfectly in sync.
+const worldGroup = zoomLayer.append("g").attr("class", "world");
+
 // Sphere outline — a distinct shape (not just the background rect) so the
 // globe's edge is visible against the void backdrop in orthographic view.
 // Appended before mapGroup so countries paint on top of it.
-const globeSphere = zoomLayer.append("path").attr("class", "globe-sphere");
+const globeSphere = worldGroup.append("path").attr("class", "globe-sphere");
 
 // Second sphere shape, used only to crossfade during clip-angle-animated
 // blends (see animateBlend's `crossfade` branch) — kept empty/transparent
 // otherwise.
-const globeSphereFade = zoomLayer.append("path").attr("class", "globe-sphere").style("opacity", 0);
+const globeSphereFade = worldGroup.append("path").attr("class", "globe-sphere").style("opacity", 0);
 
 // Group that holds all country <path> elements
-const mapGroup = zoomLayer.append("g").attr("class", "countries");
+const mapGroup = worldGroup.append("g").attr("class", "countries");
 
 // Mountain range/plateau terrain patches — appended after mapGroup so they
 // paint over the flat country fill, purely decorative (pointer-events:none
 // in CSS so clicks still reach the country underneath).
-const terrainGroup = zoomLayer.append("g").attr("class", "terrain-layer");
+const terrainGroup = worldGroup.append("g").attr("class", "terrain-layer");
 
 // Tissot's indicatrix overlay — appended after mapGroup so it paints on top
-const tissotGroup = zoomLayer.append("g").attr("class", "tissot-layer");
+const tissotGroup = worldGroup.append("g").attr("class", "tissot-layer");
 
 // Flight path overlay — appended after tissotGroup so the arc paints on top
-const flightPathGroup = zoomLayer.append("g").attr("class", "flightpath-layer");
+const flightPathGroup = worldGroup.append("g").attr("class", "flightpath-layer");
 
 // True-size country shapes — appended last so dragged shapes paint on top
 // of everything else. Main view only (not mirrored to compare panels).
-const truesizeGroup = zoomLayer.append("g").attr("class", "truesize-layer");
+const truesizeGroup = worldGroup.append("g").attr("class", "truesize-layer");
 
 // Compare-mode country highlight — appended last of all so it always
 // paints on top. See COMPARE CARD below.
-const compareHighlightGroup = zoomLayer.append("g").attr("class", "compare-highlight-layer");
+const compareHighlightGroup = worldGroup.append("g").attr("class", "compare-highlight-layer");
 
 // ============================================================
 // APPLICATION STATE
@@ -970,28 +976,24 @@ function buildRecenterPanel() {
 // through 0 — the map visibly folds flat then unfolds mirrored, reading
 // as a top-down flip rather than a snap.
 //
-// Every layer drawn in world coordinates gets the same transform so they
-// flip together — terrain/tissot/flight-path/true-size/the compare
-// highlight used to stay put while only countries mirrored, so they'd
-// end up floating over the wrong regions of the now-flipped map.
-const FLIPPABLE_LAYERS = [
-  globeSphere,
-  mapGroup,
-  terrainGroup,
-  tissotGroup,
-  flightPathGroup,
-  truesizeGroup,
-  compareHighlightGroup,
-];
-
+// Every world-space layer (terrain/tissot/flight-path/true-size/the
+// compare highlight, not just countries) needs to flip together, or
+// they'd end up floating over the wrong regions of the now-flipped map.
+// They're all children of worldGroup (see its declaration) specifically
+// so ONE transition here moves everything at once, instead of seven
+// separate D3 transitions each interpolating and writing the same value.
+//
+// .style() (CSS transform property) rather than .attr() (SVG transform
+// attribute): browsers can promote a CSS-transform animation to its own
+// GPU compositing layer and interpolate it there for free, whereas an
+// attribute-driven transform forces a full repaint of everything inside
+// the group on the main thread every frame. With ~170 country paths (each
+// using vector-effect:non-scaling-stroke, which itself isn't cheap to
+// recompute) plus terrain, that repaint cost was the actual source of
+// the dropped frames during this flip.
 function animateRecenterFlip(flip, duration = 600) {
-  const flipTransform = flip ? `translate(0, ${HEIGHT}) scale(1, -1)` : "translate(0, 0) scale(1, 1)";
-  return new Promise((resolve) => {
-    FLIPPABLE_LAYERS.forEach((layer, i) => {
-      const transition = layer.transition().duration(duration).attr("transform", flipTransform);
-      if (i === FLIPPABLE_LAYERS.length - 1) transition.on("end", resolve);
-    });
-  });
+  const flipTransform = flip ? `translate(0px, ${HEIGHT}px) scale(1, -1)` : "translate(0px, 0px) scale(1, 1)";
+  return worldGroup.transition().duration(duration).style("transform", flipTransform).end();
 }
 
 // Spins the current projection's own sphere from the active rotation to the
@@ -1062,9 +1064,9 @@ function resetRecenter() {
   currentRecenterRotate = null;
   currentRecenterFlip = false;
   // Cleared synchronously (no transition): if a projection switch is about
-  // to run, the morph must not inherit a leftover flip transform on any
+  // to run, the morph must not inherit a leftover flip transform on the
   // group it repaints into.
-  FLIPPABLE_LAYERS.forEach((layer) => layer.attr("transform", null));
+  worldGroup.style("transform", null);
   document.querySelectorAll(".recenter-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.presetId === "world");
   });
