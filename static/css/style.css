@@ -466,17 +466,20 @@ body {
   pointer-events: none;
 }
 
+/* Uses --bg-globe (dark navy) rather than --accent: the light theme's
+   accent is a mint green too close to the light-blue ocean to read as a
+   grid overlay — the dark void color keeps good contrast in both themes. */
 .tissot {
-  fill: var(--accent);
+  fill: var(--bg-globe);
   fill-opacity: 0.18;
-  stroke: var(--accent);
+  stroke: var(--bg-globe);
   stroke-width: 1px;
   stroke-opacity: 0.8;
 }
 
 .tissot-graticule {
   fill: none;
-  stroke: var(--accent);
+  stroke: var(--bg-globe);
   stroke-width: 0.5px;
   stroke-opacity: 0.45;
 }
