@@ -917,17 +917,35 @@ function buildRecenterPanel() {
   });
 }
 
-// Mirrors mapGroup/tissotGroup vertically about the viewport's horizontal
-// centreline (translate(0,H) scale(1,-1)) when the active preset asks for
-// it, or eases back to identity otherwise. D3's "transform" attribute
-// interpolator decomposes both strings into translate/scale components, so
-// animating between them sweeps scaleY through 0 — the map visibly folds
-// flat then unfolds mirrored, reading as a top-down flip rather than a snap.
+// Mirrors every overlay layer (not just countries) vertically about the
+// viewport's horizontal centreline (translate(0,H) scale(1,-1)) when the
+// active preset asks for it, or eases back to identity otherwise. D3's
+// "transform" attribute interpolator decomposes both strings into
+// translate/scale components, so animating between them sweeps scaleY
+// through 0 — the map visibly folds flat then unfolds mirrored, reading
+// as a top-down flip rather than a snap.
+//
+// Every layer drawn in world coordinates gets the same transform so they
+// flip together — terrain/tissot/flight-path/true-size/the compare
+// highlight used to stay put while only countries mirrored, so they'd
+// end up floating over the wrong regions of the now-flipped map.
+const FLIPPABLE_LAYERS = [
+  globeSphere,
+  mapGroup,
+  terrainGroup,
+  tissotGroup,
+  flightPathGroup,
+  truesizeGroup,
+  compareHighlightGroup,
+];
+
 function animateRecenterFlip(flip, duration = 600) {
   const flipTransform = flip ? `translate(0, ${HEIGHT}) scale(1, -1)` : "translate(0, 0) scale(1, 1)";
   return new Promise((resolve) => {
-    mapGroup.transition().duration(duration).attr("transform", flipTransform);
-    tissotGroup.transition().duration(duration).attr("transform", flipTransform).on("end", resolve);
+    FLIPPABLE_LAYERS.forEach((layer, i) => {
+      const transition = layer.transition().duration(duration).attr("transform", flipTransform);
+      if (i === FLIPPABLE_LAYERS.length - 1) transition.on("end", resolve);
+    });
   });
 }
 
@@ -951,6 +969,13 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
         (from[2] || 0) + ((to[2] || 0) - (from[2] || 0)) * t,
       ]);
       countries.attr("d", (d) => pathFn(d) || "");
+      // Same per-frame refresh as animateBlend/animateRotation — terrain
+      // (and the sphere outline/grid, if visible) used to only repaint at
+      // the very end of a recenter, so they sat frozen throughout the
+      // rotation while countries alone animated.
+      renderGlobeSphere(globeSphere, projection);
+      renderTerrain(terrainGroup, projection);
+      if (tissotVisible) renderTissot(tissotGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -992,10 +1017,9 @@ function resetRecenter() {
   currentRecenterRotate = null;
   currentRecenterFlip = false;
   // Cleared synchronously (no transition): if a projection switch is about
-  // to run, the morph must not inherit a leftover flip transform on the
+  // to run, the morph must not inherit a leftover flip transform on any
   // group it repaints into.
-  mapGroup.attr("transform", null);
-  tissotGroup.attr("transform", null);
+  FLIPPABLE_LAYERS.forEach((layer) => layer.attr("transform", null));
   document.querySelectorAll(".recenter-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.presetId === "world");
   });
