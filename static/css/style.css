@@ -334,8 +334,18 @@ body {
   display: flex;
   flex-direction: column;
   width: 40px;
-  border-radius: 100px;
-  overflow: hidden;
+}
+
+/* Rounded top/bottom corners on the first/last button, instead of
+   border-radius + overflow:hidden on the container — that trick clipped
+   the hover tooltips, which need to render outside this box (see
+   [data-tooltip] below). */
+#map-tools .tool-btn:first-child {
+  border-radius: 100px 100px 0 0;
+}
+
+#map-tools .tool-btn:last-child {
+  border-radius: 0 0 100px 100px;
 }
 
 .tool-btn {
