@@ -446,6 +446,17 @@ function renderTerrain(group, projection) {
     .attr("d", path);
 }
 
+// Re-paths the already-mounted terrain patches without re-running the
+// enter/exit data join — the patch count/DOM never changes mid-animation,
+// only their shape, so redoing the full join on every animation frame (as
+// renderTerrain does) was pure overhead. Used by the per-frame animation
+// loops below; renderTerrain (which also mounts new elements) stays in
+// charge of the initial/static render.
+function updateTerrainPaths(group, projection) {
+  const path = d3.geoPath().projection(projection);
+  group.selectAll("path.terrain-patch").attr("d", path);
+}
+
 // ============================================================
 // ANIMATION — projection blending
 //
@@ -546,8 +557,8 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
       } else {
         renderGlobeSphere(globeSphere, projection);
       }
-      renderTerrain(terrainGroup, projection);
-      if (tissotVisible) renderTissot(tissotGroup, projection);
+      updateTerrainPaths(terrainGroup, projection);
+      if (tissotVisible) updateTissotPaths(tissotGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         if (crossfade) globeSphere.style("opacity", null);
@@ -597,8 +608,8 @@ function animateRotation(fromRot, toRot, duration) {
       ]);
       countries.attr("d", (d) => pathFn(d) || "");
       renderGlobeSphere(globeSphere, projection);
-      renderTerrain(terrainGroup, projection);
-      if (tissotVisible) renderTissot(tissotGroup, projection);
+      updateTerrainPaths(terrainGroup, projection);
+      if (tissotVisible) updateTissotPaths(tissotGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -1021,8 +1032,8 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
       // the very end of a recenter, so they sat frozen throughout the
       // rotation while countries alone animated.
       renderGlobeSphere(globeSphere, projection);
-      renderTerrain(terrainGroup, projection);
-      if (tissotVisible) renderTissot(tissotGroup, projection);
+      updateTerrainPaths(terrainGroup, projection);
+      if (tissotVisible) updateTissotPaths(tissotGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -1486,6 +1497,14 @@ function renderTissot(group, projection) {
     .merge(circles)
     .attr("d", (d) => pathFn(d3.geoCircle().center(d).radius(TISSOT_RADIUS)()));
   circles.exit().remove();
+}
+
+// Same idea as updateTerrainPaths: re-paths the already-mounted graticule
+// and circles without re-running renderTissot's data join every frame.
+function updateTissotPaths(group, projection) {
+  const path = d3.geoPath().projection(projection);
+  group.selectAll("path.tissot-graticule").attr("d", path);
+  group.selectAll("path.tissot").attr("d", (d) => path(d3.geoCircle().center(d).radius(TISSOT_RADIUS)()));
 }
 
 function clearTissot(group) {
