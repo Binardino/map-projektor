@@ -1047,13 +1047,27 @@ async function applyRecenter(presetId) {
 
   isAnimating = true;
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  await animateRecenterRotation(currentDef, fromRot, preset.rotate, 900);
-
-  currentRecenterRotate = preset.rotate;
-  renderMap(makeProjection(currentDef, currentRecenterRotate)); // final render with native clipping
-
   const wantsFlip = !!preset.flipVertical;
-  if (wantsFlip !== currentRecenterFlip) await animateRecenterFlip(wantsFlip);
+
+  if (wantsFlip !== currentRecenterFlip) {
+    // Entering or leaving the South America (upside-down) mirror: doing the
+    // usual longitude rotation sweep here would spin the sphere WHILE also
+    // flipping it, reading as a distorted diagonal spin rather than a clean
+    // mirror. Instead fold the map edge-on first (scaleY -> 0, same idea as
+    // animateRecenterFlip), swap the rotation instantly while it's invisible
+    // at that fold, then unfold mirrored — one continuous paper-flip.
+    const edgeOnY = currentRecenterFlip ? HEIGHT : 0;
+    await worldGroup.transition().duration(300).style("transform", `translate(0px, ${edgeOnY}px) scale(1, 0)`).end();
+
+    currentRecenterRotate = preset.rotate;
+    renderMap(makeProjection(currentDef, currentRecenterRotate)); // instant swap while edge-on (invisible)
+
+    await animateRecenterFlip(wantsFlip, 300);
+  } else {
+    await animateRecenterRotation(currentDef, fromRot, preset.rotate, 900);
+    currentRecenterRotate = preset.rotate;
+    renderMap(makeProjection(currentDef, currentRecenterRotate)); // final render with native clipping
+  }
   currentRecenterFlip = wantsFlip;
 
   isAnimating = false;
