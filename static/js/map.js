@@ -209,22 +209,6 @@ const PROJECTIONS = [
     d3fn: () => d3.geoAzimuthalEquidistant().rotate([0, 90]).clipAngle(179),
   },
   {
-    id: "albers",
-    name: "Albers",
-    family: "Conic",
-    year: 1805,
-    description:
-      "Conic equal-area projection with two standard parallels. Best for " +
-      "mid-latitude regions. Official projection for US Census maps.",
-    tradeoffs: {
-      preserves: "Area exactly, and shape stays accurate between its two standard parallels (here 20°N and 50°N).",
-      distorts: "Shape more and more the further a region sits from those two parallels — poor for global/equatorial use.",
-      bestFor: "Mid-latitude regional maps of a single country or continent (its original purpose: the continental US).",
-    },
-    // Recentred for a world view — default is tuned for the USA
-    d3fn: () => d3.geoAlbers().rotate([0, 0]).parallels([20, 50]).scale(153),
-  },
-  {
     id: "winkelTripel",
     name: "Winkel Tripel",
     family: "Pseudoazimuthal",
@@ -269,6 +253,22 @@ const PROJECTIONS = [
     },
     d3fn: () => d3.geoHammer(),
   },
+  {
+    id: "albers",
+    name: "Albers",
+    family: "Conic",
+    year: 1805,
+    description:
+      "Conic equal-area projection with two standard parallels. Best for " +
+      "mid-latitude regions. Official projection for US Census maps.",
+    tradeoffs: {
+      preserves: "Area exactly, and shape stays accurate between its two standard parallels (here 20°N and 50°N).",
+      distorts: "Shape more and more the further a region sits from those two parallels — poor for global/equatorial use.",
+      bestFor: "Mid-latitude regional maps of a single country or continent (its original purpose: the continental US).",
+    },
+    // Recentred for a world view — default is tuned for the USA
+    d3fn: () => d3.geoAlbers().rotate([0, 0]).parallels([20, 50]).scale(153),
+  },
 ];
 
 // ============================================================
@@ -293,28 +293,43 @@ const oceanRect = svg.append("rect").attr("class", "ocean").attr("width", WIDTH)
 // below). Everything that pans/zooms with the map lives inside it.
 const zoomLayer = svg.append("g").attr("class", "viewport");
 
+// Single wrapper for every world-space layer, so the South America
+// (upside-down) mirror flip (see animateRecenterFlip) animates ONE
+// group's transform instead of seven separate transitions — cheaper to
+// run, and guarantees every layer stays perfectly in sync.
+const worldGroup = zoomLayer.append("g").attr("class", "world");
+
 // Sphere outline — a distinct shape (not just the background rect) so the
 // globe's edge is visible against the void backdrop in orthographic view.
 // Appended before mapGroup so countries paint on top of it.
-const globeSphere = zoomLayer.append("path").attr("class", "globe-sphere");
+const globeSphere = worldGroup.append("path").attr("class", "globe-sphere");
+
+// Second sphere shape, used only to crossfade during clip-angle-animated
+// blends (see animateBlend's `crossfade` branch) — kept empty/transparent
+// otherwise.
+const globeSphereFade = worldGroup.append("path").attr("class", "globe-sphere").style("opacity", 0);
 
 // Group that holds all country <path> elements
-const mapGroup = zoomLayer.append("g").attr("class", "countries");
+const mapGroup = worldGroup.append("g").attr("class", "countries");
 
 // Mountain range/plateau terrain patches — appended after mapGroup so they
 // paint over the flat country fill, purely decorative (pointer-events:none
 // in CSS so clicks still reach the country underneath).
-const terrainGroup = zoomLayer.append("g").attr("class", "terrain-layer");
+const terrainGroup = worldGroup.append("g").attr("class", "terrain-layer");
 
 // Tissot's indicatrix overlay — appended after mapGroup so it paints on top
-const tissotGroup = zoomLayer.append("g").attr("class", "tissot-layer");
+const tissotGroup = worldGroup.append("g").attr("class", "tissot-layer");
 
 // Flight path overlay — appended after tissotGroup so the arc paints on top
-const flightPathGroup = zoomLayer.append("g").attr("class", "flightpath-layer");
+const flightPathGroup = worldGroup.append("g").attr("class", "flightpath-layer");
 
 // True-size country shapes — appended last so dragged shapes paint on top
 // of everything else. Main view only (not mirrored to compare panels).
-const truesizeGroup = zoomLayer.append("g").attr("class", "truesize-layer");
+const truesizeGroup = worldGroup.append("g").attr("class", "truesize-layer");
+
+// Compare-mode country highlight — appended last of all so it always
+// paints on top. See COMPARE CARD below.
+const compareHighlightGroup = worldGroup.append("g").attr("class", "compare-highlight-layer");
 
 // ============================================================
 // APPLICATION STATE
@@ -324,11 +339,13 @@ const truesizeGroup = zoomLayer.append("g").attr("class", "truesize-layer");
 let currentProjectionId = "orthographic";
 let isAnimating = false;
 
-// The globe view needs its own darker backdrop instead of the flat-map
-// ocean color for the space outside the sphere disc.
+// The sphere-outline stroke only shows in orthographic — it's the only
+// projection where the disc needs a visible edge separating it from the
+// void background (see .globe-sphere.active); every other projection's
+// {type: "Sphere"} outline already reaches the void's own dark color at
+// its non-rectangular corners, so no border is needed there.
 function updateGlobeBackground() {
   const isGlobe = currentProjectionId === "orthographic";
-  oceanRect.classed("globe-bg", isGlobe);
   globeSphere.classed("active", isGlobe);
 }
 let worldData = null;
@@ -384,6 +401,9 @@ function makeProjection(projDef, rotationOverride = null) {
 function renderGlobeSphere(pathEl, projection) {
   const path = d3.geoPath().projection(projection);
   pathEl.attr("d", path({ type: "Sphere" }));
+  // Keep the crossfade companion shape inert outside of animateBlend's
+  // crossfade branch, so it never lingers visible after a normal render.
+  if (pathEl === globeSphere) globeSphereFade.style("opacity", 0).attr("d", null);
 }
 
 function renderMap(projection) {
@@ -400,10 +420,7 @@ function renderMap(projection) {
     .enter()
     .append("path")
     .attr("class", "country")
-    .attr("d", path)
-    .on("click", (event, d) => {
-      if (!flightPathMode) selectCountry(d);
-    });
+    .attr("d", path);
 
   paths.attr("d", path);
 
@@ -427,6 +444,17 @@ function renderTerrain(group, projection) {
     .attr("class", (d) => `terrain-patch terrain-${d.properties.kind}`)
     .merge(patches)
     .attr("d", path);
+}
+
+// Re-paths the already-mounted terrain patches without re-running the
+// enter/exit data join — the patch count/DOM never changes mid-animation,
+// only their shape, so redoing the full join on every animation frame (as
+// renderTerrain does) was pure overhead. Used by the per-frame animation
+// loops below; renderTerrain (which also mounts new elements) stays in
+// charge of the initial/static render.
+function updateTerrainPaths(group, projection) {
+  const path = d3.geoPath().projection(projection);
+  group.selectAll("path.terrain-patch").attr("d", path);
 }
 
 // ============================================================
@@ -494,9 +522,28 @@ function clipAngleOf(projDef) {
 }
 
 // Drives one blend from alpha 0 → 1, optionally morphing the clip circle.
-function animateBlend(projection, duration, clipFrom = null, clipTo = null) {
+//
+// fromSphereProj/toSphereProj (only passed for clip-angle-animated blends,
+// which always pair orthographic with something else — see clipAngleOf)
+// are each endpoint's own plain, unblended projection. They're there
+// because tracing the special {type: "Sphere"} whole-globe marker THROUGH
+// the live blended+clip-animating projection collapses to a degenerate
+// sliver at some intermediate t — a d3 clip-circle edge case specific to
+// blending orthographic's raw function (only valid within 90° of center)
+// against one that isn't. Countries and terrain render fine through the
+// same blend; only this synthetic outline breaks. Sidestepped entirely by
+// crossfading between the two endpoints' own (always well-behaved) static
+// sphere shapes instead of animating one continuously-blended shape.
+function animateBlend(projection, duration, clipFrom = null, clipTo = null, fromSphereProj = null, toSphereProj = null) {
   const pathFn    = d3.geoPath().projection(projection);
   const countries = mapGroup.selectAll("path.country");
+
+  const crossfade = clipFrom !== null && fromSphereProj && toSphereProj;
+  if (crossfade) {
+    const spherePath = d3.geoPath();
+    globeSphere.attr("d", spherePath.projection(fromSphereProj)({ type: "Sphere" })).style("opacity", 1);
+    globeSphereFade.attr("d", spherePath.projection(toSphereProj)({ type: "Sphere" })).style("opacity", 0);
+  }
 
   return new Promise((resolve) => {
     const timer = d3.timer((elapsed) => {
@@ -504,11 +551,17 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null) {
       projection.alpha(t);
       if (clipFrom !== null) projection.clipAngle(clipFrom + (clipTo - clipFrom) * t);
       countries.attr("d", (d) => pathFn(d) || "");
-      renderGlobeSphere(globeSphere, projection);
-      renderTerrain(terrainGroup, projection);
-      if (tissotVisible) renderTissot(tissotGroup, projection);
+      if (crossfade) {
+        globeSphere.style("opacity", 1 - t);
+        globeSphereFade.style("opacity", t);
+      } else {
+        renderGlobeSphere(globeSphere, projection);
+      }
+      updateTerrainPaths(terrainGroup, projection);
+      if (tissotVisible) updateTissotPaths(tissotGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
+        if (crossfade) globeSphere.style("opacity", null);
         resolve();
       }
     });
@@ -516,12 +569,14 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null) {
 }
 
 function animateTransition(fromDef, toDef, duration) {
-  const projection = blendProjection(makeProjection(fromDef), makeProjection(toDef));
+  const fromProjection = makeProjection(fromDef);
+  const toProjection   = makeProjection(toDef);
+  const projection     = blendProjection(fromProjection, toProjection);
   const clipFrom = clipAngleOf(fromDef);
   const clipTo   = clipAngleOf(toDef);
   // Only azimuthal-hemisphere transitions need the circle clip; other
   // pairs keep D3's default antimeridian clipping untouched.
-  if (clipFrom !== clipTo) return animateBlend(projection, duration, clipFrom, clipTo);
+  if (clipFrom !== clipTo) return animateBlend(projection, duration, clipFrom, clipTo, fromProjection, toProjection);
   return animateBlend(projection, duration);
 }
 
@@ -553,8 +608,8 @@ function animateRotation(fromRot, toRot, duration) {
       ]);
       countries.attr("d", (d) => pathFn(d) || "");
       renderGlobeSphere(globeSphere, projection);
-      renderTerrain(terrainGroup, projection);
-      if (tissotVisible) renderTissot(tissotGroup, projection);
+      updateTerrainPaths(terrainGroup, projection);
+      if (tissotVisible) updateTissotPaths(tissotGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -574,9 +629,19 @@ function animatePolarUnfold(rotation, foldToGlobe, duration) {
   const projection = foldToGlobe
     ? blendProjection(disc, globe, rotation)
     : blendProjection(globe, disc, rotation);
+
+  // Rotated clones purely for animateBlend's crossfade sphere shapes (see
+  // its comment) — globe/disc above are deliberately built unrotated
+  // (blendProjection's wrapper carries the rotation instead), but the
+  // crossfade needs each endpoint's shape as it actually appears on
+  // screen, rotation included.
+  const globeAtRotation = d3.geoOrthographic().rotate(rotation).fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+  const discAtRotation  = d3.geoAzimuthalEquidistant().clipAngle(179).rotate(rotation)
+    .fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+
   return foldToGlobe
-    ? animateBlend(projection, duration, 179, 90)
-    : animateBlend(projection, duration, 90, 179);
+    ? animateBlend(projection, duration, 179, 90, discAtRotation, globeAtRotation)
+    : animateBlend(projection, duration, 90, 179, globeAtRotation, discAtRotation);
 }
 
 async function polarTransition(fromDef, toDef) {
@@ -627,7 +692,6 @@ async function transitionTo(newProjId) {
   renderMap(makeProjection(toDef));
 
   currentProjectionId = newProjId;
-  setActiveButton(newProjId);
   updateInfo(toDef);
   updateGlobeBackground();
   refreshTissot();
@@ -641,9 +705,10 @@ async function transitionTo(newProjId) {
 // ============================================================
 // INFO PANEL
 // ============================================================
-const infoTradeoffsToggle  = document.getElementById("info-tradeoffs-toggle");
 const infoTradeoffsContent = document.getElementById("info-tradeoffs-content");
 
+// Always fully shown now (no expand/collapse) — matches the Figma card,
+// which has no toggle, just the three terms laid out directly.
 function renderTradeoffs(tradeoffs) {
   infoTradeoffsContent.innerHTML = "";
   [
@@ -659,37 +724,193 @@ function renderTradeoffs(tradeoffs) {
   });
 }
 
-infoTradeoffsToggle.addEventListener("click", () => {
-  const expanded = infoTradeoffsToggle.getAttribute("aria-expanded") === "true";
-  infoTradeoffsToggle.setAttribute("aria-expanded", String(!expanded));
-  infoTradeoffsContent.hidden = expanded;
+function updateInfo(projDef) {
+  document.getElementById("info-name").textContent = projDef.name;
+  renderTradeoffs(projDef.tradeoffs);
+}
+
+// The info card is opt-in now (see the toolbar's "i" icon in
+// map-container) instead of an always-visible strip under the map.
+const infoToggleBtn = document.getElementById("info-toggle-btn");
+const infoCloseBtn  = document.getElementById("info-close-btn");
+const infoPanelEl   = document.getElementById("projection-info");
+let infoVisible = false;
+
+function setInfoVisible(visible) {
+  infoVisible = visible;
+  infoPanelEl.hidden = !infoVisible;
+  infoToggleBtn.classList.toggle("active", infoVisible);
+  infoToggleBtn.setAttribute("aria-pressed", String(infoVisible));
+}
+
+infoToggleBtn.addEventListener("click", () => {
+  setInfoVisible(!infoVisible);
+  // Only one toolbar popover at a time — see closeCompareCard below.
+  if (infoVisible) closeCompareCard();
 });
 
-function updateInfo(projDef) {
-  document.getElementById("info-name").textContent        = projDef.name;
-  document.getElementById("info-family").textContent      = projDef.family;
-  document.getElementById("info-description").textContent = projDef.description;
+infoCloseBtn.addEventListener("click", () => setInfoVisible(false));
 
-  renderTradeoffs(projDef.tradeoffs);
-  // Collapse on every projection change — the tradeoffs shown are only
-  // ever for the projection currently active, so an expanded state
-  // shouldn't silently carry over to the next one.
-  infoTradeoffsToggle.setAttribute("aria-expanded", "false");
-  infoTradeoffsContent.hidden = true;
+// ============================================================
+// COMPARE CARD
+//
+// Pick a country (searchable, alphabetical) and it's redrawn on top of
+// the map as a red highlight, under its own projection — independent of
+// whatever projection the main map/sidebar has active. Lets you see how
+// the same country's shape/size changes between two projections at a
+// glance: the base map (unchanged) vs. the highlighted overlay.
+// ============================================================
+const compareCardToggleBtn    = document.getElementById("compare-toggle-btn");
+const compareCardCloseBtn     = document.getElementById("compare-card-close");
+const compareCardEl           = document.getElementById("compare-card");
+const compareProjectionSelect = document.getElementById("compare-projection-select");
+const compareCountryInput     = document.getElementById("compare-country-input");
+const compareCountryResults   = document.getElementById("compare-country-results");
+
+PROJECTIONS.forEach((proj) => {
+  const option = document.createElement("option");
+  option.value = proj.id;
+  option.textContent = proj.name;
+  compareProjectionSelect.appendChild(option);
+});
+
+let compareCardVisible     = false;
+let compareCountryNames    = null; // populated lazily once worldData is ready — full alphabetical list
+let compareSelectedCountry = null;
+let compareProjectionId    = null; // null until a country is picked, then defaults to currentProjectionId
+
+// Redraws (or clears) the highlighted country under compareProjectionId.
+// Shares the main map's zoomLayer, so it pans/zooms together with it —
+// the point is comparing two projections' shapes side by side on the
+// same canvas, not tracking a separate camera.
+function refreshCompareHighlight() {
+  compareHighlightGroup.selectAll("*").remove();
+  if (!compareSelectedCountry || !worldData) return;
+
+  const feature = worldData.features.find((f) => f.properties.name === compareSelectedCountry);
+  if (!feature) return;
+
+  const projDef = PROJECTIONS.find((p) => p.id === compareProjectionId) || PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const pathFn  = d3.geoPath().projection(makeProjection(projDef));
+  compareHighlightGroup.append("path").attr("class", "compare-highlight").attr("d", pathFn(feature));
 }
+
+function hideCompareCountryResults() {
+  compareCountryResults.hidden = true;
+  compareCountryResults.innerHTML = "";
+}
+
+function showCompareCountryResults(names) {
+  compareCountryResults.innerHTML = "";
+  names.forEach((name) => {
+    const li = document.createElement("li");
+    li.textContent = name;
+    li.addEventListener("click", () => selectCompareCountry(name));
+    compareCountryResults.appendChild(li);
+  });
+  compareCountryResults.hidden = names.length === 0;
+}
+
+function selectCompareCountry(name) {
+  compareSelectedCountry = name;
+  compareCountryInput.value = name;
+  hideCompareCountryResults();
+
+  // First pick since the card opened (or since it was last cleared):
+  // default the projection to whatever the main map is currently showing.
+  if (compareProjectionId === null) {
+    compareProjectionId = currentProjectionId;
+    compareProjectionSelect.value = currentProjectionId;
+  }
+  refreshCompareHighlight();
+}
+
+compareCountryInput.addEventListener("input", () => {
+  const query = compareCountryInput.value.trim().toLowerCase();
+  if (!compareCountryNames) return;
+  const matches = query
+    ? compareCountryNames.filter((name) => name.toLowerCase().includes(query))
+    : compareCountryNames;
+  showCompareCountryResults(matches.slice(0, 8));
+});
+
+compareCountryInput.addEventListener("focus", () => {
+  if (compareCountryNames) showCompareCountryResults(compareCountryNames.slice(0, 8));
+});
+
+compareCountryInput.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") hideCompareCountryResults();
+});
+
+compareProjectionSelect.addEventListener("change", () => {
+  compareProjectionId = compareProjectionSelect.value;
+  refreshCompareHighlight();
+});
+
+function resetCompareSelection() {
+  compareSelectedCountry = null;
+  compareProjectionId = null;
+  compareCountryInput.value = "";
+  compareProjectionSelect.value = "";
+  hideCompareCountryResults();
+  refreshCompareHighlight();
+}
+
+function closeCompareCard() {
+  compareCardVisible = false;
+  compareCardEl.hidden = true;
+  compareCardToggleBtn.classList.remove("active");
+  compareCardToggleBtn.setAttribute("aria-pressed", "false");
+  resetCompareSelection();
+}
+
+function openCompareCard() {
+  compareCardVisible = true;
+  compareCardEl.hidden = false;
+  compareCardToggleBtn.classList.add("active");
+  compareCardToggleBtn.setAttribute("aria-pressed", "true");
+
+  // Country names depend on the geodata fetch in init() — populate the
+  // alphabetical list once it's available instead of duplicating it here.
+  if (worldData && !compareCountryNames) {
+    compareCountryNames = [...new Set(worldData.features.map((f) => f.properties.name))].sort();
+  }
+
+  // Only one toolbar popover at a time — mirrors the info-card guard above.
+  if (infoVisible) setInfoVisible(false);
+}
+
+compareCardToggleBtn.addEventListener("click", () => {
+  if (compareCardVisible) closeCompareCard();
+  else openCompareCard();
+});
+
+compareCardCloseBtn.addEventListener("click", closeCompareCard);
 
 // ============================================================
 // SIDEBAR — built dynamically from PROJECTIONS
 // ============================================================
 function buildSidebar() {
   const nav = document.getElementById("projection-list");
+  let lastFamily = null;
 
   PROJECTIONS.forEach((proj) => {
+    // PROJECTIONS is grouped contiguously by family (see its reorder
+    // commit) — a family header goes up front, once per group, instead
+    // of repeating the family as a caption on every single button.
+    if (proj.family !== lastFamily) {
+      const header = document.createElement("p");
+      header.className = "proj-family-header";
+      header.textContent = proj.family;
+      nav.appendChild(header);
+      lastFamily = proj.family;
+    }
+
     const btn = document.createElement("button");
-    btn.className      = "proj-btn";
+    btn.className      = "sidebar-btn proj-btn";
     btn.id             = `btn-${proj.id}`;
     btn.dataset.projId = proj.id;
-    btn.innerHTML      = `${proj.name}<span class="proj-family">${proj.family}</span>`;
+    btn.textContent    = proj.name;
     btn.addEventListener("click", () => switchProjection(proj.id));
     nav.appendChild(btn);
   });
@@ -749,7 +970,7 @@ function buildRecenterPanel() {
   const nav = document.getElementById("recenter-list");
   RECENTER_PRESETS.forEach((preset) => {
     const btn = document.createElement("button");
-    btn.className = "recenter-btn" + (preset.id === "world" ? " active" : "");
+    btn.className = "sidebar-btn recenter-btn" + (preset.id === "world" ? " active" : "");
     btn.dataset.presetId = preset.id;
     btn.title = preset.description;
     btn.textContent = preset.name;
@@ -758,18 +979,32 @@ function buildRecenterPanel() {
   });
 }
 
-// Mirrors mapGroup/tissotGroup vertically about the viewport's horizontal
-// centreline (translate(0,H) scale(1,-1)) when the active preset asks for
-// it, or eases back to identity otherwise. D3's "transform" attribute
-// interpolator decomposes both strings into translate/scale components, so
-// animating between them sweeps scaleY through 0 — the map visibly folds
-// flat then unfolds mirrored, reading as a top-down flip rather than a snap.
+// Mirrors every overlay layer (not just countries) vertically about the
+// viewport's horizontal centreline (translate(0,H) scale(1,-1)) when the
+// active preset asks for it, or eases back to identity otherwise. D3's
+// "transform" attribute interpolator decomposes both strings into
+// translate/scale components, so animating between them sweeps scaleY
+// through 0 — the map visibly folds flat then unfolds mirrored, reading
+// as a top-down flip rather than a snap.
+//
+// Every world-space layer (terrain/tissot/flight-path/true-size/the
+// compare highlight, not just countries) needs to flip together, or
+// they'd end up floating over the wrong regions of the now-flipped map.
+// They're all children of worldGroup (see its declaration) specifically
+// so ONE transition here moves everything at once, instead of seven
+// separate D3 transitions each interpolating and writing the same value.
+//
+// .style() (CSS transform property) rather than .attr() (SVG transform
+// attribute): browsers can promote a CSS-transform animation to its own
+// GPU compositing layer and interpolate it there for free, whereas an
+// attribute-driven transform forces a full repaint of everything inside
+// the group on the main thread every frame. With ~170 country paths (each
+// using vector-effect:non-scaling-stroke, which itself isn't cheap to
+// recompute) plus terrain, that repaint cost was the actual source of
+// the dropped frames during this flip.
 function animateRecenterFlip(flip, duration = 600) {
-  const flipTransform = flip ? `translate(0, ${HEIGHT}) scale(1, -1)` : "translate(0, 0) scale(1, 1)";
-  return new Promise((resolve) => {
-    mapGroup.transition().duration(duration).attr("transform", flipTransform);
-    tissotGroup.transition().duration(duration).attr("transform", flipTransform).on("end", resolve);
-  });
+  const flipTransform = flip ? `translate(0px, ${HEIGHT}px) scale(1, -1)` : "translate(0px, 0px) scale(1, 1)";
+  return worldGroup.transition().duration(duration).style("transform", flipTransform).end();
 }
 
 // Spins the current projection's own sphere from the active rotation to the
@@ -792,6 +1027,13 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
         (from[2] || 0) + ((to[2] || 0) - (from[2] || 0)) * t,
       ]);
       countries.attr("d", (d) => pathFn(d) || "");
+      // Same per-frame refresh as animateBlend/animateRotation — terrain
+      // (and the sphere outline/grid, if visible) used to only repaint at
+      // the very end of a recenter, so they sat frozen throughout the
+      // rotation while countries alone animated.
+      renderGlobeSphere(globeSphere, projection);
+      updateTerrainPaths(terrainGroup, projection);
+      if (tissotVisible) updateTissotPaths(tissotGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -816,13 +1058,27 @@ async function applyRecenter(presetId) {
 
   isAnimating = true;
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  await animateRecenterRotation(currentDef, fromRot, preset.rotate, 900);
-
-  currentRecenterRotate = preset.rotate;
-  renderMap(makeProjection(currentDef, currentRecenterRotate)); // final render with native clipping
-
   const wantsFlip = !!preset.flipVertical;
-  if (wantsFlip !== currentRecenterFlip) await animateRecenterFlip(wantsFlip);
+
+  if (wantsFlip !== currentRecenterFlip) {
+    // Entering or leaving the South America (upside-down) mirror: doing the
+    // usual longitude rotation sweep here would spin the sphere WHILE also
+    // flipping it, reading as a distorted diagonal spin rather than a clean
+    // mirror. Instead fold the map edge-on first (scaleY -> 0, same idea as
+    // animateRecenterFlip), swap the rotation instantly while it's invisible
+    // at that fold, then unfold mirrored — one continuous paper-flip.
+    const edgeOnY = currentRecenterFlip ? HEIGHT : 0;
+    await worldGroup.transition().duration(300).style("transform", `translate(0px, ${edgeOnY}px) scale(1, 0)`).end();
+
+    currentRecenterRotate = preset.rotate;
+    renderMap(makeProjection(currentDef, currentRecenterRotate)); // instant swap while edge-on (invisible)
+
+    await animateRecenterFlip(wantsFlip, 300);
+  } else {
+    await animateRecenterRotation(currentDef, fromRot, preset.rotate, 900);
+    currentRecenterRotate = preset.rotate;
+    renderMap(makeProjection(currentDef, currentRecenterRotate)); // final render with native clipping
+  }
   currentRecenterFlip = wantsFlip;
 
   isAnimating = false;
@@ -835,8 +1091,7 @@ function resetRecenter() {
   // Cleared synchronously (no transition): if a projection switch is about
   // to run, the morph must not inherit a leftover flip transform on the
   // group it repaints into.
-  mapGroup.attr("transform", null);
-  tissotGroup.attr("transform", null);
+  worldGroup.style("transform", null);
   document.querySelectorAll(".recenter-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.presetId === "world");
   });
@@ -854,6 +1109,7 @@ function switchProjection(newProjId) {
   if (!PROJECTIONS.find((p) => p.id === newProjId)) return;
   closeSidebar(); // no-op on desktop; on mobile, reveals the map after picking
   resetRecenter(); // presets don't survive a projection change, see RECENTER PRESETS note
+  setActiveButton(newProjId); // highlight immediately — don't wait for the ~1.4-2.3s morph to finish
   transitionTo(newProjId);
 }
 
@@ -904,8 +1160,17 @@ function resetCamera(duration = 500) {
   return svg.transition().duration(duration).call(zoom.transform, d3.zoomIdentity).end();
 }
 
-const cameraResetBtn = document.getElementById("camera-reset-btn");
-cameraResetBtn.addEventListener("click", () => resetCamera());
+const zoomInBtn  = document.getElementById("zoom-in-btn");
+const zoomOutBtn = document.getElementById("zoom-out-btn");
+const ZOOM_STEP  = 1.3; // multiplicative factor per click, same feel as one mouse-wheel notch
+
+zoomInBtn.addEventListener("click", () => {
+  svg.transition().duration(200).call(zoom.scaleBy, ZOOM_STEP);
+});
+
+zoomOutBtn.addEventListener("click", () => {
+  svg.transition().duration(200).call(zoom.scaleBy, 1 / ZOOM_STEP);
+});
 
 // ============================================================
 // GLOBE ROTATION (orthographic only)
@@ -941,47 +1206,12 @@ const globeDrag = d3.drag()
 svg.call(globeDrag);
 
 // ============================================================
-// COUNTRY SEARCH & SELECTION
+// COUNTRY SELECTION
 //
-// Selecting a country (via search or a click on the map) highlights
-// it and gently centers/zooms the camera on it — the user can then
+// Selecting a country (via a click on the map) highlights it and
+// gently centers/zooms the camera on it — the user can then
 // pan/zoom away freely, the selection doesn't lock the camera.
 // ============================================================
-const searchToggleBtn = document.getElementById("country-search-toggle");
-const searchPanel     = document.getElementById("country-search-panel");
-const searchInput     = document.getElementById("country-search-input");
-const searchResults   = document.getElementById("country-search-results");
-const clearBtn        = document.getElementById("country-search-clear");
-const addToTrueSizeBtn = document.getElementById("add-to-truesize-btn");
-
-// Shortcut into the True Size Of... tool (see TRUE SIZE COMPARE below) —
-// avoids re-searching the same country there once it's already selected here.
-addToTrueSizeBtn.addEventListener("click", () => {
-  if (!selectedCountryName) return;
-  addTrueSizeCountry(selectedCountryName);
-  trueSizePanel.hidden = false;
-  trueSizeToggleBtn.classList.add("active");
-});
-
-// Reveals the search panel (used both by the toggle button and whenever a
-// selection needs its "Reset view" control to stay reachable — see
-// selectCountry below).
-function openSearchPanel() {
-  searchPanel.hidden = false;
-  searchToggleBtn.classList.add("active");
-}
-
-searchToggleBtn.addEventListener("click", () => {
-  if (searchPanel.hidden) {
-    openSearchPanel();
-    searchInput.focus();
-  } else {
-    searchPanel.hidden = true;
-    searchToggleBtn.classList.remove("active");
-    hideResults();
-  }
-});
-
 let selectedCountryName = null;
 
 // Bounding-box fit for `feature` under `projDef`, capped to a gentle zoom
@@ -1028,12 +1258,6 @@ function selectCountry(feature) {
     .translate(-fit.cx, -fit.cy);
   svg.transition().duration(600).call(zoom.transform, transform);
 
-  searchInput.value = selectedCountryName;
-  clearBtn.hidden = false;
-  addToTrueSizeBtn.hidden = false;
-  hideResults();
-  openSearchPanel(); // keep the "Reset view" control reachable, e.g. after a direct map click
-
   if (compareMode) comparePanels.forEach(applySelectionToPanel);
 }
 
@@ -1045,57 +1269,8 @@ function clearSelection() {
 
   mapGroup.selectAll("path.country").classed("selected", false);
 
-  searchInput.value = "";
-  clearBtn.hidden = true;
-  addToTrueSizeBtn.hidden = true;
-
   if (compareMode) comparePanels.forEach(applySelectionToPanel);
 }
-
-function hideResults() {
-  searchResults.hidden = true;
-  searchResults.innerHTML = "";
-}
-
-function showResults(matches) {
-  searchResults.innerHTML = "";
-  matches.forEach((feature) => {
-    const li = document.createElement("li");
-    li.textContent = feature.properties.name;
-    li.addEventListener("click", () => selectCountry(feature));
-    searchResults.appendChild(li);
-  });
-  searchResults.hidden = matches.length === 0;
-}
-
-searchInput.addEventListener("input", () => {
-  const query = searchInput.value.trim().toLowerCase();
-  if (!query || !worldData) {
-    hideResults();
-    return;
-  }
-  const matches = worldData.features
-    .filter((f) => f.properties.name.toLowerCase().includes(query))
-    .sort((a, b) => {
-      const nameA = a.properties.name.toLowerCase();
-      const nameB = b.properties.name.toLowerCase();
-      return nameA.indexOf(query) - nameB.indexOf(query);
-    })
-    .slice(0, 8);
-  showResults(matches);
-});
-
-searchInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    const query = searchInput.value.trim().toLowerCase();
-    const match = worldData?.features.find((f) => f.properties.name.toLowerCase().includes(query));
-    if (match) selectCountry(match);
-  } else if (event.key === "Escape") {
-    clearSelection();
-  }
-});
-
-clearBtn.addEventListener("click", clearSelection);
 
 // ============================================================
 // SIDE-BY-SIDE COMPARISON MODE
@@ -1110,7 +1285,6 @@ clearBtn.addEventListener("click", clearSelection);
 // ============================================================
 const compareToggleBtn = document.getElementById("compare-toggle");
 const mapContainerEl   = document.getElementById("map-container");
-const infoEl           = document.getElementById("projection-info");
 const compareContainer = document.getElementById("compare-container");
 const projectionListEl = document.getElementById("projection-list");
 
@@ -1178,7 +1352,6 @@ function buildComparePanel(panelEl, initialProjId) {
     paths.enter().append("path").attr("class", "country").attr("d", pathFn);
     paths.attr("d", pathFn);
     const isGlobe = panel.projId === "orthographic";
-    panel.oceanRect.classed("globe-bg", isGlobe);
     renderGlobeSphere(panel.globeSphere, projection);
     panel.globeSphere.classed("active", isGlobe);
   };
@@ -1223,30 +1396,39 @@ function applySelectionToPanel(panel) {
   panel.svg.transition().duration(600).call(panel.zoom.transform, transform);
 }
 
-compareToggleBtn.addEventListener("click", () => {
-  compareMode = !compareMode;
-  compareToggleBtn.classList.toggle("active", compareMode);
-  projectionListEl.classList.toggle("disabled-list", compareMode);
-  document.getElementById("recenter-list").classList.toggle("disabled-list", compareMode);
-  mapContainerEl.hidden   = compareMode;
-  infoEl.hidden           = compareMode;
-  compareContainer.hidden = !compareMode;
+// compareToggleBtn currently has no sidebar UI (see remove(ui) commit) — the
+// listener is guarded so the rest of the script still loads; wire a new
+// trigger to it whenever the tools UI is rebuilt.
+if (compareToggleBtn) {
+  compareToggleBtn.addEventListener("click", () => {
+    compareMode = !compareMode;
+    compareToggleBtn.classList.toggle("active", compareMode);
+    projectionListEl.classList.toggle("disabled-list", compareMode);
+    document.getElementById("recenter-list").classList.toggle("disabled-list", compareMode);
+    mapContainerEl.hidden   = compareMode;
+    compareContainer.hidden = !compareMode;
 
-  if (!compareMode) return;
+    // The info card takes real estate the two compare panels need — force
+    // it closed on entering compare mode; leaving compare mode doesn't
+    // reopen it, same as any other time the "i" icon hasn't been clicked.
+    if (compareMode && infoVisible) setInfoVisible(false);
 
-  if (!comparePanels) {
-    const panelEls = document.querySelectorAll(".compare-panel");
-    const rightDefaultId = PROJECTIONS.some((p) => p.id === "gallPeters") ? "gallPeters" : PROJECTIONS[1].id;
-    comparePanels = [
-      buildComparePanel(panelEls[0], currentProjectionId),
-      buildComparePanel(panelEls[1], rightDefaultId),
-    ];
-  } else {
-    comparePanels.forEach((p) => p.render());
-  }
-  comparePanels.forEach(applySelectionToPanel);
-  refreshTissot();
-});
+    if (!compareMode) return;
+
+    if (!comparePanels) {
+      const panelEls = document.querySelectorAll(".compare-panel");
+      const rightDefaultId = PROJECTIONS.some((p) => p.id === "gallPeters") ? "gallPeters" : PROJECTIONS[1].id;
+      comparePanels = [
+        buildComparePanel(panelEls[0], currentProjectionId),
+        buildComparePanel(panelEls[1], rightDefaultId),
+      ];
+    } else {
+      comparePanels.forEach((p) => p.render());
+    }
+    comparePanels.forEach(applySelectionToPanel);
+    refreshTissot();
+  });
+}
 
 // ============================================================
 // MOBILE SIDEBAR TOGGLE
@@ -1282,7 +1464,7 @@ sidebarBackdrop.addEventListener("click", closeSidebar);
 // Toggled on demand; recomputed on projection switch and (if
 // active) mirrored onto both comparison panels.
 // ============================================================
-const tissotToggleBtn = document.getElementById("tissot-toggle");
+const tissotToggleBtn = document.getElementById("grid-toggle-btn");
 
 const TISSOT_STEP   = 30; // degrees between grid points
 const TISSOT_RADIUS = 4;  // degrees — the geographic circle radius
@@ -1317,6 +1499,14 @@ function renderTissot(group, projection) {
   circles.exit().remove();
 }
 
+// Same idea as updateTerrainPaths: re-paths the already-mounted graticule
+// and circles without re-running renderTissot's data join every frame.
+function updateTissotPaths(group, projection) {
+  const path = d3.geoPath().projection(projection);
+  group.selectAll("path.tissot-graticule").attr("d", path);
+  group.selectAll("path.tissot").attr("d", (d) => path(d3.geoCircle().center(d).radius(TISSOT_RADIUS)()));
+}
+
 function clearTissot(group) {
   group.selectAll("path.tissot, path.tissot-graticule").remove();
 }
@@ -1341,11 +1531,16 @@ function refreshTissot() {
   }
 }
 
-tissotToggleBtn.addEventListener("click", () => {
-  tissotVisible = !tissotVisible;
-  tissotToggleBtn.classList.toggle("active", tissotVisible);
-  refreshTissot();
-});
+// Now wired to the right-side toolbar's grid icon (see map-tools in
+// index.html) instead of the removed sidebar tools panel.
+if (tissotToggleBtn) {
+  tissotToggleBtn.addEventListener("click", () => {
+    tissotVisible = !tissotVisible;
+    tissotToggleBtn.classList.toggle("active", tissotVisible);
+    tissotToggleBtn.setAttribute("aria-pressed", String(tissotVisible));
+    refreshTissot();
+  });
+}
 
 // ============================================================
 // FLIGHT PATH / GREAT CIRCLE
@@ -1406,6 +1601,7 @@ function renderFlightPath(group, projection) {
 }
 
 function updateFlightPathDistanceLabel() {
+  if (!flightPathDistanceEl) return; // no sidebar UI right now, see remove(ui) commit
   if (flightPathA && flightPathB) {
     const km = Math.round(d3.geoDistance(flightPathA, flightPathB) * EARTH_RADIUS_KM);
     flightPathDistanceEl.textContent = `Distance: ${km.toLocaleString()} km`;
@@ -1439,14 +1635,17 @@ function setFlightPathMode(active) {
   refreshFlightPath();
 }
 
-flightPathToggleBtn.addEventListener("click", () => {
-  if (isAnimating) return;
-  if (!flightPathMode) {
-    clearSelection();
-    resetRecenter();
-  }
-  setFlightPathMode(!flightPathMode);
-});
+// See the compareToggleBtn note above — same guard, same reason.
+if (flightPathToggleBtn) {
+  flightPathToggleBtn.addEventListener("click", () => {
+    if (isAnimating) return;
+    if (!flightPathMode) {
+      clearSelection();
+      resetRecenter();
+    }
+    setFlightPathMode(!flightPathMode);
+  });
+}
 
 // 1st click places A, 2nd places B and draws the route, 3rd starts over.
 // Shared by the main view and each compare-mode panel (see buildComparePanel),
@@ -1507,11 +1706,14 @@ const trueSizeColors  = new Map(); // name -> color, assigned once at add time
 const trueSizeOffsets = new Map(); // name -> {x, y} drag offset, on top of the true position
 let trueSizeNextColorIndex = 0;
 
-trueSizeToggleBtn.addEventListener("click", () => {
-  trueSizePanel.hidden = !trueSizePanel.hidden;
-  trueSizeToggleBtn.classList.toggle("active", !trueSizePanel.hidden);
-  if (!trueSizePanel.hidden) trueSizeInput.focus();
-});
+// See the compareToggleBtn note above — same guard, same reason.
+if (trueSizeToggleBtn) {
+  trueSizeToggleBtn.addEventListener("click", () => {
+    trueSizePanel.hidden = !trueSizePanel.hidden;
+    trueSizeToggleBtn.classList.toggle("active", !trueSizePanel.hidden);
+    if (!trueSizePanel.hidden) trueSizeInput.focus();
+  });
+}
 
 function hideTrueSizeResults() {
   trueSizeResults.hidden = true;
@@ -1606,39 +1808,42 @@ function resetTrueSizeOnProjectionSwitch() {
   renderTrueSizeShapes();
 }
 
-trueSizeInput.addEventListener("input", () => {
-  const query = trueSizeInput.value.trim().toLowerCase();
-  if (!query || !worldData) {
-    hideTrueSizeResults();
-    return;
-  }
-  const matches = worldData.features
-    .filter((f) => !trueSizeOrder.includes(f.properties.name))
-    .filter((f) => f.properties.name.toLowerCase().includes(query))
-    .sort((a, b) => {
-      const nameA = a.properties.name.toLowerCase();
-      const nameB = b.properties.name.toLowerCase();
-      return nameA.indexOf(query) - nameB.indexOf(query);
-    })
-    .slice(0, 8);
-
-  trueSizeResults.innerHTML = "";
-  matches.forEach((feature) => {
-    const li = document.createElement("li");
-    li.textContent = feature.properties.name;
-    li.addEventListener("click", () => {
-      addTrueSizeCountry(feature.properties.name);
-      trueSizeInput.value = "";
+// See the compareToggleBtn note above — same guard, same reason.
+if (trueSizeInput) {
+  trueSizeInput.addEventListener("input", () => {
+    const query = trueSizeInput.value.trim().toLowerCase();
+    if (!query || !worldData) {
       hideTrueSizeResults();
-    });
-    trueSizeResults.appendChild(li);
-  });
-  trueSizeResults.hidden = matches.length === 0;
-});
+      return;
+    }
+    const matches = worldData.features
+      .filter((f) => !trueSizeOrder.includes(f.properties.name))
+      .filter((f) => f.properties.name.toLowerCase().includes(query))
+      .sort((a, b) => {
+        const nameA = a.properties.name.toLowerCase();
+        const nameB = b.properties.name.toLowerCase();
+        return nameA.indexOf(query) - nameB.indexOf(query);
+      })
+      .slice(0, 8);
 
-trueSizeInput.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") hideTrueSizeResults();
-});
+    trueSizeResults.innerHTML = "";
+    matches.forEach((feature) => {
+      const li = document.createElement("li");
+      li.textContent = feature.properties.name;
+      li.addEventListener("click", () => {
+        addTrueSizeCountry(feature.properties.name);
+        trueSizeInput.value = "";
+        hideTrueSizeResults();
+      });
+      trueSizeResults.appendChild(li);
+    });
+    trueSizeResults.hidden = matches.length === 0;
+  });
+
+  trueSizeInput.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") hideTrueSizeResults();
+  });
+}
 
 // ============================================================
 // HELP MODAL
@@ -1672,11 +1877,13 @@ const HELP_MODAL_CONTENT = `
   each other at their true relative size.</p>
 `;
 
-const helpTriggerBtn    = document.getElementById("help-trigger");
 const helpModalBackdrop = document.getElementById("help-modal-backdrop");
 const helpModalCloseBtn = document.getElementById("help-modal-close");
 document.getElementById("help-modal-body").innerHTML = HELP_MODAL_CONTENT;
 
+// No manual re-open trigger anymore (the sidebar's "?" button is gone,
+// per the Figma spec) — this only ever shows itself once, automatically,
+// on a visitor's first load (see the HELP_SEEN_KEY check below).
 function openHelpModal() {
   helpModalBackdrop.hidden = false;
   localStorage.setItem(HELP_SEEN_KEY, "1");
@@ -1686,7 +1893,6 @@ function closeHelpModal() {
   helpModalBackdrop.hidden = true;
 }
 
-helpTriggerBtn.addEventListener("click", openHelpModal);
 helpModalCloseBtn.addEventListener("click", closeHelpModal);
 
 helpModalBackdrop.addEventListener("click", (event) => {
@@ -1726,15 +1932,21 @@ init();
 // ============================================================
 // THEME SWITCHER
 // Persists the chosen theme in localStorage so it survives page
-// reloads and stays constant across projection switches.
+// reloads and stays constant across projection switches. The
+// toolbar's icon (see map-tools) is the only control for this now —
+// the sidebar used to have its own checkbox too, dropped as a
+// duplicate once the toolbar icon existed.
 // ============================================================
 const THEME_STORAGE_KEY = "mapProjektorTheme";
 
-const themeSelect = document.getElementById("theme-select");
+const themeToggleBtn = document.getElementById("theme-toggle-btn");
 
+// Unlike the grid/compare/info tool icons, this one is a plain on/off
+// switch, never shown as "selected" (no .active class) — see the Figma
+// spec's note that light/dark has no selected state, just two positions.
 function applyTheme(theme) {
   document.body.setAttribute("data-theme", theme);
-  themeSelect.value = theme;
+  themeToggleBtn.setAttribute("aria-pressed", String(theme === "dark"));
 }
 
 const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -1742,7 +1954,8 @@ if (savedTheme !== null) {
   applyTheme(savedTheme);
 }
 
-themeSelect.addEventListener("change", () => {
-  applyTheme(themeSelect.value);
-  localStorage.setItem(THEME_STORAGE_KEY, themeSelect.value);
+themeToggleBtn.addEventListener("click", () => {
+  const theme = document.body.getAttribute("data-theme") === "dark" ? "" : "dark";
+  applyTheme(theme);
+  localStorage.setItem(THEME_STORAGE_KEY, theme);
 });

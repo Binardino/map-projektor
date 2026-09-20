@@ -12,6 +12,8 @@ Interactive world map web app displaying 17 cartographic projections with animat
 
 **Tests:** `poetry run pytest -v`
 
+**Perf regression check (transitions):** `poetry run python scripts/perf_transitions.py` — drives every projection switch and recenter preset in headless Chromium and compares frame-drop/avg-frame-time against `tests/perf_baseline.json`. Re-run with `--write-baseline` after a deliberate, verified perf improvement to update the reference numbers. Requires `poetry run playwright install chromium` once (not run automatically, not part of `pytest`).
+
 ---
 
 ## Key Files

@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-20 — South America flip fix + transition perf harness (on `feature/figma-redesign`)
+
+### Fixed
+- South America (upside-down) recenter: entering/leaving it no longer runs a visible longitude-rotation sweep before the mirror flip — the sphere now folds edge-on, swaps rotation while invisible, then unfolds mirrored, reading as one clean paper-flip instead of a distorted diagonal spin
+- Terrain and Tissot overlays no longer re-run their full D3 enter/exit data join on every animation frame (`renderTerrain`/`renderTissot` → new `updateTerrainPaths`/`updateTissotPaths` for per-frame repaints) — same patch count every frame, only the `d` attribute needs updating mid-animation
+
+### Added
+- `scripts/perf_transitions.py`: headless-Chromium (Playwright) perf regression check for every projection switch and recenter preset, comparing avg-frame-time / dropped-frames against a committed baseline (`tests/perf_baseline.json`). Run via `poetry run python scripts/perf_transitions.py`; `--write-baseline` to update the reference after a verified improvement. Not wired into `pytest` — kept as a separate, deliberately-run command since it drives a real browser and takes ~1-2 minutes
+
+### Known limitation
+- Per-frame reprojection of ~170 country paths (the documented core of the projection-blend animation, avoiding path-string interpolation bugs) remains the dominant cost on most transitions (~20-24ms avg frame, noticeable dropped frames in headless measurement) — not addressed here; would need a larger rendering change (e.g. Canvas/WebGL) to fix. South America's flip is exempt since it's now pure CSS transform (GPU-composited, 0 dropped frames measured)
+
 ## 2026-09-12 — Onboarding help modal
 
 ### Added

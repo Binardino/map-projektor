@@ -1,28 +1,27 @@
 /* ============================================================
-   CSS VARIABLES — Theme: Blue (default)
-   To switch themes, edit only this :root block.
-   The sidebar and interface reuse the country colour so the
-   whole UI stays coherent with the map.
+   CSS VARIABLES — Theme: Light (default), aligned with the
+   Figma design tokens. Only two modes exist: this :root block
+   (light) and the body[data-theme="dark"] override below.
    ============================================================ */
 :root {
-  --bg-app:     #fbeeec;
-  --bg-sidebar: #f4dbd8;
+  --bg-app:     #f7efee;
+  --bg-sidebar: #f7efee;
   --bg-ocean:   #7fc9fb;
   --bg-globe:   #1b2733;
 
   --color-country:  #f4dbd8;
   --stroke-country: #23343f;
 
-  --text-primary:  #2d3f5e;
-  --text-muted:    #93706a;
-  --accent:        #3d7cc9;
-  --border:        #e2c3bd;
-  --active-bg:     #edcac4;
-  --active-border: #3d7cc9;
+  --text-primary:  #292929;
+  --text-muted:    #6f6f6f;
+  --accent:        #5fecac;
+  --border:        #292929;
+  --active-bg:     #5fecac;
+  --active-border: #5fecac;
 
-  --font-family:    'Georgia', 'Times New Roman', serif;
+  --font-family:    'Quicksand', 'Georgia', sans-serif;
   --font-size-base: 14px;
-  --sidebar-width:  220px;
+  --sidebar-width:  240px;
 }
 
 /* ============================================================
@@ -62,34 +61,10 @@ body {
 }
 
 #sidebar-header {
-  position: relative;
-  padding: 20px 16px 14px;
+  /* Extra top/bottom padding makes up for the title now being one line
+     instead of two, keeping the header's total height about the same. */
+  padding: 31px 16px 25px;
   border-bottom: 1px solid var(--border);
-}
-
-#help-trigger {
-  position: absolute;
-  top: 16px;
-  right: 14px;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  font-family: var(--font-family);
-  font-size: 12px;
-  font-weight: bold;
-  line-height: 1;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-#help-trigger:hover {
-  background: var(--active-bg);
-  border-color: var(--active-border);
-  color: var(--text-primary);
 }
 
 #sidebar-header h1 {
@@ -110,323 +85,30 @@ body {
 #projection-list {
   overflow-y: auto;
   flex: 1;
-  padding: 8px 0;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-primary) transparent;
+}
+
+#projection-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+#projection-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#projection-list::-webkit-scrollbar-thumb {
+  background: var(--text-primary);
+  border-radius: 3px;
 }
 
 /* ============================================================
-   COUNTRY SEARCH
+   TOOLS OVERLAY RENDERING — compare/tissot/flightpath/truesize
+   still render onto the SVG (see map.js); their sidebar buttons
+   and panels are gone for now (relocating elsewhere later), so
+   only the styling for the rendered overlays themselves remains.
    ============================================================ */
-#country-search {
-  position: relative;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-#country-search-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 6px 8px;
-  font-family: var(--font-family);
-  font-size: 12px;
-  background: var(--bg-app);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-#country-search-toggle:hover,
-#country-search-toggle.active {
-  background: var(--active-bg);
-  color: var(--text-primary);
-  border-color: var(--active-border);
-}
-
-#country-search-panel {
-  margin-top: 8px;
-}
-
-#country-search-box {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-#country-search-input {
-  flex: 1;
-  min-width: 0;
-  padding: 6px 8px;
-  font-family: var(--font-family);
-  font-size: 12px;
-  background: var(--bg-app);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-}
-
-#country-search-input:focus {
-  outline: none;
-  border-color: var(--active-border);
-}
-
-#country-search-clear {
-  flex-shrink: 0;
-  padding: 4px 7px;
-  font-size: 11px;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: 2px;
-}
-
-#country-search-clear:hover {
-  color: var(--text-primary);
-  border-color: var(--active-border);
-}
-
-#country-search-results {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  top: 100%;
-  z-index: 10;
-  max-height: 220px;
-  overflow-y: auto;
-  list-style: none;
-  background: var(--bg-sidebar);
-  border: 1px solid var(--border);
-  border-top: none;
-}
-
-#country-search-results li {
-  padding: 6px 10px;
-  font-size: 12px;
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-#country-search-results li:hover,
-#country-search-results li.highlighted {
-  background: var(--active-bg);
-  color: var(--text-primary);
-}
-
-#add-to-truesize-btn {
-  display: block;
-  width: 100%;
-  margin-top: 6px;
-  padding: 6px 10px;
-  font-family: var(--font-family);
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: 2px;
-  transition: background 0.15s, color 0.15s;
-}
-
-#add-to-truesize-btn:hover {
-  background: var(--active-bg);
-  border-color: var(--active-border);
-  color: var(--text-primary);
-}
-
-/* ============================================================
-   COMPARE TOGGLE
-   ============================================================ */
-#compare-toggle {
-  display: block;
-  width: calc(100% - 24px);
-  margin: 0 12px 10px;
-  padding: 7px 10px;
-  font-family: var(--font-family);
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: 2px;
-  transition: background 0.15s, color 0.15s;
-}
-
-#compare-toggle:hover,
-#compare-toggle.active,
-#tissot-toggle:hover,
-#tissot-toggle.active,
-#flightpath-toggle:hover,
-#flightpath-toggle.active {
-  background: var(--active-bg);
-  border-color: var(--active-border);
-  color: var(--text-primary);
-}
-
-#tissot-toggle {
-  display: block;
-  width: calc(100% - 24px);
-  margin: 0 12px 10px;
-  padding: 7px 10px;
-  font-family: var(--font-family);
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: 2px;
-  transition: background 0.15s, color 0.15s;
-}
-
-#flightpath-toggle {
-  display: block;
-  width: calc(100% - 24px);
-  margin: 0 12px 4px;
-  padding: 7px 10px;
-  font-family: var(--font-family);
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: 2px;
-  transition: background 0.15s, color 0.15s;
-}
-
-#flightpath-distance {
-  padding: 0 12px 10px;
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-/* ============================================================
-   TRUE SIZE COMPARE — dedicated search + checklist, main view only
-   ============================================================ */
-#truesize-toggle {
-  display: block;
-  width: calc(100% - 24px);
-  margin: 0 12px 4px;
-  padding: 7px 10px;
-  font-family: var(--font-family);
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: 2px;
-  transition: background 0.15s, color 0.15s;
-}
-
-#truesize-toggle:hover,
-#truesize-toggle.active {
-  background: var(--active-bg);
-  border-color: var(--active-border);
-  color: var(--text-primary);
-}
-
-#truesize-panel {
-  position: relative;
-  margin: 0 12px 10px;
-}
-
-#truesize-search-box {
-  margin-top: 6px;
-}
-
-#truesize-search-input {
-  width: 100%;
-  padding: 6px 8px;
-  font-family: var(--font-family);
-  font-size: 12px;
-  background: var(--bg-app);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-}
-
-#truesize-search-input:focus {
-  outline: none;
-  border-color: var(--active-border);
-}
-
-#truesize-search-results {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  z-index: 10;
-  max-height: 180px;
-  overflow-y: auto;
-  list-style: none;
-  background: var(--bg-sidebar);
-  border: 1px solid var(--border);
-  border-top: none;
-}
-
-#truesize-search-results li {
-  padding: 6px 10px;
-  font-size: 12px;
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-#truesize-search-results li:hover {
-  background: var(--active-bg);
-  color: var(--text-primary);
-}
-
-#truesize-selected-list {
-  list-style: none;
-  margin-top: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-#truesize-selected-list li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-#truesize-selected-list .truesize-swatch {
-  flex-shrink: 0;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-}
-
-#truesize-selected-list button {
-  margin-left: auto;
-  flex-shrink: 0;
-  padding: 2px 6px;
-  font-size: 10px;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: 2px;
-}
-
-#truesize-selected-list button:hover {
-  color: var(--text-primary);
-  border-color: var(--active-border);
-}
-
 .truesize-layer {
   pointer-events: none;
 }
@@ -436,6 +118,22 @@ body {
   pointer-events: auto;
   fill-opacity: 0.55;
   stroke-width: 1.5px;
+}
+
+/* Compare-mode highlight — the selected country redrawn on top of the
+   map under its own (possibly different) projection. Fixed color per
+   spec, not a theme token. */
+.compare-highlight-layer {
+  pointer-events: none;
+}
+
+.compare-highlight {
+  fill: #fa6048;
+  fill-opacity: 0.5;
+  stroke: #fa6048;
+  stroke-opacity: 1;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
 }
 
 /* ============================================================
@@ -510,25 +208,9 @@ body {
   margin-bottom: 0;
 }
 
-/* ============================================================
-   TOOLS PANEL — secondary actions, de-emphasized vs. the
-   promoted projection list / theme switcher above
-   ============================================================ */
-#tools-panel {
-  padding: 10px 12px 4px;
-  border-top: 1px solid var(--border);
-}
-
-#tools-panel button {
-  font-size: 10px;
-  opacity: 0.75;
-}
-
-#tools-panel button:hover,
-#tools-panel button.active {
-  opacity: 1;
-}
-
+/* Compare mode dims the projection list while active (see map.js) — kept
+   even though its sidebar toggle is gone for now, since it's cheap to
+   leave wired for whenever compare mode gets a new trigger. */
 #projection-list.disabled-list {
   opacity: 0.4;
   pointer-events: none;
@@ -538,22 +220,17 @@ body {
    RECENTER PRESETS
    ============================================================ */
 #recenter-panel {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
 }
 
-.panel-label {
-  font-size: 10px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-}
-
-#recenter-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+/* Semi-bold section heading — "Select a projection" / "Select a view" —
+   distinct from the smaller, muted .proj-family-header captions below it. */
+.section-title {
+  padding: 12px 16px 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 #recenter-list.disabled-list {
@@ -561,54 +238,36 @@ body {
   pointer-events: none;
 }
 
-.recenter-btn {
-  text-align: left;
-  padding: 6px 8px;
-  font-family: var(--font-family);
-  font-size: 11px;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: 2px;
-  transition: background 0.15s, color 0.15s;
-}
-
-.recenter-btn:hover,
-.recenter-btn.active {
-  background: var(--active-bg);
-  border-color: var(--active-border);
-  color: var(--text-primary);
-}
-
 /* ============================================================
-   SIDEBAR BUTTONS
+   SIDEBAR BUTTONS — shared rounded-pill style for both the
+   projection list and the recenter/view list, matching Figma:
+   inset from the sidebar edge (margin, not full-bleed), rounded
+   corners, a 50%-accent hover tint distinct from the full-accent
+   selected state.
    ============================================================ */
-.proj-btn {
+.sidebar-btn {
   display: block;
-  width: 100%;
   text-align: left;
   background: none;
   border: none;
-  border-left: 3px solid transparent;
-  padding: 8px 14px;
+  border-radius: 8px;
+  margin: 0 12px 4px;
+  padding: 12px 12px 12px 16px;
   cursor: pointer;
-  color: var(--text-muted);
+  color: var(--text-primary);
   font-family: var(--font-family);
-  font-size: 13px;
-  transition: background 0.15s, color 0.15s;
+  font-size: 16px;
+  font-weight: 400;
+  transition: background 0.15s;
 }
 
-.proj-btn:hover {
-  background: var(--active-bg);
-  color: var(--text-primary);
+.sidebar-btn:hover {
+  background: color-mix(in srgb, var(--accent) 50%, var(--bg-sidebar));
 }
 
-.proj-btn.active {
+.sidebar-btn.active {
   background: var(--active-bg);
-  border-left-color: var(--active-border);
-  color: var(--text-primary);
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .proj-btn:disabled {
@@ -616,17 +275,18 @@ body {
   cursor: not-allowed;
 }
 
-.proj-btn .proj-family {
-  display: block;
-  font-size: 9px;
+.proj-family-header {
+  padding: 12px 16px 4px;
+  font-size: 10px;
+  font-weight: 500;
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-top: 2px;
 }
 
 /* ============================================================
-   MAIN AREA — map + info strip
+   MAIN AREA — map (+ its floating toolbar/info overlays) and,
+   when active, the compare-mode panels
    ============================================================ */
 #main {
   flex: 1;
@@ -644,43 +304,143 @@ body {
 #map-svg {
   width: 100%;
   height: 100%;
+  cursor: grab;
 }
 
-#camera-reset-btn {
+#map-svg:active {
+  cursor: grabbing;
+}
+
+/* ============================================================
+   MAP TOOLBAR — right-side icon pills (zoom, then tools below).
+   ============================================================ */
+#zoom-controls {
   position: absolute;
-  right: 16px;
-  bottom: 16px;
+  top: 84px;
+  right: 12px;
   z-index: 10;
-  width: 36px;
-  height: 36px;
-  font-size: 18px;
-  line-height: 1;
+  display: flex;
+  flex-direction: column;
+  width: 40px;
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+#zoom-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
   background: var(--bg-sidebar);
-  border: 1px solid var(--border);
   color: var(--text-primary);
-  border-radius: 50%;
+  border: none;
   cursor: pointer;
 }
 
-#camera-reset-btn:hover {
-  background: var(--active-bg);
-  border-color: var(--active-border);
+#zoom-in-btn {
+  border-bottom: 1px solid var(--border);
 }
 
+#map-tools {
+  position: absolute;
+  top: 188px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  width: 40px;
+}
+
+/* Rounded top/bottom corners on the first/last button, instead of
+   border-radius + overflow:hidden on the container — that trick clipped
+   the hover tooltips, which need to render outside this box (see
+   [data-tooltip] below). */
+#map-tools .tool-btn:first-child {
+  border-radius: 100px 100px 0 0;
+}
+
+#map-tools .tool-btn:last-child {
+  border-radius: 0 0 100px 100px;
+}
+
+.tool-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  font-family: var(--font-family);
+  font-weight: bold;
+  font-size: 16px;
+  background: var(--bg-sidebar);
+  color: var(--text-primary);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+/* #info-toggle-btn keeps the plain "i" glyph from the Figma spec — every
+   other icon here is inline SVG, so this is the one button needing its
+   own font instead of currentColor-filled artwork. */
+#info-toggle-btn {
+  font-family: 'Courier New', monospace;
+  font-size: 20px;
+}
+
+.tool-btn:hover {
+  background: color-mix(in srgb, var(--accent) 50%, var(--bg-sidebar));
+}
+
+.tool-btn.active {
+  background: var(--accent);
+  color: white;
+}
+
+/* Hover tooltips, desktop only — no touch/mobile layout exists yet for
+   this toolbar (see backlog), so there's no tap-friendly equivalent. */
+@media (hover: hover) and (pointer: fine) {
+  .tool-btn[data-tooltip] {
+    position: relative;
+  }
+
+  .tool-btn[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    right: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #292929;
+    color: white;
+    font-family: var(--font-family);
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 20;
+  }
+}
+
+/* The base rect behind everything is always the dark "void" color, on
+   every projection — not just orthographic. It only actually shows
+   through in the empty corners of non-rectangular projections (Mollweide,
+   Sinusoidal, Hammer, Aitoff, Winkel Tripel, the orthographic globe...);
+   rectangular ones (Mercator, Equirectangular, ...) fully cover it with
+   .globe-sphere below, so it's invisible there. */
 .ocean {
-  fill: var(--bg-ocean);
-}
-
-/* Orthographic (globe) view: the space outside the sphere disc needs its
-   own darker backdrop instead of the flat-map ocean color, per UX feedback. */
-.ocean.globe-bg {
   fill: var(--bg-globe);
 }
 
-/* Sphere boundary — a real shape drawn on top of the ocean rect. Its fill
-   matches the ocean rect so flat projections look unchanged; the stroke
-   only shows in orthographic (see .globe-sphere.active), where it's the
-   only thing separating the globe disc from the void background. */
+/* Sphere/projection outline — a real shape drawn on top of the ocean
+   rect, traced from the {type: "Sphere"} geometry of whichever
+   projection is active, so it hugs that projection's true silhouette
+   (a rectangle for cylindrical ones, an ellipse for pseudocylindrical/
+   pseudoazimuthal ones, a circle for orthographic). This is what
+   actually renders as "the ocean" — light blue, same on every
+   projection. The stroke only shows in orthographic (see
+   .globe-sphere.active), where it's the only thing separating the
+   globe disc from the void background. */
 .globe-sphere {
   fill: var(--bg-ocean);
   stroke: none;
@@ -698,7 +458,6 @@ body {
   stroke: var(--stroke-country);
   stroke-width: 1px;
   vector-effect: non-scaling-stroke;
-  cursor: pointer;
 }
 
 .country.selected {
@@ -737,17 +496,20 @@ body {
   pointer-events: none;
 }
 
+/* Uses --bg-globe (dark navy) rather than --accent: the light theme's
+   accent is a mint green too close to the light-blue ocean to read as a
+   grid overlay — the dark void color keeps good contrast in both themes. */
 .tissot {
-  fill: var(--accent);
+  fill: var(--bg-globe);
   fill-opacity: 0.18;
-  stroke: var(--accent);
+  stroke: var(--bg-globe);
   stroke-width: 1px;
   stroke-opacity: 0.8;
 }
 
 .tissot-graticule {
   fill: none;
-  stroke: var(--accent);
+  stroke: var(--bg-globe);
   stroke-width: 0.5px;
   stroke-opacity: 0.45;
 }
@@ -814,65 +576,71 @@ body {
   min-height: 0;
 }
 
-#projection-info {
-  padding: 12px 20px;
-  border-top: 1px solid var(--border);
-  background: var(--bg-sidebar);
-  min-height: 64px;
+/* Shared shell for the map's floating popovers (info, compare) — bottom
+   right of the map, only one shown at a time. Figma hardcodes a dark
+   card regardless of the light/dark toggle (like the tool tooltips), so
+   this uses fixed colors instead of the --bg-sidebar/--text-* tokens. */
+.floating-card {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10;
+  width: 339px;
+  max-width: calc(100% - 32px);
+  padding: 20px;
+  border-radius: 12px;
+  background: #292929;
+  color: #ffffff;
 }
 
-#info-name {
-  font-size: 18px;
+.floating-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.floating-card-title {
+  font-size: 24px;
   font-weight: bold;
-  margin-right: 10px;
 }
 
-#info-family {
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-#info-description {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-top: 6px;
-  line-height: 1.6;
-}
-
-#info-tradeoffs-toggle {
-  display: block;
-  margin-top: 8px;
+.floating-card-close {
   padding: 0;
-  font-family: var(--font-family);
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: #ffffff;
   cursor: pointer;
+  opacity: 0.7;
 }
 
-#info-tradeoffs-toggle:hover {
-  color: var(--text-primary);
+.floating-card-close:hover {
+  opacity: 1;
 }
 
+.floating-card-description {
+  font-size: 16px;
+  color: #d9d9d9;
+  line-height: 1.5;
+}
+
+/* #info-name reuses .floating-card-title via its class in the HTML;
+   #info-tradeoffs-content lays the three terms out inline (Figma flattens
+   them into one running paragraph — this keeps them as distinguishable
+   label/value pairs instead, at the same 16px size). */
 #info-tradeoffs-content {
-  margin-top: 8px;
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--text-muted);
+  margin-top: 16px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #d9d9d9;
 }
 
 #info-tradeoffs-content dt {
   font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 10px;
-  color: var(--text-muted);
-  margin-top: 8px;
+  color: #ffffff;
+  margin-top: 12px;
 }
 
 #info-tradeoffs-content dt:first-child {
@@ -883,42 +651,78 @@ body {
   margin: 2px 0 0;
 }
 
-/* ============================================================
-   THEME SWITCHER
-   ============================================================ */
-#theme-switcher {
+/* Compare card shell, triggered by the toolbar's comparison icon — a
+   Figma-spec placeholder for now (see feat(toolbar) commit history):
+   the two selects don't drive any comparison logic yet, since that
+   behavior is being redesigned separately. */
+#compare-card {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-top: 1px solid var(--border);
+  flex-direction: column;
+  gap: 16px;
 }
 
-#theme-switcher label {
-  font-size: 10px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--text-muted);
+/* Same [hidden]-vs-display:flex precedence issue as #compare-container
+   above — the explicit display:flex here needs an explicit override. */
+#compare-card[hidden] {
+  display: none;
 }
 
-#theme-select {
-  flex: 1;
-  min-width: 0;
-  padding: 4px 6px;
-  font-size: 11px;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  cursor: pointer;
+/* Always-white input fields per Figma, regardless of theme — the card
+   itself is a fixed dark color (see .floating-card), so these need their
+   own fixed light styling rather than the theme's --bg-app/--border. */
+#compare-card select {
+  width: 100%;
+  padding: 12px 16px;
   font-family: var(--font-family);
-  border-radius: 2px;
+  font-size: 16px;
+  background: #ffffff;
+  color: #292929;
+  border: 1px solid #d1cdcd;
+  border-radius: 4px;
 }
 
-#theme-select:hover,
-#theme-select:focus {
-  background: var(--active-bg);
-  border-color: var(--active-border);
-  color: var(--text-primary);
+/* Searchable country picker — an input instead of a plain <select> so
+   typing can filter the (potentially 190+ item) alphabetical list. */
+#compare-country-picker {
+  position: relative;
+}
+
+#compare-country-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: var(--font-family);
+  font-size: 16px;
+  background: #ffffff;
+  color: #292929;
+  border: 1px solid #d1cdcd;
+  border-radius: 4px;
+}
+
+#compare-country-results {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 20;
+  margin-top: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  list-style: none;
+  background: #ffffff;
+  border: 1px solid #d1cdcd;
+  border-radius: 4px;
+}
+
+#compare-country-results li {
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #292929;
+  cursor: pointer;
+}
+
+#compare-country-results li:hover,
+#compare-country-results li.highlighted {
+  background: #f0f0f0;
 }
 
 /* ============================================================
@@ -988,150 +792,24 @@ body {
 }
 
 /* ============================================================
-   THEME OVERRIDES — each block overrides the :root variables
+   DARK MODE — the only override of the :root (light) variables.
+   Sidebar/text tokens match the Figma dark frame; map-rendering
+   tokens (ocean/globe/country) are unspecified by the design and
+   keep their existing values for visual continuity.
    ============================================================ */
-
-/* Forest — dark teal interface built around the country green */
-body[data-theme="forest"] {
-  --bg-app:     #04211c;
-  --bg-sidebar: #0a3129;
-  --bg-ocean:   #309bc5;
-  --bg-globe:   #021410;
-
-  --color-country:  #0fd2ab;
-  --stroke-country: #076b55;
-
-  --text-primary:  #dcf8ef;
-  --text-muted:    #55a08c;
-  --accent:        #0fd2ab;
-  --border:        #124c3f;
-  --active-bg:     #0f4638;
-  --active-border: #0fd2ab;
-}
-
-/* Dark Mode — sidebar shares the country navy; light strokes
-   keep borders readable on the dark landmasses */
 body[data-theme="dark"] {
-  --bg-app:     #0f2137;
-  --bg-sidebar: #173753;
+  --bg-app:     #292929;
+  --bg-sidebar: #292929;
   --bg-ocean:   #2264aa;
   --bg-globe:   #060f1c;
 
   --color-country:  #173753;
   --stroke-country: #4180b8;
 
-  --text-primary:  #d3e4f5;
-  --text-muted:    #7ba1c6;
-  --accent:        #4aa0e8;
-  --border:        #235078;
-  --active-bg:     #1f4a70;
-  --active-border: #4aa0e8;
-}
-
-/* Desert Dusk — warm sand and terracotta land on a muted teal sea */
-body[data-theme="desert-dusk"] {
-  --bg-app:     #f7ece0;
-  --bg-sidebar: #efd9c2;
-  --bg-ocean:   #3f6f7a;
-  --bg-globe:   #2a1f18;
-
-  --color-country:  #e8c9a3;
-  --stroke-country: #a3703f;
-
-  --text-primary:  #4a2e1e;
-  --text-muted:    #8a6a4f;
-  --accent:        #c1622c;
-  --border:        #dfc0a0;
-  --active-bg:     #e6c39c;
-  --active-border: #c1622c;
-}
-
-/* Midnight Atlas — ink navy with a brass-gold accent */
-body[data-theme="midnight-atlas"] {
-  --bg-app:     #10151f;
-  --bg-sidebar: #171e2c;
-  --bg-ocean:   #0c1a2e;
-  --bg-globe:   #0a0d14;
-
-  --color-country:  #2a3448;
-  --stroke-country: #c9a24b;
-
-  --text-primary:  #e9edf3;
-  --text-muted:    #8b93a6;
-  --accent:        #d4af5a;
-  --border:        #2a3344;
-  --active-bg:     #232c3d;
-  --active-border: #d4af5a;
-}
-
-/* Copper Coast — deep teal ocean, copper landmass */
-body[data-theme="copper-coast"] {
-  --bg-app:     #f5efe9;
-  --bg-sidebar: #e8dcd0;
-  --bg-ocean:   #2e6b6e;
-  --bg-globe:   #1a1410;
-
-  --color-country:  #ecd3b8;
-  --stroke-country: #b5713c;
-
-  --text-primary:  #2c2420;
-  --text-muted:    #7a6a5c;
-  --accent:        #b5561f;
-  --border:        #dcc9b4;
-  --active-bg:     #e4c8a8;
-  --active-border: #b5561f;
-}
-
-/* Emerald Cartography — deep forest ocean, soft green landmass */
-body[data-theme="emerald-cartography"] {
-  --bg-app:     #f4f7f2;
-  --bg-sidebar: #dfe9db;
-  --bg-ocean:   #1f4d3f;
-  --bg-globe:   #0c150f;
-
-  --color-country:  #cfe3c6;
-  --stroke-country: #3f7a5a;
-
-  --text-primary:  #14261d;
-  --text-muted:    #567760;
-  --accent:        #1f6e4a;
-  --border:        #c6d9bd;
-  --active-bg:     #c9e0bd;
-  --active-border: #1f6e4a;
-}
-
-/* Dusty Rose Meridian — refined take on the default palette */
-body[data-theme="dusty-rose-meridian"] {
-  --bg-app:     #f7edea;
-  --bg-sidebar: #ecdad3;
-  --bg-ocean:   #4a6b8a;
-  --bg-globe:   #241a1f;
-
-  --color-country:  #eecfc4;
-  --stroke-country: #a8746a;
-
-  --text-primary:  #3a2c34;
-  --text-muted:    #8a6d68;
-  --accent:        #b3563f;
-  --border:        #e0c4b8;
-  --active-bg:     #e7c9ba;
-  --active-border: #b3563f;
-}
-
-/* Amber Compass — charcoal ocean, warm amber landmass */
-body[data-theme="amber-compass"] {
-  --bg-app:     #fbf3e7;
-  --bg-sidebar: #f0e0c4;
-  --bg-ocean:   #2b3a4a;
-  --bg-globe:   #14110a;
-
-  --color-country:  #f0d29b;
-  --stroke-country: #a9762f;
-
-  --text-primary:  #2e2413;
-  --text-muted:    #7d6a48;
-  --accent:        #c17f17;
-  --border:        #e6d0a4;
-  --active-bg:     #ecd6a8;
-  --active-border: #c17f17;
+  --text-primary:  #ffffff;
+  --text-muted:    #b8b8b8;
+  --accent:        #34835f;
+  --border:        #ffffff;
+  --active-bg:     #34835f;
+  --active-border: #34835f;
 }
