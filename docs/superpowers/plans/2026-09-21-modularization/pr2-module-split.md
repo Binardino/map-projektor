@@ -5,6 +5,9 @@ adding `export`/`import`. Branch: `refactor/es-modules`. Size: large, ~2–3 day
 
 ## Target layout
 
+Line ranges below are indicative: measured on `map.js` as of PR #28 (i18n extraction, 1 911 lines). Re-derive them
+from the declaration list at the start of the PR, since the file will have moved.
+
 ```
 static/js/
   main.js                 entry: init(), wiring (replaces init() + top-level wiring)
