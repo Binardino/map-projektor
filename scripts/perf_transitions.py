@@ -182,11 +182,11 @@ def main():
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=not args.headed)
             page = browser.new_page(viewport={"width": 1280, "height": 900})
-            # Skip the first-visit help modal — it overlays the whole page
-            # and would intercept every click in the suite.
-            page.add_init_script("localStorage.setItem('mapProjektorHelpSeen', '1')")
             page.goto(BASE_URL)
             page.wait_for_selector("path.country")
+            # The welcome modal opens on every launch and overlays the whole page,
+            # which would intercept every click in the suite.
+            page.click("#help-modal-close")
             page.wait_for_timeout(300)  # let the initial render settle
 
             print("Running transition suite...")

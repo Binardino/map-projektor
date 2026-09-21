@@ -208,6 +208,24 @@ body {
   margin-bottom: 0;
 }
 
+#help-modal-body h3 {
+  margin: 18px 0 8px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+#help-modal-body ul {
+  padding-left: 18px;
+}
+
+#help-modal-body li {
+  margin-bottom: 8px;
+}
+
+#help-modal-body li:last-child {
+  margin-bottom: 0;
+}
+
 /* Compare mode dims the projection list while active (see map.js) — kept
    even though its sidebar toggle is gone for now, since it's cheap to
    leave wired for whenever compare mode gets a new trigger. */
