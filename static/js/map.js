@@ -1825,31 +1825,8 @@ if (trueSizeInput) {
 // there is no "seen" flag and no manual re-open trigger.
 // ============================================================
 
-// Keep the control names in sync with templates/index.html; this copy
-// once described buttons that the Figma redesign had already removed.
-const HELP_MODAL_CONTENT = `
-  <p>As we all know, the Earth is a sphere. (Sorry, flat earthers.)</p>
-  <p>Squashing it onto a flat map is where it gets awkward: shapes, areas,
-  distances and directions can't all survive the trip, so every projection
-  picks what to keep and what to bend. Each choice has its perks and its
-  little lies. On a Mercator map, Greenland looks as big as Africa, which is
-  about 14 times larger.</p>
-  <p>This tool lets you see those trade-offs for yourself.</p>
-  <h3>How it works</h3>
-  <ul>
-    <li>Pick a projection on the left and the map morphs into it.</li>
-    <li>Pick a view to recentre the map. Europe in the middle is a habit,
-    not a law of nature.</li>
-    <li>The buttons on the right of the map: a distortion grid (circles that
-    show where a projection stretches things), light/dark mode, compare mode
-    (see a country under a second projection) and <strong>i</strong>, for what
-    the current projection preserves and distorts.</li>
-  </ul>
-`;
-
 const helpModalBackdrop = document.getElementById("help-modal-backdrop");
 const helpModalCloseBtn = document.getElementById("help-modal-close");
-document.getElementById("help-modal-body").innerHTML = HELP_MODAL_CONTENT;
 
 function openHelpModal() {
   helpModalBackdrop.hidden = false;
@@ -1869,7 +1846,6 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !helpModalBackdrop.hidden) closeHelpModal();
 });
 
-openHelpModal();
 
 // ============================================================
 // INIT — fetch GeoJSON then render
@@ -1878,6 +1854,7 @@ async function init() {
   // Before anything renders: sidebar buttons, info card and view labels all
   // read their text through t().
   await loadLanguage("en");
+  openHelpModal(); // after the language loads, or the modal would flash empty
 
   const [worldResponse, terrainResponse] = await Promise.all([
     fetch("/data/world.geojson"),
