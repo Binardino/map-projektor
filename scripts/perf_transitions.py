@@ -32,7 +32,14 @@ DROPPED_FRAME_THRESHOLD_MS = 33
 # How far a run may regress past the baseline before failing — generous
 # because headless CI timing is noisy: back-to-back runs of identical code
 # were observed to vary by ~6 dropped frames on the same transition.
-REGRESSION_FACTOR = 1.5
+REGRESSION_FACTOR = 1.15
+# Hard ceiling independent of the baseline, so a slow baseline can't quietly
+# become the norm (the old baseline sat at ~25ms without anyone noticing).
+# Headless Chromium rasterises in software, so ~16.9ms (one 60Hz vsync, the
+# floor measured on a pure-CSS transition) is the best case and the map's
+# transitions land around 19-23ms; 24 catches real regressions without
+# failing on that rendering overhead. On a real GPU expect well under 16.7.
+MAX_AVG_FRAME_MS = 24
 
 
 def dropped_frame_margin(baseline_dropped):
@@ -120,12 +127,27 @@ def run_suite(page):
         )
         page.wait_for_timeout(100)
 
+    # A recentre view now survives projection switches (the morph carries its
+    # rotation), so that path needs its own coverage — it blends a rotated
+    # projection pair, unlike every transition above.
+    page.click('.recenter-btn[data-preset-id="china"]')
+    page.wait_for_timeout(1200)
+    current = page.evaluate("() => currentProjectionId")
+    for next_id in ["robinson", "orthographic", "mercator"]:
+        results[f"view china: {current} -> {next_id}"] = measure_transition(
+            page, lambda nid=next_id: page.click(f'.proj-btn[data-proj-id="{nid}"]')
+        )
+        current = next_id
+        page.wait_for_timeout(100)
+
     return results
 
 
 def compare_to_baseline(results, baseline):
     regressions = []
     for label, current in results.items():
+        if current["avg_frame_ms"] > MAX_AVG_FRAME_MS:
+            regressions.append(f"{label}: avg frame {current['avg_frame_ms']}ms exceeds the {MAX_AVG_FRAME_MS}ms ceiling")
         base = baseline.get(label)
         if base is None:
             continue  # new transition, nothing to compare against yet
