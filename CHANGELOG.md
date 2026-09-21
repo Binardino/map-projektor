@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-21 — Welcome modal
+
+### Changed
+- The help modal is now a welcome modal: it opens on every launch (no more `mapProjektorHelpSeen` flag) with a "Welcome to Map Projektor!" title, a short plain-spoken pitch on why flat maps have to compromise, then a "How it works" list
+- Its copy was rewritten by hand-picked wording and now names the controls that actually exist — the old text still described the "Show Distortion Grid", "Draw Flight Path" and "Compare True Size" buttons the Figma redesign removed
+- `scripts/perf_transitions.py` closes the modal after loading instead of pre-setting the old localStorage flag
+
 ## 2026-09-20 — South America flip fix + transition perf harness (on `feature/figma-redesign`)
 
 ### Fixed
