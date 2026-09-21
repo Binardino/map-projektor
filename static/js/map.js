@@ -409,6 +409,7 @@ const LIGHT_MIN_SPACING_DEG = 1;
 // bound datum's light twin without a name lookup (terrain has duplicate names).
 const lightGeometry = new WeakMap();
 
+// Returns null when the ring collapses to a sub-spacing speck.
 function thinRing(ring) {
   const kept = [ring[0]];
   for (let i = 1; i < ring.length - 1; i++) {
@@ -416,17 +417,28 @@ function thinRing(ring) {
     if (Math.hypot(ring[i][0] - last[0], ring[i][1] - last[1]) >= LIGHT_MIN_SPACING_DEG) kept.push(ring[i]);
   }
   kept.push(ring[ring.length - 1]);
-  // Tiny islands would collapse to a degenerate ring — they're cheap already, keep them whole.
-  return kept.length >= 4 ? kept : ring;
+  return kept.length >= 4 ? kept : null;
+}
+
+// Sub-degree islands are ~80% of all rings (1300 of 1600) but only ~30% of
+// the vertices: their cost is per-ring overhead (clipping + resampling
+// setup), not vertex count, so thinning can't help — they have to be
+// skipped while animating. A few px specks reappear on the final render.
+function thinPolygon(rings) {
+  const exterior = thinRing(rings[0]);
+  return exterior && [exterior, ...rings.slice(1).map(thinRing).filter(Boolean)];
 }
 
 function buildLightGeometry(features) {
   features.forEach((feature) => {
     const g = feature.geometry;
     if (!g || (g.type !== "Polygon" && g.type !== "MultiPolygon")) return;
-    const thinPolygon = (rings) => rings.map(thinRing);
-    const coordinates = g.type === "Polygon" ? thinPolygon(g.coordinates) : g.coordinates.map(thinPolygon);
-    lightGeometry.set(feature, { ...feature, geometry: { type: g.type, coordinates } });
+    const polygons = g.type === "Polygon" ? [g.coordinates] : g.coordinates;
+    let thinned = polygons.map(thinPolygon).filter(Boolean);
+    // A country made only of specks (Malta, Singapore…) must not vanish
+    // during the morph: keep its first polygon whole, it's cheap anyway.
+    if (!thinned.length) thinned = [polygons[0]];
+    lightGeometry.set(feature, { ...feature, geometry: { type: "MultiPolygon", coordinates: thinned } });
   });
 }
 
@@ -497,7 +509,7 @@ function renderTerrain(group, projection) {
 // charge of the initial/static render.
 function updateTerrainPaths(group, projection) {
   const path = d3.geoPath().projection(projection);
-  group.selectAll("path.terrain-patch").attr("d", path);
+  group.selectAll("path.terrain-patch").attr("d", (d) => path(lightOf(d)));
 }
 
 // ============================================================
@@ -593,7 +605,7 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
       const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
       projection.alpha(t);
       if (clipFrom !== null) projection.clipAngle(clipFrom + (clipTo - clipFrom) * t);
-      countries.attr("d", (d) => pathFn(d) || "");
+      countries.attr("d", (d) => pathFn(lightOf(d)) || "");
       if (crossfade) {
         globeSphere.style("opacity", 1 - t);
         globeSphereFade.style("opacity", t);
@@ -649,7 +661,7 @@ function animateRotation(fromRot, toRot, duration) {
         fromRot[0] + (toRot[0] - fromRot[0]) * t,
         fromRot[1] + (toRot[1] - fromRot[1]) * t,
       ]);
-      countries.attr("d", (d) => pathFn(d) || "");
+      countries.attr("d", (d) => pathFn(lightOf(d)) || "");
       renderGlobeSphere(globeSphere, projection);
       updateTerrainPaths(terrainGroup, projection);
       if (tissotVisible) updateTissotPaths(tissotGroup, projection);
@@ -1069,7 +1081,7 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
         from[1] + (to[1] - from[1]) * t,
         (from[2] || 0) + ((to[2] || 0) - (from[2] || 0)) * t,
       ]);
-      countries.attr("d", (d) => pathFn(d) || "");
+      countries.attr("d", (d) => pathFn(lightOf(d)) || "");
       // Same per-frame refresh as animateBlend/animateRotation — terrain
       // (and the sphere outline/grid, if visible) used to only repaint at
       // the very end of a recenter, so they sat frozen throughout the
