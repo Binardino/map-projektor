@@ -31,18 +31,28 @@ Interactive world map web app displaying 17 cartographic projections with animat
 
 ## Adding a Projection
 
-Add one object to the `PROJECTIONS` array in `static/js/map.js`. Nothing else changes.
+Add one object to the `PROJECTIONS` array in `static/js/map.js`, plus its texts in `static/i18n/en.json`. Nothing else changes.
 
 ```js
 {
   id: "myProjection",
-  name: "My Projection",
-  family: "Family Name",
+  family: "Family Name",   // grouping identifier, label comes from family.<lowercase> in en.json
   year: 1900,
   description: "What it does and why it matters.",
   d3fn: () => d3.geoMyProjection(), // from d3-geo-projection if not in D3 core
 }
 ```
+
+```json
+"projection.myProjection.name": "My Projection",
+"projection.myProjection.preserves": "...",
+"projection.myProjection.distorts": "...",
+"projection.myProjection.bestFor": "..."
+```
+
+`tests/test_i18n.py` fails if a projection or view is missing any of its keys.
+
+**Texts:** no user-visible string is written in `map.js` or `index.html` — they live in `static/i18n/<lang>.json` (English is the source) and are read through `t("key")` in JS or `data-i18n` attributes in the markup (see `static/js/i18n.js`).
 
 Projections requiring `d3-geo-projection` (CDN loaded in index.html): Robinson, Mollweide, Sinusoidal, Winkel Tripel, Aitoff, Hammer, Gall-Peters, Eckert IV.
 

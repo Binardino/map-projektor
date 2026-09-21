@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-21 — String extraction (i18n groundwork)
+
+### Changed
+- Every user-visible string moved out of `map.js` and `index.html` into `static/i18n/en.json` (flat key → string, ~110 keys), read via `t()` and `data-i18n*` attributes (`static/js/i18n.js`). No visible change: a before/after dump of every text, tooltip, aria-label and placeholder (96 strings at launch, all 17 projections, all 5 views) is identical
+- `PROJECTIONS` and `RECENTER_PRESETS` keep only ids, geometry and grouping; names, tradeoffs and view labels come from the dictionary
+- The compare card's projection list is built in `init()` after the language loads (it used to be filled at script load, which showed raw keys)
+
+### Added
+- `tests/test_i18n.py`: fails when markup or code asks for a key missing from `en.json`, or a projection/view lacks one of its texts
+
+### Not extracted
+- Each projection's `description` field (no longer displayed since the Figma redesign) and the flight-path / true-size strings (no visible UI): left as they are rather than translated for nothing
+
 ## 2026-09-21 — Welcome modal
 
 ### Changed
