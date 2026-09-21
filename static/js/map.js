@@ -393,6 +393,49 @@ function makeProjection(projDef, rotationOverride = null) {
 }
 
 // ============================================================
+// LIGHT GEOMETRY — animation-only copy of the country/terrain shapes
+//
+// Every animation frame reprojects every vertex through TWO projections
+// (source + target blend) plus D3's adaptive resampling, so frame cost
+// scales with vertex count: the full 21k-vertex world took ~40ms/frame,
+// well past the 16ms budget for 60fps. Thinning vertices closer than
+// LIGHT_MIN_SPACING_DEG cuts that to ~11ms, and the loss is invisible
+// while shapes are moving. The final render always uses the full data,
+// so the resting map is unchanged.
+// ============================================================
+const LIGHT_MIN_SPACING_DEG = 1;
+
+// Keyed by the original feature object, so animation loops can look up a
+// bound datum's light twin without a name lookup (terrain has duplicate names).
+const lightGeometry = new WeakMap();
+
+function thinRing(ring) {
+  const kept = [ring[0]];
+  for (let i = 1; i < ring.length - 1; i++) {
+    const last = kept[kept.length - 1];
+    if (Math.hypot(ring[i][0] - last[0], ring[i][1] - last[1]) >= LIGHT_MIN_SPACING_DEG) kept.push(ring[i]);
+  }
+  kept.push(ring[ring.length - 1]);
+  // Tiny islands would collapse to a degenerate ring — they're cheap already, keep them whole.
+  return kept.length >= 4 ? kept : ring;
+}
+
+function buildLightGeometry(features) {
+  features.forEach((feature) => {
+    const g = feature.geometry;
+    if (!g || (g.type !== "Polygon" && g.type !== "MultiPolygon")) return;
+    const thinPolygon = (rings) => rings.map(thinRing);
+    const coordinates = g.type === "Polygon" ? thinPolygon(g.coordinates) : g.coordinates.map(thinPolygon);
+    lightGeometry.set(feature, { ...feature, geometry: { type: g.type, coordinates } });
+  });
+}
+
+// Falls back to the full feature for geometry types buildLightGeometry skips.
+function lightOf(feature) {
+  return lightGeometry.get(feature) || feature;
+}
+
+// ============================================================
 // RENDER — draw or update country paths for a given projection
 // ============================================================
 // Draws the sphere's own boundary as a real shape (ocean-colored, with a
@@ -1915,6 +1958,8 @@ async function init() {
   ]);
   worldData = await worldResponse.json();
   terrainData = await terrainResponse.json();
+  buildLightGeometry(worldData.features);
+  buildLightGeometry(terrainData.features);
 
   const initialProj = PROJECTIONS.find((p) => p.id === currentProjectionId);
   buildSidebar();
