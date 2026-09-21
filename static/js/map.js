@@ -623,10 +623,15 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
   });
 }
 
-function animateTransition(fromDef, toDef, duration) {
-  const fromProjection = makeProjection(fromDef);
-  const toProjection   = makeProjection(toDef);
-  const projection     = blendProjection(fromProjection, toProjection);
+// `rotation` is the active recenter view (null = Europe-centered): endpoints are
+// built unrotated and the blend wrapper carries it, so clip circles stay
+// centred on the view (see blendProjection) and the morph keeps the user's
+// framing instead of snapping back to Europe.
+function animateTransition(fromDef, toDef, duration, rotation = null) {
+  const projection = blendProjection(makeProjection(fromDef), makeProjection(toDef), rotation);
+  // The crossfade outlines are static endpoint shapes, so they carry the rotation themselves
+  const fromProjection = makeProjection(fromDef, rotation);
+  const toProjection   = makeProjection(toDef, rotation);
   const clipFrom = clipAngleOf(fromDef);
   const clipTo   = clipAngleOf(toDef);
   // Only azimuthal-hemisphere transitions need the circle clip; other
@@ -740,11 +745,11 @@ async function transitionTo(newProjId) {
   if (POLAR_ROTATION[fromDef.id] || POLAR_ROTATION[toDef.id]) {
     await polarTransition(fromDef, toDef);
   } else {
-    await animateTransition(fromDef, toDef, 1400);
+    await animateTransition(fromDef, toDef, 1400, currentRecenterRotate);
   }
 
   // Final render with the true target projection (native clipping rules)
-  renderMap(makeProjection(toDef));
+  renderMap(makeProjection(toDef, currentRecenterRotate));
 
   currentProjectionId = newProjId;
   updateInfo(toDef);
@@ -994,8 +999,9 @@ function setActiveButton(projId) {
 // and the country-zoom selection are mutually exclusive for now — each
 // clears the other — since composing "zoomed on a country" with "the
 // whole sphere rotated" isn't handled by the zoom math yet. Switching
-// projection always resets to World View, so the animated morph never
-// has to deal with a rotation override either.
+// projection keeps the active view (the morph carries its rotation, see
+// animateTransition); only Albers/polar, which can't be recentred, ease
+// back to Europe-centered first (see switchProjection).
 //
 // The "upside-down" preset is a true vertical mirror (flipVertical),
 // not a 180° rotate() — d3's rotate() performs a rigid rotation of the
@@ -1159,12 +1165,17 @@ function refreshRecenterAvailability() {
 // ============================================================
 // SWITCH PROJECTION
 // ============================================================
-function switchProjection(newProjId) {
+async function switchProjection(newProjId) {
   if (isAnimating || newProjId === currentProjectionId) return;
   if (!PROJECTIONS.find((p) => p.id === newProjId)) return;
   closeSidebar(); // no-op on desktop; on mobile, reveals the map after picking
-  resetRecenter(); // presets don't survive a projection change, see RECENTER PRESETS note
   setActiveButton(newProjId); // highlight immediately — don't wait for the ~1.4-2.3s morph to finish
+  // The active view carries over to any compatible projection (transitionTo
+  // morphs with its rotation). Albers/polar can't be recentred, so ease back
+  // to Europe first — otherwise the morph would end on a snapped rotation.
+  if (RECENTER_INCOMPATIBLE.has(newProjId) && (currentRecenterRotate || currentRecenterFlip)) {
+    await applyRecenter("world");
+  }
   transitionTo(newProjId);
 }
 
