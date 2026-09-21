@@ -565,7 +565,10 @@ function blendProjection(projFrom, projTo, rotation = null) {
   // viewport lies *inside* a polygon from its winding, and mid-blend folds of
   // Antarctica flipped that test — filling the whole screen. The SVG viewport
   // already crops offscreen geometry visually, so planar clipping adds nothing.
-  return projection.scale(1).alpha(0);
+  // Coarser than D3's 0.5px default: resampling is a big share of per-frame
+  // cost and 2px is invisible on shapes that are moving. Every blend is
+  // followed by a native full-precision render.
+  return projection.scale(1).precision(2).alpha(0);
 }
 
 // Orthographic clips to the visible hemisphere (90°); everything else
