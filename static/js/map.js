@@ -1012,8 +1012,11 @@ function setActiveButton(projId) {
 // transform on top of the (longitude-only) rotated render instead.
 // ============================================================
 const RECENTER_PRESETS = [
-  { id: "world", name: "World View", rotate: null,
-    description: "Default centering." },
+  // id stays "world" (state checks and the perf harness key on it); only the label changed.
+  { id: "world", name: "Europe-centered", rotate: null,
+    description: "Default centering on the Greenwich meridian — the Atlantic-centred convention of most Western atlases, with Europe and West Africa in the middle." },
+  { id: "africa", name: "Africa-centered", rotate: [-20, 0, 0],
+    description: "Centred near 20°E, the middle of the African continent — the natural framing for atlases of Africa, and a reminder that Europe-centered is a choice, not a default of nature." },
   { id: "china", name: "China-centered", rotate: [-105, 0, 0],
     description: "Common convention in Chinese school atlases — centred near 105°E, splitting the world along the Atlantic instead of the Pacific." },
   { id: "usaPacific", name: "USA / Pacific-centered", rotate: [98, 0, 0],
