@@ -1846,47 +1846,41 @@ if (trueSizeInput) {
 }
 
 // ============================================================
-// HELP MODAL
+// WELCOME MODAL
 //
-// Onboarding / "how it works" — one reusable modal, opened
-// automatically on the very first visit (localStorage flag) and
-// reopenable at any time via the "?" trigger in the sidebar header.
+// One modal, two parts: a short pitch (why flat maps lie), then a
+// "how it works" pointer to each control. Opens on every launch —
+// there is no "seen" flag and no manual re-open trigger.
 // ============================================================
-const HELP_SEEN_KEY = "mapProjektorHelpSeen";
 
-// Static onboarding copy — the core idea the whole app demonstrates,
-// plus a short pointer to each control, in the order they appear in
-// the sidebar.
+// Keep the control names in sync with templates/index.html; this copy
+// once described buttons that the Figma redesign had already removed.
 const HELP_MODAL_CONTENT = `
-  <p>The Earth is a sphere. Every flat map is a projection of that sphere
-  onto a plane — and no projection can preserve shape, area, distance, and
-  direction all at once. Each one picks a different tradeoff.</p>
-  <p>This app lets you compare 17 of them side by side, morph between
-  them, and see exactly how each one bends the world to make its own
-  compromise.</p>
-  <p><strong>Projection list</strong> — click any name to morph into it.
-  <strong>Compare Projections</strong> shows two side by side.
-  <strong>Recenter View</strong> shifts which region sits at the center —
-  the usual Europe-centered map is a convention, not a neutral default.</p>
-  <p><strong>Show Distortion Grid</strong> draws Tissot's indicatrix, a
-  grid of equal-size circles that reveals exactly where and how much each
-  projection stretches things. <strong>Draw Flight Path</strong> lets you
-  click two points to see the real shortest route between them and how
-  its curve changes per projection. <strong>Compare True Size</strong>
-  spawns draggable country silhouettes so you can hold them up against
-  each other at their true relative size.</p>
+  <p>As we all know, the Earth is a sphere. (Sorry, flat earthers.)</p>
+  <p>Squashing it onto a flat map is where it gets awkward: shapes, areas,
+  distances and directions can't all survive the trip, so every projection
+  picks what to keep and what to bend. Each choice has its perks and its
+  little lies. On a Mercator map, Greenland looks as big as Africa, which is
+  about 14 times larger.</p>
+  <p>This tool lets you see those trade-offs for yourself.</p>
+  <h3>How it works</h3>
+  <ul>
+    <li>Pick a projection on the left and the map morphs into it.</li>
+    <li>Pick a view to recentre the map. Europe in the middle is a habit,
+    not a law of nature.</li>
+    <li>The buttons on the right of the map: a distortion grid (circles that
+    show where a projection stretches things), light/dark mode, compare mode
+    (see a country under a second projection) and <strong>i</strong>, for what
+    the current projection preserves and distorts.</li>
+  </ul>
 `;
 
 const helpModalBackdrop = document.getElementById("help-modal-backdrop");
 const helpModalCloseBtn = document.getElementById("help-modal-close");
 document.getElementById("help-modal-body").innerHTML = HELP_MODAL_CONTENT;
 
-// No manual re-open trigger anymore (the sidebar's "?" button is gone,
-// per the Figma spec) — this only ever shows itself once, automatically,
-// on a visitor's first load (see the HELP_SEEN_KEY check below).
 function openHelpModal() {
   helpModalBackdrop.hidden = false;
-  localStorage.setItem(HELP_SEEN_KEY, "1");
 }
 
 function closeHelpModal() {
@@ -1903,7 +1897,7 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !helpModalBackdrop.hidden) closeHelpModal();
 });
 
-if (!localStorage.getItem(HELP_SEEN_KEY)) openHelpModal();
+openHelpModal();
 
 // ============================================================
 // INIT — fetch GeoJSON then render
