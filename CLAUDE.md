@@ -46,7 +46,7 @@ Add one object to the `PROJECTIONS` array in `static/js/map.js`. Nothing else ch
 
 Projections requiring `d3-geo-projection` (CDN loaded in index.html): Robinson, Mollweide, Sinusoidal, Winkel Tripel, Aitoff, Hammer, Gall-Peters, Eckert IV.
 
-Transitions morph a blended projection frame by frame; pairs involving a polar view route through the orthographic globe (fold → spin → unfold) — see the POLAR ROUTE section in `static/js/map.js`.
+Transitions morph a blended projection frame by frame, reprojecting a thinned copy of the geometry (`buildLightGeometry`) for speed; the active recenter view carries over between projections; pairs involving a polar view route through the orthographic globe (fold → spin → unfold) — see the POLAR ROUTE section in `static/js/map.js`.
 
 ---
 

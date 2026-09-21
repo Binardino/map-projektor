@@ -393,6 +393,61 @@ function makeProjection(projDef, rotationOverride = null) {
 }
 
 // ============================================================
+// LIGHT GEOMETRY — animation-only copy of the country/terrain shapes
+//
+// Every animation frame reprojects every vertex through TWO projections
+// (source + target blend) plus D3's adaptive resampling, so frame cost
+// scales with vertex count: the full 21k-vertex world took ~40ms/frame,
+// well past the 16ms budget for 60fps. Thinning vertices closer than
+// LIGHT_MIN_SPACING_DEG cuts that to ~11ms, and the loss is invisible
+// while shapes are moving. The final render always uses the full data,
+// so the resting map is unchanged.
+// ============================================================
+const LIGHT_MIN_SPACING_DEG = 1;
+
+// Keyed by the original feature object, so animation loops can look up a
+// bound datum's light twin without a name lookup (terrain has duplicate names).
+const lightGeometry = new WeakMap();
+
+// Returns null when the ring collapses to a sub-spacing speck.
+function thinRing(ring) {
+  const kept = [ring[0]];
+  for (let i = 1; i < ring.length - 1; i++) {
+    const last = kept[kept.length - 1];
+    if (Math.hypot(ring[i][0] - last[0], ring[i][1] - last[1]) >= LIGHT_MIN_SPACING_DEG) kept.push(ring[i]);
+  }
+  kept.push(ring[ring.length - 1]);
+  return kept.length >= 4 ? kept : null;
+}
+
+// Sub-degree islands are ~80% of all rings (1300 of 1600) but only ~30% of
+// the vertices: their cost is per-ring overhead (clipping + resampling
+// setup), not vertex count, so thinning can't help — they have to be
+// skipped while animating. A few px specks reappear on the final render.
+function thinPolygon(rings) {
+  const exterior = thinRing(rings[0]);
+  return exterior && [exterior, ...rings.slice(1).map(thinRing).filter(Boolean)];
+}
+
+function buildLightGeometry(features) {
+  features.forEach((feature) => {
+    const g = feature.geometry;
+    if (!g || (g.type !== "Polygon" && g.type !== "MultiPolygon")) return;
+    const polygons = g.type === "Polygon" ? [g.coordinates] : g.coordinates;
+    let thinned = polygons.map(thinPolygon).filter(Boolean);
+    // A country made only of specks (Malta, Singapore…) must not vanish
+    // during the morph: keep its first polygon whole, it's cheap anyway.
+    if (!thinned.length) thinned = [polygons[0]];
+    lightGeometry.set(feature, { ...feature, geometry: { type: "MultiPolygon", coordinates: thinned } });
+  });
+}
+
+// Falls back to the full feature for geometry types buildLightGeometry skips.
+function lightOf(feature) {
+  return lightGeometry.get(feature) || feature;
+}
+
+// ============================================================
 // RENDER — draw or update country paths for a given projection
 // ============================================================
 // Draws the sphere's own boundary as a real shape (ocean-colored, with a
@@ -454,7 +509,7 @@ function renderTerrain(group, projection) {
 // charge of the initial/static render.
 function updateTerrainPaths(group, projection) {
   const path = d3.geoPath().projection(projection);
-  group.selectAll("path.terrain-patch").attr("d", path);
+  group.selectAll("path.terrain-patch").attr("d", (d) => path(lightOf(d)));
 }
 
 // ============================================================
@@ -510,7 +565,10 @@ function blendProjection(projFrom, projTo, rotation = null) {
   // viewport lies *inside* a polygon from its winding, and mid-blend folds of
   // Antarctica flipped that test — filling the whole screen. The SVG viewport
   // already crops offscreen geometry visually, so planar clipping adds nothing.
-  return projection.scale(1).alpha(0);
+  // Coarser than D3's 0.5px default: resampling is a big share of per-frame
+  // cost and 2px is invisible on shapes that are moving. Every blend is
+  // followed by a native full-precision render.
+  return projection.scale(1).precision(2).alpha(0);
 }
 
 // Orthographic clips to the visible hemisphere (90°); everything else
@@ -550,7 +608,7 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
       const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
       projection.alpha(t);
       if (clipFrom !== null) projection.clipAngle(clipFrom + (clipTo - clipFrom) * t);
-      countries.attr("d", (d) => pathFn(d) || "");
+      countries.attr("d", (d) => pathFn(lightOf(d)) || "");
       if (crossfade) {
         globeSphere.style("opacity", 1 - t);
         globeSphereFade.style("opacity", t);
@@ -568,10 +626,15 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
   });
 }
 
-function animateTransition(fromDef, toDef, duration) {
-  const fromProjection = makeProjection(fromDef);
-  const toProjection   = makeProjection(toDef);
-  const projection     = blendProjection(fromProjection, toProjection);
+// `rotation` is the active recenter view (null = Europe-centered): endpoints are
+// built unrotated and the blend wrapper carries it, so clip circles stay
+// centred on the view (see blendProjection) and the morph keeps the user's
+// framing instead of snapping back to Europe.
+function animateTransition(fromDef, toDef, duration, rotation = null) {
+  const projection = blendProjection(makeProjection(fromDef), makeProjection(toDef), rotation);
+  // The crossfade outlines are static endpoint shapes, so they carry the rotation themselves
+  const fromProjection = makeProjection(fromDef, rotation);
+  const toProjection   = makeProjection(toDef, rotation);
   const clipFrom = clipAngleOf(fromDef);
   const clipTo   = clipAngleOf(toDef);
   // Only azimuthal-hemisphere transitions need the circle clip; other
@@ -606,7 +669,7 @@ function animateRotation(fromRot, toRot, duration) {
         fromRot[0] + (toRot[0] - fromRot[0]) * t,
         fromRot[1] + (toRot[1] - fromRot[1]) * t,
       ]);
-      countries.attr("d", (d) => pathFn(d) || "");
+      countries.attr("d", (d) => pathFn(lightOf(d)) || "");
       renderGlobeSphere(globeSphere, projection);
       updateTerrainPaths(terrainGroup, projection);
       if (tissotVisible) updateTissotPaths(tissotGroup, projection);
@@ -685,11 +748,11 @@ async function transitionTo(newProjId) {
   if (POLAR_ROTATION[fromDef.id] || POLAR_ROTATION[toDef.id]) {
     await polarTransition(fromDef, toDef);
   } else {
-    await animateTransition(fromDef, toDef, 1400);
+    await animateTransition(fromDef, toDef, 1400, currentRecenterRotate);
   }
 
   // Final render with the true target projection (native clipping rules)
-  renderMap(makeProjection(toDef));
+  renderMap(makeProjection(toDef, currentRecenterRotate));
 
   currentProjectionId = newProjId;
   updateInfo(toDef);
@@ -939,8 +1002,9 @@ function setActiveButton(projId) {
 // and the country-zoom selection are mutually exclusive for now — each
 // clears the other — since composing "zoomed on a country" with "the
 // whole sphere rotated" isn't handled by the zoom math yet. Switching
-// projection always resets to World View, so the animated morph never
-// has to deal with a rotation override either.
+// projection keeps the active view (the morph carries its rotation, see
+// animateTransition); only Albers/polar, which can't be recentred, ease
+// back to Europe-centered first (see switchProjection).
 //
 // The "upside-down" preset is a true vertical mirror (flipVertical),
 // not a 180° rotate() — d3's rotate() performs a rigid rotation of the
@@ -951,8 +1015,11 @@ function setActiveButton(projId) {
 // transform on top of the (longitude-only) rotated render instead.
 // ============================================================
 const RECENTER_PRESETS = [
-  { id: "world", name: "World View", rotate: null,
-    description: "Default centering." },
+  // id stays "world" (state checks and the perf harness key on it); only the label changed.
+  { id: "world", name: "Europe-centered", rotate: null,
+    description: "Default centering on the Greenwich meridian — the Atlantic-centred convention of most Western atlases, with Europe and West Africa in the middle." },
+  { id: "africa", name: "Africa-centered", rotate: [-20, 0, 0],
+    description: "Centred near 20°E, the middle of the African continent — the natural framing for atlases of Africa, and a reminder that Europe-centered is a choice, not a default of nature." },
   { id: "china", name: "China-centered", rotate: [-105, 0, 0],
     description: "Common convention in Chinese school atlases — centred near 105°E, splitting the world along the Atlantic instead of the Pacific." },
   { id: "usaPacific", name: "USA / Pacific-centered", rotate: [98, 0, 0],
@@ -1026,7 +1093,7 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
         from[1] + (to[1] - from[1]) * t,
         (from[2] || 0) + ((to[2] || 0) - (from[2] || 0)) * t,
       ]);
-      countries.attr("d", (d) => pathFn(d) || "");
+      countries.attr("d", (d) => pathFn(lightOf(d)) || "");
       // Same per-frame refresh as animateBlend/animateRotation — terrain
       // (and the sphere outline/grid, if visible) used to only repaint at
       // the very end of a recenter, so they sat frozen throughout the
@@ -1104,12 +1171,17 @@ function refreshRecenterAvailability() {
 // ============================================================
 // SWITCH PROJECTION
 // ============================================================
-function switchProjection(newProjId) {
+async function switchProjection(newProjId) {
   if (isAnimating || newProjId === currentProjectionId) return;
   if (!PROJECTIONS.find((p) => p.id === newProjId)) return;
   closeSidebar(); // no-op on desktop; on mobile, reveals the map after picking
-  resetRecenter(); // presets don't survive a projection change, see RECENTER PRESETS note
   setActiveButton(newProjId); // highlight immediately — don't wait for the ~1.4-2.3s morph to finish
+  // The active view carries over to any compatible projection (transitionTo
+  // morphs with its rotation). Albers/polar can't be recentred, so ease back
+  // to Europe first — otherwise the morph would end on a snapped rotation.
+  if (RECENTER_INCOMPATIBLE.has(newProjId) && (currentRecenterRotate || currentRecenterFlip)) {
+    await applyRecenter("world");
+  }
   transitionTo(newProjId);
 }
 
@@ -1909,6 +1981,8 @@ async function init() {
   ]);
   worldData = await worldResponse.json();
   terrainData = await terrainResponse.json();
+  buildLightGeometry(worldData.features);
+  buildLightGeometry(terrainData.features);
 
   const initialProj = PROJECTIONS.find((p) => p.id === currentProjectionId);
   buildSidebar();

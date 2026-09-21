@@ -9,6 +9,21 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 - Its copy was rewritten in a plainer voice and now names the controls that actually exist — the old text still described the "Show Distortion Grid", "Draw Flight Path" and "Compare True Size" buttons the Figma redesign removed
 - `scripts/perf_transitions.py` closes the modal after loading instead of pre-setting the old localStorage flag
 
+## 2026-09-21 — Transition perf + view persistence (on `perf/light-geometry-transitions`)
+
+### Changed
+- Transitions reproject a thinned copy of the country/terrain geometry (`buildLightGeometry`: vertices closer than 1° dropped, sub-degree islands skipped) instead of the full 21k-vertex world; path generation per frame drops from ~46ms to ~14ms. The final render still uses the full data, so the resting map is unchanged (specks under ~4px only reappear once the morph ends)
+- Blended projections resample at 2px precision (was D3's 0.5px default) — invisible while moving, ~1ms/frame saved
+- Switching projection now keeps the active view (China, USA/Pacific, Africa, upside-down) — the morph carries its rotation instead of snapping back to Europe. Albers and the polar views can't be recentred, so they ease back to Europe-centered first
+- "World View" renamed "Europe-centered" (id `world` unchanged)
+- Perf harness: hard 24ms average-frame ceiling and 1.15x baseline tolerance (was 1.5x, which let a ~25ms baseline pass unnoticed); new `view china: …` cases cover view-preserving transitions
+
+### Added
+- "Africa-centered" view (centred near 20°E)
+
+### Measured (headless Chromium, software raster)
+- Average frame ~27ms → ~20ms on standard transitions, polar route ~43ms → ~22ms (twice as many frames rendered). Floor in this environment is ~16.9ms (pure-CSS flip), so remaining cost is mostly rasterisation, not JS
+
 ## 2026-09-20 — South America flip fix + transition perf harness (on `feature/figma-redesign`)
 
 ### Fixed
