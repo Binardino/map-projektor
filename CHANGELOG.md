@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-24 — Pink ocean during transitions (on `fix/light-geometry-inverted-rings`)
+
+### Fixed
+- During projection morphs and recenter spins the ocean was often painted over in land colour. Thinning three small concave islands (Gotland, Sumbawa, Unalaska) down to a triangle reversed their winding, and on a sphere a reversed ring means "the whole globe minus the island". `thinPolygon` now keeps a polygon unthinned when its thinned version covers more than a hemisphere; only those three islands are affected, so the light geometry's speed-up is unchanged
+- Replaying the user's recorded sequence: frames with no visible ocean went from 269/401 to 0 caused by this bug (the remaining ones come from the old upside-down flip, fixed separately in PR #31)
+
 ## 2026-09-21 — String extraction (i18n groundwork)
 
 ### Changed
