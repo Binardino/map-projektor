@@ -8,264 +8,166 @@
 // d3fn must return a D3 projection instance (not yet fitted to
 // the viewport — that happens in makeProjection()).
 // ============================================================
+// name and tradeoffs live in static/i18n/<lang>.json under projection.<id>.*;
+// `family` is a grouping identifier whose label is family.<lowercase family>.
+const projectionName = (proj) => t(`projection.${proj.id}.name`);
+
 const PROJECTIONS = [
   {
     id: "mercator",
-    name: "Mercator",
     family: "Cylindrical",
     year: 1569,
     description:
       "Preserves angles (conformal). Severely distorts area near the poles. " +
       "The standard for maritime navigation for centuries.",
-    tradeoffs: {
-      preserves: "Angles and shapes locally (conformal) — a straight line on the map is a constant compass bearing.",
-      distorts: "Area, dramatically, away from the equator — Greenland appears larger than Africa despite being 14x smaller.",
-      bestFor: "Nautical and aviation navigation, web maps at street-level zoom.",
-    },
     d3fn: () => d3.geoMercator(),
   },
   {
     id: "equirectangular",
-    name: "Equirectangular",
     family: "Cylindrical",
     year: 100,
     description:
       "Maps longitude and latitude directly to x and y. Simple but distorts " +
       "both shape and area away from the equator.",
-    tradeoffs: {
-      preserves: "Nothing exactly, but distances along meridians and the equator are true to scale.",
-      distorts: "Both shape and area, worsening toward the poles — a 1:1 lon/lat grid is not a neutral choice.",
-      bestFor: "Simplicity and raw geographic data (it's just the coordinates), not display accuracy.",
-    },
     d3fn: () => d3.geoEquirectangular(),
   },
   {
     id: "gallPeters",
-    name: "Gall-Peters",
     family: "Cylindrical",
     year: 1855,
     description:
       "Equal-area cylindrical: every country is shown at its true relative size. " +
       "A direct political response to Mercator — Africa appears far larger than Europe.",
-    tradeoffs: {
-      preserves: "Area exactly — every landmass is shown at its true relative size.",
-      distorts: "Shape severely near the equator and poles — continents look visibly stretched vertically.",
-      bestFor: "Thematic maps where relative size matters more than recognizable shape (population, resources).",
-    },
     // parallel(45) is the standard that makes this equal-area (James Gall, 1855;
     // re-popularised by Arno Peters in 1973, sparking the "Peters controversy")
     d3fn: () => d3.geoCylindricalEqualArea().parallel(45),
   },
   {
     id: "robinson",
-    name: "Robinson",
     family: "Pseudocylindrical",
     year: 1963,
     description:
       "Visual compromise: neither conformal nor equal-area, but aesthetically " +
       "pleasing. Used by National Geographic from 1988 to 1998.",
-    tradeoffs: {
-      preserves: "Nothing exactly — it's a table-based compromise, tuned by eye rather than a strict formula.",
-      distorts: "Everything a little (area, shape, distance) rather than any one thing a lot.",
-      bestFor: "General-purpose reference world maps where no single property needs to be exact.",
-    },
     d3fn: () => d3.geoRobinson(),
   },
   {
     id: "mollweide",
-    name: "Mollweide",
     family: "Pseudocylindrical",
     year: 1805,
     description:
       "Equal-area projection. Shapes are distorted near the edges but all " +
       "regions are represented at their true relative size.",
-    tradeoffs: {
-      preserves: "Area exactly, within an elliptical world outline.",
-      distorts: "Shape strongly near the outer edge of the ellipse, especially at high latitudes.",
-      bestFor: "Global thematic maps (e.g. star charts, world distributions) where area is what matters.",
-    },
     d3fn: () => d3.geoMollweide(),
   },
   {
     id: "naturalEarth",
-    name: "Natural Earth",
     family: "Pseudocylindrical",
     year: 2012,
     description:
       "Designed by Tom Patterson for attractive world maps. A smooth compromise " +
       "between conformal and equal-area with gently rounded poles.",
-    tradeoffs: {
-      preserves: "Nothing exactly — another eyeballed compromise, tuned specifically to look natural at a glance.",
-      distorts: "Area and shape both, mildly, worst at high latitudes near the rounded poles.",
-      bestFor: "Wall maps and general reference where visual appeal matters more than any measurable property.",
-    },
     d3fn: () => d3.geoNaturalEarth1(),
   },
   {
     id: "equalEarth",
-    name: "Equal Earth",
     family: "Pseudocylindrical",
     year: 2018,
     description:
       "Modern equal-area projection inspired by Robinson's aesthetics. " +
       "Designed as an answer to Gall-Peters: true sizes without the stretching.",
-    tradeoffs: {
-      preserves: "Area exactly, while keeping shapes visibly less stretched than Gall-Peters.",
-      distorts: "Shape moderately near the poles, though far less severely than older equal-area projections.",
-      bestFor: "Modern replacement for Gall-Peters — true-size thematic maps that still look natural.",
-    },
     d3fn: () => d3.geoEqualEarth(),
   },
   {
     id: "eckert4",
-    name: "Eckert IV",
     family: "Pseudocylindrical",
     year: 1906,
     description:
       "Equal-area projection with poles drawn as lines half the equator's length. " +
       "A favourite for thematic world maps of climate and population.",
-    tradeoffs: {
-      preserves: "Area exactly, with a rounded outline that reads comfortably at world scale.",
-      distorts: "Shape at high latitudes, where landmasses compress toward the half-length pole lines.",
-      bestFor: "Thematic climate/population maps — the same equal-area guarantee as Mollweide, gentler shape.",
-    },
     d3fn: () => d3.geoEckert4(),
   },
   {
     id: "sinusoidal",
-    name: "Sinusoidal",
     family: "Pseudocylindrical",
     year: 1570,
     description:
       "One of the oldest pseudocylindrical projections. Equal-area, but strong " +
       "shearing distortion appears near the edges.",
-    tradeoffs: {
-      preserves: "Area exactly, and distance is true along the equator and every meridian.",
-      distorts: "Shape severely at the outer edges — a strong diagonal shear near high longitudes at high latitudes.",
-      bestFor: "Historical interest and equal-area work that specifically needs true meridian distances.",
-    },
     d3fn: () => d3.geoSinusoidal(),
   },
   {
     id: "orthographic",
-    name: "Orthographic",
     family: "Azimuthal",
     year: 200,
     description:
       "Simulates viewing Earth from infinite distance — the 'space view'. " +
       "Only one hemisphere is visible at a time.",
-    tradeoffs: {
-      preserves: "The visual perspective of a globe seen from space — the only projection here that looks like a sphere.",
-      distorts: "Area and shape increasingly toward the visible edge (the limb), where the surface is nearly edge-on.",
-      bestFor: "Intuitive 'globe' views and showing a single hemisphere or region in spatial context.",
-    },
     d3fn: () => d3.geoOrthographic(),
   },
   {
     id: "azimuthalEqualArea",
-    name: "Azimuthal Equal Area",
     family: "Azimuthal",
     year: 1772,
     description:
       "Preserves area accurately across the entire map from a central anchor point. " +
       "Unlike Mercator, Greenland and Africa appear at their true relative sizes.",
-    tradeoffs: {
-      preserves: "Area exactly from its center point outward, and direction from that same center.",
-      distorts: "Shape more and more with distance from the center — regions near the antipode get squeezed into the outer rim.",
-      bestFor: "Maps centered on one point of interest where true area from that point matters (e.g. flight-range studies).",
-    },
     d3fn: () => d3.geoAzimuthalEqualArea(),
   },
   {
     id: "polarNorth",
-    name: "North Polar",
     family: "Azimuthal",
     year: 1946,
     description:
       "Azimuthal equidistant centred on the North Pole — the view on the United " +
       "Nations emblem. Distances measured from the pole are true to scale.",
-    tradeoffs: {
-      preserves: "Distance from the North Pole to anywhere else — that's the one property equidistant guarantees.",
-      distorts: "Area and shape severely near the outer edge, where Antarctica is stretched into a ring around the map.",
-      bestFor: "Polar-region maps and anything where 'distance from this one point' is the property that matters.",
-    },
     // clipAngle(179) trims a 1° cap around the antipode (the South Pole),
     // where this projection is singular — Antarctica renders as the outer ring
     d3fn: () => d3.geoAzimuthalEquidistant().rotate([0, -90]).clipAngle(179),
   },
   {
     id: "polarSouth",
-    name: "South Polar",
     family: "Azimuthal",
     year: 1000,
     description:
       "Azimuthal equidistant centred on the South Pole. Antarctica sits at the " +
       "centre, surrounded by the Southern Ocean and every other continent.",
-    tradeoffs: {
-      preserves: "Distance from the South Pole to anywhere else, same guarantee as the North Polar view mirrored.",
-      distorts: "Area and shape severely near the outer edge, where the Arctic is stretched into the outer ring instead.",
-      bestFor: "Southern-hemisphere and Antarctic-focused maps — a viewpoint almost never seen on a default world map.",
-    },
     d3fn: () => d3.geoAzimuthalEquidistant().rotate([0, 90]).clipAngle(179),
   },
   {
     id: "winkelTripel",
-    name: "Winkel Tripel",
     family: "Pseudoazimuthal",
     year: 1921,
     description:
       "Minimises the combined distortion of area, angles, and distances. " +
       "Adopted by the National Geographic Society in 1998.",
-    tradeoffs: {
-      preserves: "Nothing exactly, but keeps area, angle, and distance distortion all simultaneously low.",
-      distorts: "A little of everything by design — the explicit tradeoff its name promises (a 'tripel' compromise).",
-      bestFor: "General-purpose world reference maps — National Geographic's current standard for this reason.",
-    },
     d3fn: () => d3.geoWinkel3(),
   },
   {
     id: "aitoff",
-    name: "Aitoff",
     family: "Pseudoazimuthal",
     year: 1889,
     description:
       "Modified azimuthal projection with an elliptical boundary. " +
       "Reduces polar distortion compared to cylindrical projections.",
-    tradeoffs: {
-      preserves: "Nothing exactly — neither conformal nor equal-area, a geometric compromise built for a pleasing outline.",
-      distorts: "Both shape and area, moderately, worst near the outer edge of the ellipse.",
-      bestFor: "Historical/reference use — mostly superseded today by its equal-area descendant, Hammer.",
-    },
     d3fn: () => d3.geoAitoff(),
   },
   {
     id: "hammer",
-    name: "Hammer",
     family: "Pseudoazimuthal",
     year: 1892,
     description:
       "Equal-area modification of the Aitoff projection. Widely used in " +
       "astronomy to map the entire celestial sphere.",
-    tradeoffs: {
-      preserves: "Area exactly, inheriting Aitoff's pleasing elliptical outline.",
-      distorts: "Shape near the outer edge of the ellipse, though less severely than Aitoff or Mollweide.",
-      bestFor: "Whole-sky/whole-world equal-area maps — astronomy's default for all-sky projections.",
-    },
     d3fn: () => d3.geoHammer(),
   },
   {
     id: "albers",
-    name: "Albers",
     family: "Conic",
     year: 1805,
     description:
       "Conic equal-area projection with two standard parallels. Best for " +
       "mid-latitude regions. Official projection for US Census maps.",
-    tradeoffs: {
-      preserves: "Area exactly, and shape stays accurate between its two standard parallels (here 20°N and 50°N).",
-      distorts: "Shape more and more the further a region sits from those two parallels — poor for global/equatorial use.",
-      bestFor: "Mid-latitude regional maps of a single country or continent (its original purpose: the continental US).",
-    },
     // Recentred for a world view — default is tuned for the USA
     d3fn: () => d3.geoAlbers().rotate([0, 0]).parallels([20, 50]).scale(153),
   },
@@ -772,24 +674,20 @@ const infoTradeoffsContent = document.getElementById("info-tradeoffs-content");
 
 // Always fully shown now (no expand/collapse) — matches the Figma card,
 // which has no toggle, just the three terms laid out directly.
-function renderTradeoffs(tradeoffs) {
+function renderTradeoffs(projDef) {
   infoTradeoffsContent.innerHTML = "";
-  [
-    ["Preserves", tradeoffs.preserves],
-    ["Distorts", tradeoffs.distorts],
-    ["Best for", tradeoffs.bestFor],
-  ].forEach(([term, definition]) => {
+  ["preserves", "distorts", "bestFor"].forEach((field) => {
     const dt = document.createElement("dt");
-    dt.textContent = term;
+    dt.textContent = t(`info.${field}`);
     const dd = document.createElement("dd");
-    dd.textContent = definition;
+    dd.textContent = t(`projection.${projDef.id}.${field}`);
     infoTradeoffsContent.append(dt, dd);
   });
 }
 
 function updateInfo(projDef) {
-  document.getElementById("info-name").textContent = projDef.name;
-  renderTradeoffs(projDef.tradeoffs);
+  document.getElementById("info-name").textContent = projectionName(projDef);
+  renderTradeoffs(projDef);
 }
 
 // The info card is opt-in now (see the toolbar's "i" icon in
@@ -830,12 +728,18 @@ const compareProjectionSelect = document.getElementById("compare-projection-sele
 const compareCountryInput     = document.getElementById("compare-country-input");
 const compareCountryResults   = document.getElementById("compare-country-results");
 
-PROJECTIONS.forEach((proj) => {
-  const option = document.createElement("option");
-  option.value = proj.id;
-  option.textContent = proj.name;
-  compareProjectionSelect.appendChild(option);
-});
+// Called from init() once the language is loaded (names come from t()); it
+// keeps the HTML placeholder option (empty value) and replaces the rest, so a
+// language switch can call it again.
+function buildCompareProjectionOptions() {
+  compareProjectionSelect.querySelectorAll("option[value]:not([value=''])").forEach((o) => o.remove());
+  PROJECTIONS.forEach((proj) => {
+    const option = document.createElement("option");
+    option.value = proj.id;
+    option.textContent = projectionName(proj);
+    compareProjectionSelect.appendChild(option);
+  });
+}
 
 let compareCardVisible     = false;
 let compareCountryNames    = null; // populated lazily once worldData is ready — full alphabetical list
@@ -964,7 +868,7 @@ function buildSidebar() {
     if (proj.family !== lastFamily) {
       const header = document.createElement("p");
       header.className = "proj-family-header";
-      header.textContent = proj.family;
+      header.textContent = t(`family.${proj.family.toLowerCase()}`);
       nav.appendChild(header);
       lastFamily = proj.family;
     }
@@ -973,7 +877,7 @@ function buildSidebar() {
     btn.className      = "sidebar-btn proj-btn";
     btn.id             = `btn-${proj.id}`;
     btn.dataset.projId = proj.id;
-    btn.textContent    = proj.name;
+    btn.textContent    = projectionName(proj);
     btn.addEventListener("click", () => switchProjection(proj.id));
     nav.appendChild(btn);
   });
@@ -1014,18 +918,14 @@ function setActiveButton(projId) {
 // isn't expressible as a sphere rotation, so it's applied as a 2D SVG
 // transform on top of the (longitude-only) rotated render instead.
 // ============================================================
+// Labels live in static/i18n/<lang>.json under view.<id>.name / .description.
+// id stays "world" (state checks and the perf harness key on it) although it is shown as Europe-centered.
 const RECENTER_PRESETS = [
-  // id stays "world" (state checks and the perf harness key on it); only the label changed.
-  { id: "world", name: "Europe-centered", rotate: null,
-    description: "Default centering on the Greenwich meridian — the Atlantic-centred convention of most Western atlases, with Europe and West Africa in the middle." },
-  { id: "africa", name: "Africa-centered", rotate: [-20, 0, 0],
-    description: "Centred near 20°E, the middle of the African continent — the natural framing for atlases of Africa, and a reminder that Europe-centered is a choice, not a default of nature." },
-  { id: "china", name: "China-centered", rotate: [-105, 0, 0],
-    description: "Common convention in Chinese school atlases — centred near 105°E, splitting the world along the Atlantic instead of the Pacific." },
-  { id: "usaPacific", name: "USA / Pacific-centered", rotate: [98, 0, 0],
-    description: "Common convention in American atlases — centred near 98°W, splitting the world through Europe and Africa." },
-  { id: "southAmericaFlipped", name: "South America (upside-down)", rotate: [60, 0, 0], flipVertical: true,
-    description: "South-up orientation, inspired by McArthur's Universal Corrective Map (1979) — a deliberate challenge to the assumption that \"north = up\"." },
+  { id: "world", rotate: null },
+  { id: "africa", rotate: [-20, 0, 0] },
+  { id: "china", rotate: [-105, 0, 0] },
+  { id: "usaPacific", rotate: [98, 0, 0] },
+  { id: "southAmericaFlipped", rotate: [60, 0, 0], flipVertical: true },
 ];
 
 const RECENTER_INCOMPATIBLE = new Set(["albers", "polarNorth", "polarSouth"]);
@@ -1039,8 +939,8 @@ function buildRecenterPanel() {
     const btn = document.createElement("button");
     btn.className = "sidebar-btn recenter-btn" + (preset.id === "world" ? " active" : "");
     btn.dataset.presetId = preset.id;
-    btn.title = preset.description;
-    btn.textContent = preset.name;
+    btn.title = t(`view.${preset.id}.description`);
+    btn.textContent = t(`view.${preset.id}.name`);
     btn.addEventListener("click", () => applyRecenter(preset.id));
     nav.appendChild(btn);
   });
@@ -1368,7 +1268,7 @@ function buildComparePanel(panelEl, initialProjId) {
   PROJECTIONS.forEach((proj) => {
     const option = document.createElement("option");
     option.value = proj.id;
-    option.textContent = proj.name;
+    option.textContent = projectionName(proj);
     select.appendChild(option);
   });
   select.value = initialProjId;
@@ -1925,31 +1825,8 @@ if (trueSizeInput) {
 // there is no "seen" flag and no manual re-open trigger.
 // ============================================================
 
-// Keep the control names in sync with templates/index.html; this copy
-// once described buttons that the Figma redesign had already removed.
-const HELP_MODAL_CONTENT = `
-  <p>As we all know, the Earth is a sphere. (Sorry, flat earthers.)</p>
-  <p>Squashing it onto a flat map is where it gets awkward: shapes, areas,
-  distances and directions can't all survive the trip, so every projection
-  picks what to keep and what to bend. Each choice has its perks and its
-  little lies. On a Mercator map, Greenland looks as big as Africa, which is
-  about 14 times larger.</p>
-  <p>This tool lets you see those trade-offs for yourself.</p>
-  <h3>How it works</h3>
-  <ul>
-    <li>Pick a projection on the left and the map morphs into it.</li>
-    <li>Pick a view to recentre the map. Europe in the middle is a habit,
-    not a law of nature.</li>
-    <li>The buttons on the right of the map: a distortion grid (circles that
-    show where a projection stretches things), light/dark mode, compare mode
-    (see a country under a second projection) and <strong>i</strong>, for what
-    the current projection preserves and distorts.</li>
-  </ul>
-`;
-
 const helpModalBackdrop = document.getElementById("help-modal-backdrop");
 const helpModalCloseBtn = document.getElementById("help-modal-close");
-document.getElementById("help-modal-body").innerHTML = HELP_MODAL_CONTENT;
 
 function openHelpModal() {
   helpModalBackdrop.hidden = false;
@@ -1969,12 +1846,16 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !helpModalBackdrop.hidden) closeHelpModal();
 });
 
-openHelpModal();
 
 // ============================================================
 // INIT — fetch GeoJSON then render
 // ============================================================
 async function init() {
+  // Before anything renders: sidebar buttons, info card and view labels all
+  // read their text through t().
+  await loadLanguage("en");
+  openHelpModal(); // after the language loads, or the modal would flash empty
+
   const [worldResponse, terrainResponse] = await Promise.all([
     fetch("/data/world.geojson"),
     fetch("/data/terrain.geojson"),
@@ -1987,6 +1868,7 @@ async function init() {
   const initialProj = PROJECTIONS.find((p) => p.id === currentProjectionId);
   buildSidebar();
   buildRecenterPanel();
+  buildCompareProjectionOptions();
   renderMap(makeProjection(initialProj));
   updateInfo(initialProj);
   updateGlobeBackground();

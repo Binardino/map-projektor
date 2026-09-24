@@ -14,20 +14,20 @@
 <body>
   <div id="app">
 
-    <button id="sidebar-toggle" aria-label="Toggle menu">☰</button>
+    <button id="sidebar-toggle" data-i18n-attr="aria-label:sidebar.menuToggle">☰</button>
     <div id="sidebar-backdrop" hidden></div>
 
     <aside id="sidebar">
       <div id="sidebar-header">
-        <h1>Map Projektor</h1>
-        <p class="tagline">Universal Converter</p>
+        <h1 data-i18n="app.title"></h1>
+        <p class="tagline" data-i18n="app.tagline"></p>
       </div>
       <nav id="projection-list">
-        <p class="section-title">Select a projection</p>
+        <p class="section-title" data-i18n="sidebar.selectProjection"></p>
         <!-- Family headers + buttons populated by map.js from the PROJECTIONS array -->
       </nav>
       <div id="recenter-panel">
-        <p class="section-title">Select a view</p>
+        <p class="section-title" data-i18n="sidebar.selectView"></p>
         <nav id="recenter-list">
           <!-- Populated by map.js from the RECENTER_PRESETS array -->
         </nav>
@@ -38,44 +38,44 @@
       <div id="map-container">
         <svg id="map-svg"></svg>
         <div id="zoom-controls">
-          <button id="zoom-in-btn" aria-label="Zoom in" title="Zoom in">
+          <button id="zoom-in-btn" data-i18n-attr="aria-label:zoom.in;title:zoom.in">
             <svg width="16" height="16" viewBox="0 0 16.5 16.5" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.25 0.75V15.75M15.75 8.25H0.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-          <button id="zoom-out-btn" aria-label="Zoom out" title="Zoom out">
+          <button id="zoom-out-btn" data-i18n-attr="aria-label:zoom.out;title:zoom.out">
             <svg width="15" height="2" viewBox="0 0 15.5 1.5" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.75 0.75H14.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
         <div id="map-tools">
-          <button id="grid-toggle-btn" class="tool-btn" aria-pressed="false" aria-label="Show/Hide distortion grid" data-tooltip="Show/Hide distortion grid">
+          <button id="grid-toggle-btn" class="tool-btn" aria-pressed="false" data-i18n-attr="aria-label:tool.grid;data-tooltip:tool.grid">
             <svg width="16" height="17" viewBox="0 0 16 16.2002" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.75 0C11.1642 1.81059e-08 11.5 0.335786 11.5 0.75V4.5H15.25C15.6642 4.5 16 4.83579 16 5.25C16 5.66421 15.6642 6 15.25 6H11.5V11H15.25C15.6642 11 16 11.3358 16 11.75C16 12.1642 15.6642 12.5 15.25 12.5H11.5V15.25C11.5 15.6642 11.1642 16 10.75 16C10.3358 16 10 15.6642 10 15.25V12.5H5.5V15.4502C5.4999 15.8643 5.16415 16.2002 4.75 16.2002C4.33585 16.2002 4.0001 15.8643 4 15.4502V12.5H0.75C0.335787 12.5 7.19743e-07 12.1642 0 11.75C3.62117e-08 11.3358 0.335787 11 0.75 11H4V6H0.75C0.335787 6 7.19743e-07 5.66421 0 5.25C3.62117e-08 4.83579 0.335787 4.5 0.75 4.5H4V0.950195C4 0.535982 4.33579 0.200195 4.75 0.200195C5.16421 0.200195 5.5 0.535982 5.5 0.950195V4.5H10V0.75C10 0.335786 10.3358 -1.81059e-08 10.75 0ZM5.5 11H10V6H5.5V11Z" fill="currentColor"/></svg>
           </button>
-          <button id="theme-toggle-btn" class="tool-btn" aria-label="Light/Dark mode" data-tooltip="Light/Dark mode">
+          <button id="theme-toggle-btn" class="tool-btn" data-i18n-attr="aria-label:tool.theme;data-tooltip:tool.theme">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.10059 0.00195312C12.4725 0.0558304 16 3.6153 16 8C16 12.3847 12.4725 15.9432 8.10059 15.9971V16C8.08377 16 8.0666 15.9982 8.0498 15.998C8.03321 15.9981 8.01662 16 8 16C3.58172 16 0 12.4183 0 8C0 3.58172 3.58172 0 8 0C8.01662 0 8.03321 0.000875405 8.0498 0.000976562C8.0666 0.000872911 8.08377 0 8.10059 0V0.00195312ZM8.10059 14.4971C11.644 14.4433 14.5 11.5563 14.5 8C14.5 4.44374 11.644 1.55572 8.10059 1.50195V14.4971Z" fill="currentColor"/></svg>
           </button>
-          <button id="compare-toggle-btn" class="tool-btn" aria-pressed="false" aria-label="Comparation mode" data-tooltip="Comparation mode">
+          <button id="compare-toggle-btn" class="tool-btn" aria-pressed="false" data-i18n-attr="aria-label:tool.compare;data-tooltip:tool.compare">
             <svg width="16" height="23" viewBox="0 0 16 23" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.0498 0C8.46402 1.81059e-08 8.7998 0.335786 8.7998 0.75V3H15C15.5523 3 16 3.44772 16 4V18C16 18.5523 15.5523 19 15 19H8.7998V22.25C8.7998 22.6642 8.46402 23 8.0498 23C7.63576 22.9998 7.2998 22.6641 7.2998 22.25V19H1L0.897461 18.9951C0.393331 18.9438 0 18.5177 0 18V4C0 3.48232 0.393331 3.05621 0.897461 3.00488L1 3H7.2998V0.75C7.2998 0.335909 7.63576 0.000197827 8.0498 0ZM8.7998 17.5H14.5V4.5H8.7998V17.5ZM1.5 17.5H7.2998V4.5H1.5V17.5Z" fill="currentColor"/></svg>
           </button>
-          <button id="info-toggle-btn" class="tool-btn" aria-pressed="false" aria-label="Information" data-tooltip="Information">i</button>
+          <button id="info-toggle-btn" class="tool-btn" aria-pressed="false" data-i18n-attr="aria-label:tool.info;data-tooltip:tool.info">i</button>
         </div>
         <div id="projection-info" class="floating-card" hidden>
           <div class="floating-card-header">
             <p id="info-name" class="floating-card-title"></p>
-            <button id="info-close-btn" class="floating-card-close" aria-label="Close">✕</button>
+            <button id="info-close-btn" class="floating-card-close" data-i18n-attr="aria-label:common.close">✕</button>
           </div>
           <dl id="info-tradeoffs-content"></dl>
         </div>
         <div id="compare-card" class="floating-card" hidden>
           <div class="floating-card-header">
-            <p class="floating-card-title">Compare</p>
-            <button id="compare-card-close" class="floating-card-close" aria-label="Close">✕</button>
+            <p class="floating-card-title" data-i18n="compare.title"></p>
+            <button id="compare-card-close" class="floating-card-close" data-i18n-attr="aria-label:common.close">✕</button>
           </div>
-          <p class="floating-card-description">Compare the size of a country with another projection</p>
+          <p class="floating-card-description" data-i18n="compare.description"></p>
           <div id="compare-country-picker">
-            <input type="text" id="compare-country-input" placeholder="Choose a country…" autocomplete="off" />
+            <input type="text" id="compare-country-input" data-i18n-attr="placeholder:compare.countryPlaceholder" autocomplete="off" />
             <ul id="compare-country-results" hidden></ul>
           </div>
           <select id="compare-projection-select">
-            <option value="" disabled selected>Choose a projection</option>
+            <option value="" disabled selected data-i18n="compare.chooseProjection"></option>
           </select>
         </div>
       </div>
@@ -94,10 +94,18 @@
 
     <div id="help-modal-backdrop" hidden>
       <div id="help-modal" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">
-        <button id="help-modal-close" aria-label="Close">✕</button>
-        <h2 id="help-modal-title">Welcome to Map Projektor!</h2>
+        <button id="help-modal-close" data-i18n-attr="aria-label:common.close">✕</button>
+        <h2 id="help-modal-title" data-i18n="welcome.title"></h2>
         <div id="help-modal-body">
-          <!-- Populated by map.js -->
+          <p data-i18n="welcome.intro1"></p>
+          <p data-i18n="welcome.intro2"></p>
+          <p data-i18n="welcome.intro3"></p>
+          <h3 data-i18n="welcome.howTitle"></h3>
+          <ul>
+            <li data-i18n="welcome.how1"></li>
+            <li data-i18n="welcome.how2"></li>
+            <li data-i18n-html="welcome.how3"></li>
+          </ul>
         </div>
       </div>
     </div>
@@ -107,6 +115,7 @@
   <!-- CDN libraries — order matters: d3-geo-projection extends d3, map.js uses both -->
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4/dist/d3-geo-projection.min.js"></script>
+  <script src="/static/js/i18n.js"></script>
   <script src="/static/js/map.js"></script>
 </body>
 </html>
