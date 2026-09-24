@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-24 — Full-width sidebar rows (on `fix/sidebar-full-width-rows`)
+
+### Fixed
+- Every projection and view button in the left sidebar now spans the full row (minus its 12px side margins), so the hover and selected highlights are all the same width. A `<button>` shrinks to its label even with `display: block`, so each highlight used to be as wide as its text (68px for "Aitoff", 215px for "South America (upside-down)")
+
 ## 2026-09-21 — String extraction (i18n groundwork)
 
 ### Changed
