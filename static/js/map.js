@@ -326,9 +326,18 @@ function thinRing(ring) {
 // the vertices: their cost is per-ring overhead (clipping + resampling
 // setup), not vertex count, so thinning can't help — they have to be
 // skipped while animating. A few px specks reappear on the final render.
+//
+// Thinning a small concave island down to a triangle can pick three points
+// that wind the wrong way (Gotland, Sumbawa, Unalaska did). On a sphere a
+// ring's winding decides which side is "inside", so D3 then reads the
+// island as the whole globe minus the island and paints land colour over
+// every ocean mid-morph. More than a hemisphere of area gives that away;
+// such rings are tiny, so keeping them unthinned costs nothing.
 function thinPolygon(rings) {
   const exterior = thinRing(rings[0]);
-  return exterior && [exterior, ...rings.slice(1).map(thinRing).filter(Boolean)];
+  if (!exterior) return null;
+  const thinned = [exterior, ...rings.slice(1).map(thinRing).filter(Boolean)];
+  return d3.geoArea({ type: "Polygon", coordinates: thinned }) > 2 * Math.PI ? rings : thinned;
 }
 
 function buildLightGeometry(features) {
