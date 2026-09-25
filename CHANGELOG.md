@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-24 — Coin flip for the upside-down view (on `fix/recenter-coin-flip`)
+
+### Fixed
+- Entering or leaving "South America (upside down)" turns the map over like a coin about the equator: it thins towards the equator, goes edge-on, then widens back mirrored. It used to fold towards the top of the screen, vanish for several frames, then slide back in diagonally, because the fold scaled about the SVG's top edge instead of the equator
+- One eased 0→180° turn (900ms, `scaleY = cos(angle)`) replaces the two 300ms folds; the sphere rotation is swapped at the edge-on midpoint, where it can't be seen. The resting mirrored state is unchanged
+
 ## 2026-09-21 — String extraction (i18n groundwork)
 
 ### Changed
