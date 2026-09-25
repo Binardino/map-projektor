@@ -308,10 +308,12 @@ function makeProjection(projDef, rotationOverride = null) {
 // ============================================================
 
 // Douglas-Peucker keeps the points that shape a coastline (capes, gulfs,
-// peninsulas) and drops the ones lying on a straight run. A plain spacing
-// rule (drop any point within 1° of the last kept one) is ~1–2ms/frame
-// cheaper but flattens Italy, Greece and Norway into crude polygons.
-const LIGHT_TOLERANCE_DEG = 0.2;
+// peninsulas) and drops the ones lying on a straight run. At 0.3° it
+// costs the same per frame as the plain spacing rule it replaced (drop
+// any point within 1° of the last kept one), which flattened Italy,
+// Greece and Norway into crude polygons. 0.2° looks slightly smoother but
+// tripled the dropped frames in the headless perf run.
+const LIGHT_TOLERANCE_DEG = 0.3;
 
 // Rings whose points all sit within this of their first point are islands
 // too small to matter mid-morph (see thinPolygon for why they're skipped).
@@ -322,7 +324,7 @@ const LIGHT_SPECK_DEG = 1;
 const lightGeometry = new WeakMap();
 
 // Distance from p to the line through a and b, in degrees (planar lon/lat
-// is accurate enough at a 0.2° tolerance).
+// is accurate enough at this tolerance).
 function distanceToLine(p, a, b) {
   const dx = b[0] - a[0];
   const dy = b[1] - a[1];
