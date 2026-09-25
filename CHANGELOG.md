@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-25 — Reference lines (on `feature/reference-lines`)
+
+### Added
+- New toolbar button (globe icon, between the distortion grid and the theme toggle) that shows/hides the equator, both tropics (±23.44°), both polar circles (±66.56°) and a meridian every 15° (one per hour of Earth's rotation). The equator and Greenwich are drawn heavier, and the named parallels dashed, in an atlas red (`--reference-line` theme token) so they read as distinct from the navy Tissot grid when both are on
+- The lines live in `worldGroup`, so they follow recentred views and the upside-down flip. They are re-projected wherever the view settles and on every animation frame (blend, polar spin, recenter rotation, and the coin flip's edge-on swap)
+- Parallels are densified (a vertex every 2°) so they follow their latitude instead of bowing along great arcs; meridians go through the equator because pole-to-pole is antipodal
+- Cost: ~0.4–0.7ms per animation frame when on (Tissot is ~5–7ms); no change when off. No labels, main view only (compare panels are isolated for now)
+
 ## 2026-09-25 — Land-coloured globe flash on the polar route (on `fix/ortho-blend-cut-at-90`)
 
 ### Fixed
