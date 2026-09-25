@@ -541,6 +541,7 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
       }
       updateTerrainPaths(terrainGroup, projection);
       if (tissotVisible) updateTissotPaths(tissotGroup, projection);
+      if (referenceVisible) updateReferencePaths(referenceGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         if (crossfade) globeSphere.style("opacity", null);
@@ -597,6 +598,7 @@ function animateRotation(fromRot, toRot, duration) {
       renderGlobeSphere(globeSphere, projection);
       updateTerrainPaths(terrainGroup, projection);
       if (tissotVisible) updateTissotPaths(tissotGroup, projection);
+      if (referenceVisible) updateReferencePaths(referenceGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -1050,6 +1052,7 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
       renderGlobeSphere(globeSphere, projection);
       updateTerrainPaths(terrainGroup, projection);
       if (tissotVisible) updateTissotPaths(tissotGroup, projection);
+      if (referenceVisible) updateReferencePaths(referenceGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -1085,6 +1088,7 @@ async function applyRecenter(presetId) {
     await animateRecenterFlip(wantsFlip, () => {
       currentRecenterRotate = preset.rotate;
       renderMap(makeProjection(currentDef, currentRecenterRotate));
+      refreshReferenceLines();
     });
   } else {
     await animateRecenterRotation(currentDef, fromRot, preset.rotate, 900);
