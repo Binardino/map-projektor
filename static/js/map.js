@@ -682,6 +682,7 @@ async function transitionTo(newProjId) {
   updateInfo(toDef);
   updateGlobeBackground();
   refreshTissot();
+  refreshReferenceLines();
   refreshRecenterAvailability();
   refreshFlightPath();
   resetTrueSizeOnProjectionSwitch();
@@ -1094,6 +1095,7 @@ async function applyRecenter(presetId) {
 
   isAnimating = false;
   refreshTissot();
+  refreshReferenceLines();
 }
 
 function resetRecenter() {
@@ -1216,6 +1218,7 @@ const globeDrag = d3.drag()
     const projDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
     renderMap(makeProjection(projDef, currentRecenterRotate));
     refreshTissot();
+    refreshReferenceLines();
     refreshFlightPath();
   });
 
@@ -1258,6 +1261,7 @@ function selectCountry(feature) {
     resetRecenter();
     renderMap(makeProjection(PROJECTIONS.find((p) => p.id === currentProjectionId)));
     refreshTissot();
+    refreshReferenceLines();
   }
 
   selectedCountryName = feature.properties.name;
@@ -1609,6 +1613,27 @@ function updateReferencePaths(group, projection) {
   const path = d3.geoPath().projection(projection);
   group.selectAll("path.reference-line").attr("d", (d) => path(d.geometry));
 }
+
+let referenceVisible = false;
+const referenceToggleBtn = document.getElementById("reference-toggle-btn");
+
+// Called wherever the main view's projection or rotation settles, next to
+// refreshTissot — the lines must be re-projected, not just re-shown.
+function refreshReferenceLines() {
+  if (!referenceVisible) {
+    referenceGroup.selectAll("path.reference-line").remove();
+    return;
+  }
+  const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  renderReferenceLines(referenceGroup, makeProjection(currentDef, currentRecenterRotate));
+}
+
+referenceToggleBtn.addEventListener("click", () => {
+  referenceVisible = !referenceVisible;
+  referenceToggleBtn.classList.toggle("active", referenceVisible);
+  referenceToggleBtn.setAttribute("aria-pressed", String(referenceVisible));
+  refreshReferenceLines();
+});
 
 // ============================================================
 // FLIGHT PATH / GREAT CIRCLE
