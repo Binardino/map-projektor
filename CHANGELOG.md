@@ -7,6 +7,18 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 ### Fixed
 - Every projection and view button in the left sidebar now spans the full row (minus its 12px side margins), so the hover and selected highlights are all the same width. A `<button>` shrinks to its label even with `display: block`, so each highlight used to be as wide as its text (68px for "Aitoff", 215px for "South America (upside-down)")
 
+## 2026-09-24 — Pink ocean during transitions (on `fix/light-geometry-inverted-rings`)
+
+### Fixed
+- During projection morphs and recenter spins the ocean was often painted over in land colour. Thinning three small concave islands (Gotland, Sumbawa, Unalaska) down to a triangle reversed their winding, and on a sphere a reversed ring means "the whole globe minus the island". `thinPolygon` now keeps a polygon unthinned when its thinned version covers more than a hemisphere; only those three islands are affected, so the light geometry's speed-up is unchanged
+- Replaying the user's recorded sequence: frames with no visible ocean went from 269/401 to 0 caused by this bug (the remaining ones come from the old upside-down flip, fixed separately in PR #31)
+
+## 2026-09-24 — Coin flip for the upside-down view (on `fix/recenter-coin-flip`)
+
+### Fixed
+- Entering or leaving "South America (upside down)" turns the map over like a coin about the equator: it thins towards the equator, goes edge-on, then widens back mirrored. It used to fold towards the top of the screen, vanish for several frames, then slide back in diagonally, because the fold scaled about the SVG's top edge instead of the equator
+- One eased 0→180° turn (900ms, `scaleY = cos(angle)`) replaces the two 300ms folds; the sphere rotation is swapped at the edge-on midpoint, where it can't be seen. The resting mirrored state is unchanged
+
 ## 2026-09-21 — String extraction (i18n groundwork)
 
 ### Changed

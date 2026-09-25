@@ -326,9 +326,18 @@ function thinRing(ring) {
 // the vertices: their cost is per-ring overhead (clipping + resampling
 // setup), not vertex count, so thinning can't help — they have to be
 // skipped while animating. A few px specks reappear on the final render.
+//
+// Thinning a small concave island down to a triangle can pick three points
+// that wind the wrong way (Gotland, Sumbawa, Unalaska did). On a sphere a
+// ring's winding decides which side is "inside", so D3 then reads the
+// island as the whole globe minus the island and paints land colour over
+// every ocean mid-morph. More than a hemisphere of area gives that away;
+// such rings are tiny, so keeping them unthinned costs nothing.
 function thinPolygon(rings) {
   const exterior = thinRing(rings[0]);
-  return exterior && [exterior, ...rings.slice(1).map(thinRing).filter(Boolean)];
+  if (!exterior) return null;
+  const thinned = [exterior, ...rings.slice(1).map(thinRing).filter(Boolean)];
+  return d3.geoArea({ type: "Polygon", coordinates: thinned }) > 2 * Math.PI ? rings : thinned;
 }
 
 function buildLightGeometry(features) {
@@ -946,13 +955,22 @@ function buildRecenterPanel() {
   });
 }
 
-// Mirrors every overlay layer (not just countries) vertically about the
-// viewport's horizontal centreline (translate(0,H) scale(1,-1)) when the
-// active preset asks for it, or eases back to identity otherwise. D3's
-// "transform" attribute interpolator decomposes both strings into
-// translate/scale components, so animating between them sweeps scaleY
-// through 0 — the map visibly folds flat then unfolds mirrored, reading
-// as a top-down flip rather than a snap.
+// Turns the map over like a coin about the equator: scaleY follows
+// cos(angle) as the angle eases 0 → 180°, so the map thins towards the
+// equator, goes edge-on, then widens back mirrored — no slide, no blank
+// frames. Scaling about the axis (rather than about the SVG origin, which
+// the previous fold did) is what keeps the equator pinned in place:
+// y' = axis + s·(y − axis) = s·y + axis·(1 − s).
+//
+// The axis is HEIGHT / 2 because every recentrable view keeps the globe
+// untilted (rotate[1] = 0) and fitProjection centres the sphere
+// vertically, so the equator sits on the viewport's centreline for all
+// of them (checked for every projection × preset). A tilted preset would
+// need projection([lon, 0])[1] here instead. At s = -1 this is exactly
+// translate(0, HEIGHT) scale(1, -1), the resting mirrored state.
+//
+// onEdgeOn runs once when the map is edge-on (invisible), which is where
+// the caller swaps the sphere rotation so the jump never shows.
 //
 // Every world-space layer (terrain/tissot/flight-path/true-size/the
 // compare highlight, not just countries) needs to flip together, or
@@ -969,9 +987,26 @@ function buildRecenterPanel() {
 // using vector-effect:non-scaling-stroke, which itself isn't cheap to
 // recompute) plus terrain, that repaint cost was the actual source of
 // the dropped frames during this flip.
-function animateRecenterFlip(flip, duration = 600) {
-  const flipTransform = flip ? `translate(0px, ${HEIGHT}px) scale(1, -1)` : "translate(0px, 0px) scale(1, 1)";
-  return worldGroup.transition().duration(duration).style("transform", flipTransform).end();
+function animateRecenterFlip(flip, onEdgeOn, duration = 900) {
+  const axis = HEIGHT / 2;
+  const sign = flip ? 1 : -1; // start upright when flipping in, mirrored when flipping out
+  let swapped = false;
+
+  return new Promise((resolve) => {
+    const timer = d3.timer((elapsed) => {
+      const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
+      const s = sign * Math.cos(Math.PI * t);
+      if (!swapped && t >= 0.5) {
+        swapped = true;
+        onEdgeOn();
+      }
+      worldGroup.style("transform", `translate(0px, ${axis * (1 - s)}px) scale(1, ${s})`);
+      if (elapsed >= duration) {
+        timer.stop();
+        resolve();
+      }
+    });
+  });
 }
 
 // Spins the current projection's own sphere from the active rotation to the
@@ -1031,16 +1066,12 @@ async function applyRecenter(presetId) {
     // Entering or leaving the South America (upside-down) mirror: doing the
     // usual longitude rotation sweep here would spin the sphere WHILE also
     // flipping it, reading as a distorted diagonal spin rather than a clean
-    // mirror. Instead fold the map edge-on first (scaleY -> 0, same idea as
-    // animateRecenterFlip), swap the rotation instantly while it's invisible
-    // at that fold, then unfold mirrored — one continuous paper-flip.
-    const edgeOnY = currentRecenterFlip ? HEIGHT : 0;
-    await worldGroup.transition().duration(300).style("transform", `translate(0px, ${edgeOnY}px) scale(1, 0)`).end();
-
-    currentRecenterRotate = preset.rotate;
-    renderMap(makeProjection(currentDef, currentRecenterRotate)); // instant swap while edge-on (invisible)
-
-    await animateRecenterFlip(wantsFlip, 300);
+    // mirror. Instead turn the map over about the equator and swap the
+    // rotation instantly at the edge-on midpoint, where it's invisible.
+    await animateRecenterFlip(wantsFlip, () => {
+      currentRecenterRotate = preset.rotate;
+      renderMap(makeProjection(currentDef, currentRecenterRotate));
+    });
   } else {
     await animateRecenterRotation(currentDef, fromRot, preset.rotate, 900);
     currentRecenterRotate = preset.rotate;
