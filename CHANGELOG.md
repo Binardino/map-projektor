@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-25 — Pink bands during orthographic transitions (on `fix/ortho-blend-pink-bands`)
+
+### Fixed
+- Switching between the orthographic globe and any flat projection in a recentred view (South America, USA/Pacific, China, Africa) drew wide horizontal land-coloured bands across the map for most of the morph. These blends animate a clip circle from 90° to 179.9°, but a near-180° circle only punches a tiny hole at the antipode and never cuts along the back meridian, so countries straddling it (Canada and Peru in the China view, China and India in the Pacific one) kept vertices on both edges of the map. `animateBlend` now applies the antimeridian cut before the clip circle
+- Real blend loop, 5 flat projections × 5 views × both directions: country shapes drawn more than 4× their normal area went from 721 to 0. Cost: about +1.3ms per frame of path generation, on orthographic blends only
+
 ## 2026-09-24 — Full-width sidebar rows (on `fix/sidebar-full-width-rows`)
 
 ### Fixed

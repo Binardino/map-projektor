@@ -483,7 +483,7 @@ function blendProjection(projFrom, projTo, rotation = null) {
 }
 
 // Orthographic clips to the visible hemisphere (90°); everything else
-// clips at the antimeridian, which a near-180° circle approximates.
+// clips at the antimeridian, which animateBlend adds on top of the circle.
 // Animating between the two makes back-hemisphere countries shrink
 // smoothly into the horizon instead of snapping in or out.
 function clipAngleOf(projDef) {
@@ -518,7 +518,16 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
     const timer = d3.timer((elapsed) => {
       const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
       projection.alpha(t);
-      if (clipFrom !== null) projection.clipAngle(clipFrom + (clipTo - clipFrom) * t);
+      if (clipFrom !== null) {
+        // A near-180° clip circle only punches a tiny hole at the antipode;
+        // it never cuts along the back meridian, so a country straddling it
+        // (Canada in the China view, India in the Pacific one) kept its
+        // vertices on both edges of the flat map and drew a band across it.
+        // Cutting at the antimeridian first restores the flat maps' seam;
+        // while the circle is small it hides that back seam anyway.
+        const radius = (clipFrom + (clipTo - clipFrom) * t) / DEGREES;
+        projection.preclip((stream) => d3.geoClipAntimeridian(d3.geoClipCircle(radius)(stream)));
+      }
       countries.attr("d", (d) => pathFn(lightOf(d)) || "");
       if (crossfade) {
         globeSphere.style("opacity", 1 - t);
