@@ -222,6 +222,10 @@ const terrainGroup = worldGroup.append("g").attr("class", "terrain-layer");
 // Tissot's indicatrix overlay — appended after mapGroup so it paints on top
 const tissotGroup = worldGroup.append("g").attr("class", "tissot-layer");
 
+// Reference lines (equator, tropics, polar circles, meridians) — above
+// Tissot so the named lines stay readable when both overlays are on.
+const referenceGroup = worldGroup.append("g").attr("class", "reference-layer");
+
 // Flight path overlay — appended after tissotGroup so the arc paints on top
 const flightPathGroup = worldGroup.append("g").attr("class", "flightpath-layer");
 
@@ -300,25 +304,70 @@ function makeProjection(projDef, rotationOverride = null) {
 // Every animation frame reprojects every vertex through TWO projections
 // (source + target blend) plus D3's adaptive resampling, so frame cost
 // scales with vertex count: the full 21k-vertex world took ~40ms/frame,
-// well past the 16ms budget for 60fps. Thinning vertices closer than
-// LIGHT_MIN_SPACING_DEG cuts that to ~11ms, and the loss is invisible
+// well past the 16ms budget for 60fps. Simplifying each ring with
+// Douglas-Peucker (LIGHT_TOLERANCE_DEG) and skipping sub-degree islands
+// cuts that to ~11ms, and the loss is barely visible
 // while shapes are moving. The final render always uses the full data,
 // so the resting map is unchanged.
 // ============================================================
-const LIGHT_MIN_SPACING_DEG = 1;
+
+// Douglas-Peucker keeps the points that shape a coastline (capes, gulfs,
+// peninsulas) and drops the ones lying on a straight run. At 0.3° it
+// costs the same per frame as the plain spacing rule it replaced (drop
+// any point within 1° of the last kept one), which flattened Italy,
+// Greece and Norway into crude polygons. 0.2° looks slightly smoother but
+// tripled the dropped frames in the headless perf run.
+const LIGHT_TOLERANCE_DEG = 0.3;
+
+// Rings whose points all sit within this of their first point are islands
+// too small to matter mid-morph (see thinPolygon for why they're skipped).
+const LIGHT_SPECK_DEG = 1;
 
 // Keyed by the original feature object, so animation loops can look up a
 // bound datum's light twin without a name lookup (terrain has duplicate names).
 const lightGeometry = new WeakMap();
 
-// Returns null when the ring collapses to a sub-spacing speck.
+// Distance from p to the line through a and b, in degrees (planar lon/lat
+// is accurate enough at this tolerance).
+function distanceToLine(p, a, b) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const length = Math.hypot(dx, dy);
+  if (length === 0) return Math.hypot(p[0] - a[0], p[1] - a[1]);
+  return Math.abs(dy * p[0] - dx * p[1] + b[0] * a[1] - b[1] * a[0]) / length;
+}
+
+// Returns null when the ring is a speck. Douglas-Peucker needs a chord, and
+// a closed ring's first and last points coincide, so the ring is split at
+// its farthest point from the start and each half simplified. Iterative
+// (explicit stack) because some rings have thousands of points.
 function thinRing(ring) {
-  const kept = [ring[0]];
-  for (let i = 1; i < ring.length - 1; i++) {
-    const last = kept[kept.length - 1];
-    if (Math.hypot(ring[i][0] - last[0], ring[i][1] - last[1]) >= LIGHT_MIN_SPACING_DEG) kept.push(ring[i]);
+  const first = ring[0];
+  let far = 0;
+  let farDistance = 0;
+  ring.forEach((p, i) => {
+    const d = Math.hypot(p[0] - first[0], p[1] - first[1]);
+    if (d > farDistance) { farDistance = d; far = i; }
+  });
+  if (farDistance < LIGHT_SPECK_DEG) return null;
+
+  const keep = new Uint8Array(ring.length);
+  keep[0] = keep[far] = keep[ring.length - 1] = 1;
+  const stack = [[0, far], [far, ring.length - 1]];
+  while (stack.length) {
+    const [start, end] = stack.pop();
+    let worst = -1;
+    let worstDistance = LIGHT_TOLERANCE_DEG;
+    for (let i = start + 1; i < end; i++) {
+      const d = distanceToLine(ring[i], ring[start], ring[end]);
+      if (d > worstDistance) { worstDistance = d; worst = i; }
+    }
+    if (worst !== -1) {
+      keep[worst] = 1;
+      stack.push([start, worst], [worst, end]);
+    }
   }
-  kept.push(ring[ring.length - 1]);
+  const kept = ring.filter((_, i) => keep[i]);
   return kept.length >= 4 ? kept : null;
 }
 
@@ -327,7 +376,7 @@ function thinRing(ring) {
 // setup), not vertex count, so thinning can't help — they have to be
 // skipped while animating. A few px specks reappear on the final render.
 //
-// Thinning a small concave island down to a triangle can pick three points
+// Simplifying a small concave island down to a triangle can pick three points
 // that wind the wrong way (Gotland, Sumbawa, Unalaska did). On a sphere a
 // ring's winding decides which side is "inside", so D3 then reads the
 // island as the whole globe minus the island and paints land colour over
@@ -542,6 +591,7 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
       }
       updateTerrainPaths(terrainGroup, projection);
       if (tissotVisible) updateTissotPaths(tissotGroup, projection);
+      if (referenceVisible) updateReferencePaths(referenceGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         if (crossfade) globeSphere.style("opacity", null);
@@ -598,6 +648,7 @@ function animateRotation(fromRot, toRot, duration) {
       renderGlobeSphere(globeSphere, projection);
       updateTerrainPaths(terrainGroup, projection);
       if (tissotVisible) updateTissotPaths(tissotGroup, projection);
+      if (referenceVisible) updateReferencePaths(referenceGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -683,6 +734,7 @@ async function transitionTo(newProjId) {
   updateInfo(toDef);
   updateGlobeBackground();
   refreshTissot();
+  refreshReferenceLines();
   refreshRecenterAvailability();
   refreshFlightPath();
   resetTrueSizeOnProjectionSwitch();
@@ -1050,6 +1102,7 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
       renderGlobeSphere(globeSphere, projection);
       updateTerrainPaths(terrainGroup, projection);
       if (tissotVisible) updateTissotPaths(tissotGroup, projection);
+      if (referenceVisible) updateReferencePaths(referenceGroup, projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -1085,6 +1138,7 @@ async function applyRecenter(presetId) {
     await animateRecenterFlip(wantsFlip, () => {
       currentRecenterRotate = preset.rotate;
       renderMap(makeProjection(currentDef, currentRecenterRotate));
+      refreshReferenceLines();
     });
   } else {
     await animateRecenterRotation(currentDef, fromRot, preset.rotate, 900);
@@ -1095,6 +1149,7 @@ async function applyRecenter(presetId) {
 
   isAnimating = false;
   refreshTissot();
+  refreshReferenceLines();
 }
 
 function resetRecenter() {
@@ -1217,6 +1272,7 @@ const globeDrag = d3.drag()
     const projDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
     renderMap(makeProjection(projDef, currentRecenterRotate));
     refreshTissot();
+    refreshReferenceLines();
     refreshFlightPath();
   });
 
@@ -1259,6 +1315,7 @@ function selectCountry(feature) {
     resetRecenter();
     renderMap(makeProjection(PROJECTIONS.find((p) => p.id === currentProjectionId)));
     refreshTissot();
+    refreshReferenceLines();
   }
 
   selectedCountryName = feature.properties.name;
@@ -1558,6 +1615,79 @@ if (tissotToggleBtn) {
     refreshTissot();
   });
 }
+
+// ============================================================
+// REFERENCE LINES
+//
+// The named parallels (equator, tropics, polar circles) plus a
+// meridian every 15° — one per hour of Earth's rotation, the usual
+// atlas spacing — with the equator and Greenwich drawn heavier as
+// the two origins. Main view only, like the other overlays that
+// live in worldGroup (so they follow recentring and the flip).
+// ============================================================
+const TROPIC_LAT       = 23.44; // Earth's axial tilt
+const POLAR_CIRCLE_LAT = 90 - TROPIC_LAT;
+const MERIDIAN_STEP    = 15;
+
+// A parallel is a small circle, not a great circle: two far-apart
+// vertices would be joined by the shortest arc between them, which
+// bows towards the pole. Dense vertices make the line follow the
+// latitude instead.
+function parallel(lat) {
+  return d3.range(-180, 180 + 1, 2).map((lon) => [lon, lat]);
+}
+
+// Through the equator rather than pole to pole in one segment: the two
+// poles are antipodal, so the great arc between them is undefined.
+function meridian(lon) {
+  return [[lon, -90], [lon, 0], [lon, 90]];
+}
+
+const REFERENCE_LINES = [
+  { kind: "major", coordinates: [parallel(0), meridian(0)] },
+  { kind: "parallel", coordinates: [TROPIC_LAT, -TROPIC_LAT, POLAR_CIRCLE_LAT, -POLAR_CIRCLE_LAT].map(parallel) },
+  {
+    kind: "meridian",
+    coordinates: d3.range(-180 + MERIDIAN_STEP, 180, MERIDIAN_STEP).filter((lon) => lon !== 0).map(meridian),
+  },
+].map(({ kind, coordinates }) => ({ kind, geometry: { type: "MultiLineString", coordinates } }));
+
+function renderReferenceLines(group, projection) {
+  const path = d3.geoPath().projection(projection);
+  group
+    .selectAll("path.reference-line")
+    .data(REFERENCE_LINES)
+    .join("path")
+    .attr("class", (d) => `reference-line reference-${d.kind}`)
+    .attr("d", (d) => path(d.geometry));
+}
+
+// Per-frame variant for the animations: re-paths without the data join.
+function updateReferencePaths(group, projection) {
+  const path = d3.geoPath().projection(projection);
+  group.selectAll("path.reference-line").attr("d", (d) => path(d.geometry));
+}
+
+let referenceVisible = false;
+const referenceToggleBtn = document.getElementById("reference-toggle-btn");
+
+// Called wherever the main view's projection or rotation settles, next to
+// refreshTissot — the lines must be re-projected, not just re-shown.
+function refreshReferenceLines() {
+  if (!referenceVisible) {
+    referenceGroup.selectAll("path.reference-line").remove();
+    return;
+  }
+  const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  renderReferenceLines(referenceGroup, makeProjection(currentDef, currentRecenterRotate));
+}
+
+referenceToggleBtn.addEventListener("click", () => {
+  referenceVisible = !referenceVisible;
+  referenceToggleBtn.classList.toggle("active", referenceVisible);
+  referenceToggleBtn.setAttribute("aria-pressed", String(referenceVisible));
+  refreshReferenceLines();
+});
 
 // ============================================================
 // FLIGHT PATH / GREAT CIRCLE

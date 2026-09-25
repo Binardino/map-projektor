@@ -88,6 +88,7 @@
   "tool.compare": "Comparison mode",
   "tool.grid": "Show/Hide distortion grid",
   "tool.info": "Information",
+  "tool.referenceLines": "Show/Hide equator, tropics, polar circles & meridians",
   "tool.theme": "Light/Dark mode",
   "view.africa.description": "Centred near 20°E, the middle of the African continent — the natural framing for atlases of Africa, and a reminder that Europe-centered is a choice, not a default of nature.",
   "view.africa.name": "Africa-centered",
