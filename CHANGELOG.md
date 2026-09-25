@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-25 — Comparison mode label typo (on `fix/comparison-mode-typo`)
+
+### Fixed
+- The comparison tool's tooltip and screen-reader label read "Comparation mode"; it now reads "Comparison mode"
+
 ## 2026-09-25 — Land-coloured globe flash on the polar route (on `fix/ortho-blend-cut-at-90`)
 
 ### Fixed
