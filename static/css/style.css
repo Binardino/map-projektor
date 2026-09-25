@@ -265,6 +265,10 @@ body {
    ============================================================ */
 .sidebar-btn {
   display: block;
+  /* A <button> shrinks to its label even as a block, which made every
+     highlight a different width; fill the row minus the 12px side margins. */
+  width: calc(100% - 24px);
+  box-sizing: border-box;
   text-align: left;
   background: none;
   border: none;
