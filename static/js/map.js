@@ -523,10 +523,15 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
         // it never cuts along the back meridian, so a country straddling it
         // (Canada in the China view, India in the Pacific one) kept its
         // vertices on both edges of the flat map and drew a band across it.
-        // Cutting at the antimeridian first restores the flat maps' seam;
-        // while the circle is small it hides that back seam anyway.
+        // Cutting at the antimeridian first restores the flat maps' seam.
+        // Only past 90°: up to the hemisphere the circle hides the back seam
+        // anyway, and at exactly 90° the two clips combined turn every
+        // country inside out (the whole globe flashed land colour on the
+        // one frame the polar route leaves on screen between fold and spin).
         const radius = (clipFrom + (clipTo - clipFrom) * t) / DEGREES;
-        projection.preclip((stream) => d3.geoClipAntimeridian(d3.geoClipCircle(radius)(stream)));
+        projection.preclip(radius > Math.PI / 2
+          ? (stream) => d3.geoClipAntimeridian(d3.geoClipCircle(radius)(stream))
+          : d3.geoClipCircle(radius));
       }
       countries.attr("d", (d) => pathFn(lightOf(d)) || "");
       if (crossfade) {
