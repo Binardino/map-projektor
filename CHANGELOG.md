@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-25 — Land-coloured globe flash on the polar route (on `fix/ortho-blend-cut-at-90`)
+
+### Fixed
+- Regression from the pink-bands fix below: at exactly 90° (the last frame of a fold onto the globe, or the first of an unfold), the antimeridian cut combined with the clip circle turned countries inside out, so the whole globe was painted land colour. Ordinary switches replace that frame with the final render before it is shown, but the polar route (e.g. Mercator → North Polar) leaves it on screen between the fold and the spin, as a one-frame flash. The cut is now only added once the circle is wider than a hemisphere; below that, the circle already hides the back seam
+- Driving the real transition loop, including the exact start and end frames: inside-out countries at the orthographic end went from present in every ortho transition to none, and the bands stay fixed (0 oversized shapes)
+
 ## 2026-09-25 — Pink bands during orthographic transitions (on `fix/ortho-blend-pink-bands`)
 
 ### Fixed
