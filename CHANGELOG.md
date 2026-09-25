@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-25 — Smoother coastlines during transitions (on `perf/douglas-peucker-light-geometry`)
+
+### Changed
+- The simplified geometry that transitions redraw each frame used to drop any vertex within 1° of the last kept one, which flattened Italy, Greece and Norway into crude polygons during every morph. It now uses Douglas-Peucker at 0.3°, which keeps the points that shape a coastline. 0.2° looked slightly smoother but tripled the dropped frames in the headless perf run. 0.3° costs the same per frame as the old rule (`scripts/perf_transitions.py`: no regression vs baseline)
+
 ## 2026-09-25 — Land-coloured globe flash on the polar route (on `fix/ortho-blend-cut-at-90`)
 
 ### Fixed
