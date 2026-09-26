@@ -1,4 +1,4 @@
-import { PROJECTIONS, projectionName } from "../data/projections.js";
+import { PROJECTIONS, getProjection, projectionName } from "../data/projections.js";
 import { compareHighlightGroup } from "../core/scene.js";
 import { state } from "../core/state.js";
 import { infoVisible, setInfoVisible } from "./info-card.js";
@@ -92,8 +92,8 @@ export function refreshCompareHighlight() {
   compareHighlightGroup.style("display", null);
   if (!state.worldData) return;
 
-  const mapDef      = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
-  const compareDef  = PROJECTIONS.find((p) => p.id === compareProjectionId) || mapDef;
+  const mapDef      = getProjection(state.currentProjectionId);
+  const compareDef  = compareProjectionId ? getProjection(compareProjectionId) : mapDef;
   const mapProj     = makeProjection(mapDef, rotationFor(mapDef));
   const compareProj = makeProjection(compareDef, rotationFor(compareDef));
   const comparePath = d3.geoPath().projection(compareProj);

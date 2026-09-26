@@ -21,7 +21,7 @@ import "./tools/reference-lines.js";
 import "./ui/welcome-modal.js";
 import "./ui/theme.js";
 import "./debug.js";
-import { PROJECTIONS } from "./data/projections.js";
+import { getProjection } from "./data/projections.js";
 import { buildCompareProjectionOptions } from "./ui/compare-card.js";
 import { buildLightGeometry } from "./core/geometry.js";
 import { buildRecenterPanel, buildSidebar } from "./ui/sidebar.js";
@@ -52,7 +52,7 @@ async function init() {
   buildLightGeometry(state.worldData.features);
   buildLightGeometry(state.terrainData.features);
 
-  const initialProj = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
+  const initialProj = getProjection(state.currentProjectionId);
   buildSidebar();
   buildRecenterPanel();
   buildCompareProjectionOptions();

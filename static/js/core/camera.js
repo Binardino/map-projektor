@@ -1,4 +1,4 @@
-import { PROJECTIONS } from "../data/projections.js";
+import { getProjection } from "../data/projections.js";
 import { state } from "./state.js";
 import { flightPathMode, refreshFlightPath, refreshReferenceLines, refreshTissot } from "../tools/index.js";
 import { makeProjection } from "./projection.js";
@@ -128,7 +128,7 @@ const globeDrag = d3.drag()
     document.querySelectorAll(".recenter-btn").forEach((b) => b.classList.remove("active"));
   })
   .on("drag", (event) => {
-    const projDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
+    const projDef = getProjection(state.currentProjectionId);
     const [lambda, phi] = rotationFor(projDef) || [0, 0, 0];
     const newLambda = lambda + event.dx * GLOBE_DRAG_SENSITIVITY;
     state.currentRecenterTilt = [newLambda, Math.max(-90, Math.min(90, phi - event.dy * GLOBE_DRAG_SENSITIVITY)), 0];

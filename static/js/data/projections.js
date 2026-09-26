@@ -174,3 +174,11 @@ export const PROJECTIONS = [
     d3fn: () => d3.geoAlbers().rotate([0, 0]).parallels([20, 50]).scale(153),
   },
 ];
+
+// Fails loudly on an unknown id instead of handing back undefined to be
+// dereferenced somewhere further down.
+export function getProjection(id) {
+  const projDef = PROJECTIONS.find((p) => p.id === id);
+  if (!projDef) throw new Error(`Unknown projection id: ${id}`);
+  return projDef;
+}

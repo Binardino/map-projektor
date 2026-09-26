@@ -1,5 +1,5 @@
 import { HEIGHT, WIDTH, globeSphere, mapGroup, referenceGroup, terrainGroup, tissotGroup, worldGroup } from "./scene.js";
-import { PROJECTIONS } from "../data/projections.js";
+import { getProjection } from "../data/projections.js";
 import { RECENTER_INCOMPATIBLE, RECENTER_PRESETS, TILTED_PROJECTIONS } from "../data/views.js";
 import { clearSelection } from "./selection.js";
 import { state } from "./state.js";
@@ -113,7 +113,7 @@ export async function applyRecenter(presetId) {
   if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
 
   const preset = RECENTER_PRESETS.find((p) => p.id === presetId);
-  const currentDefForRot = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
+  const currentDefForRot = getProjection(state.currentProjectionId);
   const fromRot = rotationFor(currentDefForRot);
 
   document.querySelectorAll(".recenter-btn").forEach((b) => {
@@ -124,7 +124,7 @@ export async function applyRecenter(presetId) {
 
   state.isAnimating = true;
   hideCompareHighlight();
-  const currentDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
+  const currentDef = getProjection(state.currentProjectionId);
   const wantsFlip = !!preset.flipVertical;
 
   if (wantsFlip !== state.currentRecenterFlip) {

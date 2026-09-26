@@ -1,5 +1,5 @@
 import { POLAR_ROTATION, animateTransition, polarTransition } from "./animation.js";
-import { PROJECTIONS } from "../data/projections.js";
+import { PROJECTIONS, getProjection } from "../data/projections.js";
 import { RECENTER_INCOMPATIBLE } from "../data/views.js";
 import { applyRecenter, refreshRecenterAvailability, rotationFor } from "./recenter.js";
 import { closeSidebar } from "../ui/mobile-sidebar.js";
@@ -25,8 +25,8 @@ async function transitionTo(newProjId) {
   // instead of carrying over whatever pan/zoom the user left it at.
   await resetCamera();
 
-  const fromDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
-  const toDef   = PROJECTIONS.find((p) => p.id === newProjId);
+  const fromDef = getProjection(state.currentProjectionId);
+  const toDef   = getProjection(newProjId);
 
   if (POLAR_ROTATION[fromDef.id] || POLAR_ROTATION[toDef.id]) {
     await polarTransition(fromDef, toDef);
@@ -55,7 +55,7 @@ async function transitionTo(newProjId) {
 // ============================================================
 export async function switchProjection(newProjId) {
   if (state.isAnimating || newProjId === state.currentProjectionId) return;
-  if (!PROJECTIONS.find((p) => p.id === newProjId)) return;
+  if (!PROJECTIONS.some((p) => p.id === newProjId)) return;
   closeSidebar(); // no-op on desktop; on mobile, reveals the map after picking
   setActiveButton(newProjId); // highlight immediately — don't wait for the ~1.4-2.3s morph to finish
   // The active view carries over to any compatible projection (transitionTo

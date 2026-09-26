@@ -1,5 +1,5 @@
 import { LIGHT_ZOOM_MAX_SCALE, MAIN_ZOOM_SCALE_EXTENT } from "../core/camera.js";
-import { PROJECTIONS, projectionName } from "../data/projections.js";
+import { PROJECTIONS, getProjection, projectionName } from "../data/projections.js";
 import { state } from "../core/state.js";
 import { fitProjection } from "../core/projection.js";
 import { flightPathGroup, globeSphere, mapGroup, oceanRect, svg, tissotGroup, zoomLayer } from "../core/scene.js";
@@ -74,13 +74,13 @@ function buildComparePanel(panelEl, initialProjId) {
   // Same click-to-place-A/B as the main view (see FLIGHT PATH), using this
   // panel's own projection and zoom transform to invert the click.
   svg.node().addEventListener("click", (event) => {
-    const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
+    const projDef = getProjection(panel.projId);
     const projection = fitProjection(projDef, projDef.d3fn(), panel.width, panel.height);
     handleFlightPathClick(event, svg.node(), panel.zoomTransform, projection);
   });
 
   panel.render = () => {
-    const projDef     = PROJECTIONS.find((p) => p.id === panel.projId);
+    const projDef     = getProjection(panel.projId);
     const projection  = fitProjection(projDef, projDef.d3fn(), panel.width, panel.height);
     const pathFn       = d3.geoPath().projection(projection);
     const paths = panel.mapGroup
@@ -115,7 +115,7 @@ export function applySelectionToPanel(panel) {
   if (!selectedCountryName) return;
 
   const feature = state.worldData.features.find((f) => f.properties.name === selectedCountryName);
-  const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
+  const projDef = getProjection(panel.projId);
   const pathFn  = d3.geoPath().projection(fitProjection(projDef, projDef.d3fn(), panel.width, panel.height));
   const [[x0, y0], [x1, y1]] = pathFn.bounds(feature);
 

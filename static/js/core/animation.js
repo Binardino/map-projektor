@@ -1,6 +1,6 @@
 import { DEGREES, blendProjection, clipAngleOf, makeProjection } from "./projection.js";
 import { HEIGHT, WIDTH, globeSphere, globeSphereFade, mapGroup, referenceGroup, terrainGroup, tissotGroup } from "./scene.js";
-import { PROJECTIONS } from "../data/projections.js";
+import { getProjection } from "../data/projections.js";
 import { lightOf } from "./geometry.js";
 import { referenceVisible, tissotVisible, updateReferencePaths, updateTissotPaths } from "../tools/index.js";
 import { renderGlobeSphere, updateTerrainPaths } from "./render.js";
@@ -164,7 +164,7 @@ function animatePolarUnfold(rotation, foldToGlobe, duration) {
 }
 
 export async function polarTransition(fromDef, toDef) {
-  const orthoDef = PROJECTIONS.find((p) => p.id === "orthographic");
+  const orthoDef = getProjection("orthographic");
   const fromRot  = POLAR_ROTATION[fromDef.id];
   const toRot    = POLAR_ROTATION[toDef.id];
 

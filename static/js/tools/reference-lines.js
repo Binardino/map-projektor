@@ -1,4 +1,4 @@
-import { PROJECTIONS } from "../data/projections.js";
+import { getProjection } from "../data/projections.js";
 import { state } from "../core/state.js";
 import { makeProjection } from "../core/projection.js";
 import { referenceGroup } from "../core/scene.js";
@@ -66,7 +66,7 @@ export function refreshReferenceLines() {
     referenceGroup.selectAll("path.reference-line").remove();
     return;
   }
-  const currentDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
+  const currentDef = getProjection(state.currentProjectionId);
   renderReferenceLines(referenceGroup, makeProjection(currentDef, rotationFor(currentDef)));
 }
 
