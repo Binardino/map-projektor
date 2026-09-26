@@ -2,7 +2,7 @@ import { DEGREES, blendProjection, clipAngleOf, makeProjection } from "./project
 import { HEIGHT, WIDTH, globeSphere, globeSphereFade, mapGroup, referenceGroup, terrainGroup, tissotGroup } from "./scene.js";
 import { PROJECTIONS } from "../data/projections.js";
 import { lightOf } from "./geometry.js";
-import { referenceVisible, updateReferencePaths } from "../map.js";
+import { referenceVisible, updateReferencePaths } from "../tools/reference-lines.js";
 import { renderGlobeSphere, updateTerrainPaths } from "./render.js";
 import { rotationFor } from "./recenter.js";
 import { t } from "../i18n.js";

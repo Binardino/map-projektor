@@ -18,5 +18,6 @@ import "./core/selection.js";
 import "./map.js";
 import "./ui/mobile-sidebar.js";
 import "./tools/tissot.js";
+import "./tools/reference-lines.js";
 import "./ui/welcome-modal.js";
 import "./ui/theme.js";
