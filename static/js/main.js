@@ -17,5 +17,6 @@ import "./core/camera.js";
 import "./core/selection.js";
 import "./map.js";
 import "./ui/mobile-sidebar.js";
+import "./tools/tissot.js";
 import "./ui/welcome-modal.js";
 import "./ui/theme.js";

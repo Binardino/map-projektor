@@ -1,9 +1,10 @@
 import { HEIGHT, WIDTH, mapGroup, svg } from "./scene.js";
 import { LIGHT_ZOOM_MAX_SCALE, zoom } from "./camera.js";
 import { PROJECTIONS } from "../data/projections.js";
-import { applySelectionToPanel, compareMode, comparePanels, flightPathMode, refreshReferenceLines, refreshTissot, setFlightPathMode } from "../map.js";
+import { applySelectionToPanel, compareMode, comparePanels, flightPathMode, refreshReferenceLines, setFlightPathMode } from "../map.js";
 import { state } from "./state.js";
 import { makeProjection } from "./projection.js";
+import { refreshTissot } from "../tools/tissot.js";
 import { renderMap } from "./render.js";
 import { resetRecenter, rotationFor } from "./recenter.js";
 

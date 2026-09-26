@@ -4,9 +4,10 @@ import { RECENTER_INCOMPATIBLE, RECENTER_PRESETS, TILTED_PROJECTIONS } from "../
 import { clearSelection } from "./selection.js";
 import { state } from "./state.js";
 import { fitProjection, makeProjection } from "./projection.js";
-import { flightPathMode, referenceVisible, refreshReferenceLines, refreshTissot, setFlightPathMode, tissotVisible, updateReferencePaths, updateTissotPaths } from "../map.js";
+import { flightPathMode, referenceVisible, refreshReferenceLines, setFlightPathMode, updateReferencePaths } from "../map.js";
 import { hideCompareHighlight, refreshCompareHighlight } from "../ui/compare-card.js";
 import { lightOf } from "./geometry.js";
+import { refreshTissot, tissotVisible, updateTissotPaths } from "../tools/tissot.js";
 import { renderGlobeSphere, renderMap, updateTerrainPaths } from "./render.js";
 import { t } from "../i18n.js";
 
