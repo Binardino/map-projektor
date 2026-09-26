@@ -1,3 +1,5 @@
+import { t, loadLanguage } from "./i18n.js";
+
 // ============================================================
 // PROJECTIONS REGISTRY
 //

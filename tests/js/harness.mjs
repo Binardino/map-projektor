@@ -1,4 +1,4 @@
-// Loads functions out of the page's classic scripts so node:test can call
+// Loads functions out of map.js so node:test can call
 // them without a browser or npm packages. The source is read from the real
 // files (never copied), so the tests exercise exactly what the page runs.
 // Temporary: once the frontend becomes ES modules these become plain imports.
@@ -17,16 +17,6 @@ function source(file) {
 function evaluate(code, names, globals) {
   const context = vm.createContext({ console, ...globals });
   return vm.runInContext(`${code}\n;({ ${names.join(", ")} })`, context);
-}
-
-// i18n.js in full, with just enough DOM for loadLanguage to run.
-export function loadI18n(messages) {
-  const warnings = [];
-  const document = { querySelectorAll: () => [], documentElement: {}, title: "" };
-  const fetch = async () => ({ json: async () => messages });
-  const quietConsole = { ...console, warn: (msg) => warnings.push(msg) };
-  const api = evaluate(source("i18n.js"), ["t", "loadLanguage"], { document, fetch, console: quietConsole });
-  return { ...api, warnings };
 }
 
 // The LIGHT GEOMETRY block of map.js, from its first constant to lightOf.

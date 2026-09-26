@@ -2,14 +2,14 @@
 // I18N — every user-visible string lives in static/i18n/<lang>.json
 //
 // Flat key → string dictionaries (e.g. "projection.mercator.name"), English
-// being the source of truth. Loaded before map.js so its render code can
-// call t() from the very first frame.
+// being the source of truth. init() awaits loadLanguage() before the first
+// render, so every t() call already has its strings.
 // ============================================================
 let messages = {};
 
 // A missing key returns the key itself (visible in the UI, so it gets
 // noticed) and warns once in the console rather than crashing the render.
-function t(key, vars = {}) {
+export function t(key, vars = {}) {
   const template = messages[key];
   if (template === undefined) {
     console.warn(`[i18n] missing key: ${key}`);
@@ -39,7 +39,7 @@ function applyStaticTranslations() {
   document.title = t("app.title");
 }
 
-async function loadLanguage(lang) {
+export async function loadLanguage(lang) {
   const response = await fetch(`/static/i18n/${lang}.json`);
   messages = await response.json();
   document.documentElement.lang = lang;
