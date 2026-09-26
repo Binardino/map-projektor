@@ -33,7 +33,7 @@ import { refreshFlightPath, refreshTissot } from "./tools/index.js";
 import { refreshRecenterAvailability, rotationFor } from "./core/recenter.js";
 import { renderMap, updateGlobeBackground } from "./core/render.js";
 import { updateInfo } from "./ui/info-card.js";
-import { TERRAIN_GEOJSON_URL, WORLD_GEOJSON_URL } from "./config.js";
+import { loadGeodata, terrainData, worldData } from "./data/geodata.js";
 
 // ============================================================
 // INIT — fetch GeoJSON then render
@@ -44,14 +44,9 @@ async function init() {
   await loadLanguage("en");
   openHelpModal(); // after the language loads, or the modal would flash empty
 
-  const [worldResponse, terrainResponse] = await Promise.all([
-    fetch(WORLD_GEOJSON_URL),
-    fetch(TERRAIN_GEOJSON_URL),
-  ]);
-  state.worldData = await worldResponse.json();
-  state.terrainData = await terrainResponse.json();
-  buildLightGeometry(state.worldData.features);
-  buildLightGeometry(state.terrainData.features);
+  await loadGeodata();
+  buildLightGeometry(worldData.features);
+  buildLightGeometry(terrainData.features);
 
   const initialProj = getProjection(state.currentProjectionId);
   buildSidebar();

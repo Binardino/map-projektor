@@ -8,6 +8,7 @@ import { refreshTissot } from "./tissot.js";
 import { renderGlobeSphere } from "../core/render.js";
 import { selectedCountryName } from "../core/selection.js";
 import { DEFAULT_COMPARISON_PROJECTION, LIGHT_ZOOM_MAX_SCALE, MAIN_ZOOM_SCALE_EXTENT, TIMING } from "../config.js";
+import { worldData } from "../data/geodata.js";
 
 // ============================================================
 // SIDE-BY-SIDE COMPARISON MODE
@@ -85,7 +86,7 @@ function buildComparePanel(panelEl, initialProjId) {
     const pathFn       = d3.geoPath().projection(projection);
     const paths = panel.mapGroup
       .selectAll("path.country")
-      .data(state.worldData.features, (d) => d.properties.name);
+      .data(worldData.features, (d) => d.properties.name);
     paths.enter().append("path").attr("class", "country").attr("d", pathFn);
     paths.attr("d", pathFn);
     const isGlobe = getProjection(panel.projId).globe;
@@ -114,7 +115,7 @@ export function applySelectionToPanel(panel) {
 
   if (!selectedCountryName) return;
 
-  const feature = state.worldData.features.find((f) => f.properties.name === selectedCountryName);
+  const feature = worldData.features.find((f) => f.properties.name === selectedCountryName);
   const projDef = getProjection(panel.projId);
   const pathFn  = d3.geoPath().projection(fitProjection(projDef, projDef.d3fn(), panel.width, panel.height));
   const [[x0, y0], [x1, y1]] = pathFn.bounds(feature);

@@ -7,6 +7,7 @@ import { rotationFor } from "../core/recenter.js";
 import { t } from "../i18n.js";
 import { COMPARE_MAX } from "../config.js";
 import { readPalette } from "../core/palette.js";
+import { worldData } from "../data/geodata.js";
 
 // ============================================================
 // COMPARE CARD
@@ -66,7 +67,7 @@ const COMPARE_TERRITORIES = {
 // The shape drawn for a compared country: the feature plus its territories.
 function compareShape(feature) {
   const territories = (COMPARE_TERRITORIES[feature.properties.name] || [])
-    .map((name) => state.worldData.features.find((f) => f.properties.name === name))
+    .map((name) => worldData.features.find((f) => f.properties.name === name))
     .filter(Boolean);
   if (!territories.length) return feature;
   return { type: "FeatureCollection", features: [feature, ...territories] };
@@ -91,7 +92,7 @@ function compareAnchor(feature) {
 export function refreshCompareHighlight() {
   compareHighlightGroup.selectAll("*").remove();
   compareHighlightGroup.style("display", null);
-  if (!state.worldData) return;
+  if (!worldData) return;
 
   const mapDef      = getProjection(state.currentProjectionId);
   const compareDef  = compareProjectionId ? getProjection(compareProjectionId) : mapDef;
@@ -101,7 +102,7 @@ export function refreshCompareHighlight() {
   const [rl, rp]    = mapProj.rotate();
 
   compareCountries.filter((entry) => entry.visible).forEach((entry) => {
-    const feature = state.worldData.features.find((f) => f.properties.name === entry.name);
+    const feature = worldData.features.find((f) => f.properties.name === entry.name);
     if (!feature) return;
     const anchor = compareAnchor(feature);
     // A projection returns a point even for the globe's far side, which
@@ -285,8 +286,8 @@ function openCompareCard() {
 
   // Country names depend on the geodata fetch in init() — populate the
   // alphabetical list once it's available instead of duplicating it here.
-  if (state.worldData && !compareCountryNames) {
-    compareCountryNames = [...new Set(state.worldData.features.map((f) => f.properties.name))].sort();
+  if (worldData && !compareCountryNames) {
+    compareCountryNames = [...new Set(worldData.features.map((f) => f.properties.name))].sort();
   }
 
   // Only one toolbar popover at a time — mirrors the info-card guard above.

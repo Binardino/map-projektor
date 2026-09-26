@@ -13,8 +13,6 @@ export const state = {
   // first impression than a flat map, per UX feedback.
   currentProjectionId: GLOBE.id,
   isAnimating: false,
-  worldData: null,
-  terrainData: null,
   currentRecenterRotate: null,
   currentRecenterTilt: RECENTER_PRESETS[0].tilt,
   currentRecenterFlip: false,
