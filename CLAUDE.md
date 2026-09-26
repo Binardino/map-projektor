@@ -89,7 +89,19 @@ Projections requiring `d3-geo-projection` (CDN loaded in index.html): Robinson, 
 
 Transitions morph a blended projection frame by frame, reprojecting a thinned copy of the geometry (`buildLightGeometry`) for speed; the active recenter view carries over between projections; pairs involving a polar view route through the orthographic globe (fold → spin → unfold) — see the POLAR ROUTE section in `static/js/core/animation.js`.
 
-**Modules:** layers import downwards only — `data` < `core` < `ui`/`tools` < `main.js`/`debug.js` (enforced by `tests/js/layering.test.mjs`, which lists the temporary core → ui/tools calls). A `let` another module reassigns lives on the `state` object in `core/state.js`. A new module must also get a `<link rel="modulepreload">` in `index.html` (a test checks the list).
+**Modules:** layers import downwards only — `data` < `core` < `ui`/`tools` < `main.js`/`debug.js`; `config.js`, `state.js` and `i18n.js` are shared by all (enforced by `tests/js/layering.test.mjs`). Core never imports `ui/` or `tools/`: it writes the store and emits events, and they subscribe. A new module must also get a `<link rel="modulepreload">` in `index.html` (a test checks the list).
+
+**State** (`static/js/state.js`: `getState`, `setState`, `subscribe`, `emit`, `on`). Each slice has one writer; everyone else reads or subscribes. Replace a slice, never mutate it (values are frozen).
+
+| Slice | Writer |
+|---|---|
+| `projectionId` | `core/transition.js` |
+| `busy` | `core/busy.js` (`runExclusive`) |
+| `recenter: { preset, rotate, tilt, flip }` | `core/recenter.js` (the globe drag goes through `setViewRotation`) |
+| `language` | `i18n.js` (`setLanguage`) |
+| `flightPathMode` | `tools/flight-path.js` |
+
+Events: `frame` (every animation frame, payload = live projection), `view:changing` / `view:changed` (a morph or view change starts / settles), `projection:requested` (a projection button was clicked), `pointer:reset` (a recenter or selection ends pointer modes), `selection:changed`, `language:changed` (every UI builder re-renders). The GeoJSON is not state: `data/geodata.js` loads it once. Module-local values only their module writes (camera transform, selected country) stay plain exports.
 
 ---
 
