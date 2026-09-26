@@ -6,7 +6,11 @@ import re
 
 ROOT = pathlib.Path(__file__).parent.parent
 EN = json.loads((ROOT / "static" / "i18n" / "en.json").read_text(encoding="utf-8"))
-MAP_JS = (ROOT / "static" / "js" / "map.js").read_text(encoding="utf-8")
+JS_DIR = ROOT / "static" / "js"
+# Every module, since t() is called from all over the split frontend.
+ALL_JS = "\n".join(p.read_text(encoding="utf-8") for p in sorted(JS_DIR.rglob("*.js")))
+PROJECTIONS_JS = (JS_DIR / "data" / "projections.js").read_text(encoding="utf-8")
+VIEWS_JS = (JS_DIR / "data" / "views.js").read_text(encoding="utf-8")
 INDEX_HTML = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
 
 
@@ -19,16 +23,16 @@ def test_html_keys_exist():
 
 
 def test_literal_t_calls_exist():
-    keys = re.findall(r'\bt\("([^"$`]+)"\)', MAP_JS)
+    keys = re.findall(r'\bt\("([^"$`]+)"\)', ALL_JS)
     assert [k for k in keys if k not in EN] == []
 
 
 def test_every_projection_and_view_has_its_texts():
-    # Ids live in map.js; texts are built dynamically as projection.<id>.<field>, so check them by id.
-    projections_src = MAP_JS[: MAP_JS.index("// SVG SETUP")]
+    # Ids live in data/; texts are built dynamically as projection.<id>.<field>, so check them by id.
+    projections_src = PROJECTIONS_JS
     projection_ids = re.findall(r'^    id: "(\w+)",', projections_src, re.M)
     families = re.findall(r'^    family: "(\w+)",', projections_src, re.M)
-    view_src = MAP_JS[MAP_JS.index("const RECENTER_PRESETS"):]
+    view_src = VIEWS_JS[VIEWS_JS.index("const RECENTER_PRESETS"):]
     view_ids = re.findall(r'\{ id: "(\w+)"', view_src[: view_src.index("];")])
 
     assert len(projection_ids) == 17 and view_ids
