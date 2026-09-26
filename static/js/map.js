@@ -2341,4 +2341,5 @@ window.__app = {
   get currentRecenterRotate() { return currentRecenterRotate; },
   get currentRecenterFlip() { return currentRecenterFlip; },
   get isAnimating() { return isAnimating; },
+  get currentZoomTransform() { return currentZoomTransform; },
 };
