@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
-## 2026-09-27 — Store and events (on `refactor/state-events`)
+## 2026-09-26 — Store and events (on `refactor/state-events`)
 
 No change to what the app shows (UI text snapshot, render fingerprint and e2e unchanged after every step).
 
