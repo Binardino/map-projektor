@@ -6,6 +6,7 @@ import { state } from "./state.js";
 import { makeProjection } from "./projection.js";
 import { renderMap } from "./render.js";
 import { resetRecenter, rotationFor } from "./recenter.js";
+import { TIMING } from "../config.js";
 
 // ============================================================
 // COUNTRY SELECTION
@@ -60,7 +61,7 @@ function selectCountry(feature) {
     .translate(WIDTH / 2, HEIGHT / 2)
     .scale(fit.scale)
     .translate(-fit.cx, -fit.cy);
-  svg.transition().duration(600).call(zoom.transform, transform);
+  svg.transition().duration(TIMING.countryFocus).call(zoom.transform, transform);
 
   if (compareMode) comparePanels.forEach(applySelectionToPanel);
 }

@@ -8,7 +8,7 @@ import { infoVisible, setInfoVisible } from "../ui/info-card.js";
 import { refreshTissot } from "./tissot.js";
 import { renderGlobeSphere } from "../core/render.js";
 import { selectedCountryName } from "../core/selection.js";
-import { DEFAULT_COMPARISON_PROJECTION } from "../config.js";
+import { DEFAULT_COMPARISON_PROJECTION, TIMING } from "../config.js";
 
 // ============================================================
 // SIDE-BY-SIDE COMPARISON MODE
@@ -131,7 +131,7 @@ export function applySelectionToPanel(panel) {
     .scale(scale)
     .translate(-(x0 + x1) / 2, -(y0 + y1) / 2);
 
-  panel.svg.transition().duration(600).call(panel.zoom.transform, transform);
+  panel.svg.transition().duration(TIMING.countryFocus).call(panel.zoom.transform, transform);
 }
 
 // compareToggleBtn currently has no sidebar UI (see remove(ui) commit) — the

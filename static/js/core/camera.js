@@ -6,6 +6,7 @@ import { refreshCompareHighlight } from "../ui/compare-card.js";
 import { renderMap } from "./render.js";
 import { rotationFor } from "./recenter.js";
 import { svg, zoomLayer } from "./scene.js";
+import { TIMING } from "../config.js";
 
 // ============================================================
 // CAMERA PAN & ZOOM
@@ -63,7 +64,7 @@ function isCameraAtIdentity() {
 // Animates the camera back to the default centered view. Returns a promise
 // so callers (e.g. transitionTo) can await it before proceeding; resolves
 // immediately if the camera is already at rest.
-export function resetCamera(duration = 500) {
+export function resetCamera(duration = TIMING.cameraReset) {
   if (isCameraAtIdentity()) return Promise.resolve();
   return svg.transition().duration(duration).call(zoom.transform, d3.zoomIdentity).end();
 }
@@ -76,7 +77,6 @@ export function resetCamera(duration = 500) {
 // stays put. Trackpad pinches arrive as ctrl+wheel and take the same path.
 // Ignored during morphs: interrupting resetCamera's transition would
 // reject the promise transitionTo awaits.
-const WHEEL_ZOOM_MS = 150;
 let wheelTargetScale = null;
 let wheelZoomId = 0;
 
@@ -89,7 +89,7 @@ svg.on("wheel.smooth", (event) => {
   wheelTargetScale = Math.max(kMin, Math.min(kMax, (wheelTargetScale ?? currentZoomTransform.k) * 2 ** delta));
   const id = ++wheelZoomId;
   svg.transition()
-    .duration(WHEEL_ZOOM_MS)
+    .duration(TIMING.wheelZoom)
     .ease(d3.easeCubicOut)
     .call(zoom.scaleTo, wheelTargetScale, d3.pointer(event, svg.node()))
     // A newer notch interrupting this one keeps the target it built on;
@@ -102,11 +102,11 @@ const zoomOutBtn = document.getElementById("zoom-out-btn");
 const ZOOM_STEP  = 1.3; // multiplicative factor per click, same feel as one mouse-wheel notch
 
 zoomInBtn.addEventListener("click", () => {
-  svg.transition().duration(200).call(zoom.scaleBy, ZOOM_STEP);
+  svg.transition().duration(TIMING.zoomButton).call(zoom.scaleBy, ZOOM_STEP);
 });
 
 zoomOutBtn.addEventListener("click", () => {
-  svg.transition().duration(200).call(zoom.scaleBy, 1 / ZOOM_STEP);
+  svg.transition().duration(TIMING.zoomButton).call(zoom.scaleBy, 1 / ZOOM_STEP);
 });
 
 // ============================================================

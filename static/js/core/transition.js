@@ -10,6 +10,7 @@ import { renderMap, updateGlobeBackground } from "./render.js";
 import { resetCamera } from "./camera.js";
 import { setActiveButton } from "../ui/sidebar.js";
 import { updateInfo } from "../ui/info-card.js";
+import { TIMING } from "../config.js";
 
 // ============================================================
 // TRANSITION — morph source → target
@@ -30,7 +31,7 @@ async function transitionTo(newProjId) {
   if (fromDef.polarRotation || toDef.polarRotation) {
     await polarTransition(fromDef, toDef);
   } else {
-    await animateTransition(fromDef, toDef, 1400);
+    await animateTransition(fromDef, toDef, TIMING.projectionMorph);
   }
 
   // Final render with the true target projection (native clipping rules)

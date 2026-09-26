@@ -9,6 +9,7 @@ import { hideCompareHighlight, refreshCompareHighlight } from "../ui/compare-car
 import { lightOf } from "./geometry.js";
 import { renderGlobeSphere, renderMap, updateTerrainPaths } from "./render.js";
 import { t } from "../i18n.js";
+import { TIMING } from "../config.js";
 
 // The rotation the active view gives projDef — every render of the main
 // map goes through this so the globe and the flat maps agree on the view.
@@ -49,7 +50,7 @@ export function rotationFor(projDef) {
 // using vector-effect:non-scaling-stroke, which itself isn't cheap to
 // recompute) plus terrain, that repaint cost was the actual source of
 // the dropped frames during this flip.
-function animateRecenterFlip(flip, onEdgeOn, duration = 900) {
+function animateRecenterFlip(flip, onEdgeOn, duration = TIMING.recenterFlip) {
   const axis = HEIGHT / 2;
   const sign = flip ? 1 : -1; // start upright when flipping in, mirrored when flipping out
   let swapped = false;
@@ -141,7 +142,7 @@ export async function applyRecenter(presetId) {
     });
   } else {
     const toRot = currentDef.tilted ? preset.tilt || preset.rotate : preset.rotate;
-    await animateRecenterRotation(currentDef, fromRot, toRot, 900);
+    await animateRecenterRotation(currentDef, fromRot, toRot, TIMING.recenterRotation);
     state.currentRecenterRotate = preset.rotate;
     state.currentRecenterTilt = preset.tilt || null;
     renderMap(makeProjection(currentDef, rotationFor(currentDef))); // final render with native clipping

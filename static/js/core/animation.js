@@ -6,6 +6,7 @@ import { referenceVisible, tissotVisible, updateReferencePaths, updateTissotPath
 import { renderGlobeSphere, updateTerrainPaths } from "./render.js";
 import { rotationFor } from "./recenter.js";
 import { t } from "../i18n.js";
+import { TIMING } from "../config.js";
 
 // Drives one blend from alpha 0 → 1, optionally morphing the clip circle.
 //
@@ -172,20 +173,20 @@ export async function polarTransition(fromDef, toDef) {
 
   // Fold: reach an orthographic globe at the starting orientation
   if (fromRot) {
-    await animatePolarUnfold(fromRot, true, 800);
+    await animatePolarUnfold(fromRot, true, TIMING.polarFold);
   } else if (!fromDef.globe) {
-    await animateTransition(fromDef, orthoDef, 800);
+    await animateTransition(fromDef, orthoDef, TIMING.polarFold);
   }
 
   // Spin between orientations (north↔south rolls through the equator); a
   // non-polar end sits on the globe at the active view's tilt.
   const globeRot = rotationFor(orthoDef) || [0, 0];
-  await animateRotation(fromRot || globeRot, toRot || globeRot, 700);
+  await animateRotation(fromRot || globeRot, toRot || globeRot, TIMING.polarSpin);
 
   // Unfold: from the globe to the target
   if (toRot) {
-    await animatePolarUnfold(toRot, false, 800);
+    await animatePolarUnfold(toRot, false, TIMING.polarUnfold);
   } else if (!toDef.globe) {
-    await animateTransition(orthoDef, toDef, 800);
+    await animateTransition(orthoDef, toDef, TIMING.polarUnfold);
   }
 }
