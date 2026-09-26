@@ -2334,6 +2334,9 @@ window.__app = {
   RECENTER_PRESETS,
   mapGroup,
   terrainGroup,
+  // Pure function of a projection definition, so exposing it lets the render
+  // fingerprint pin fitProjection's numbers without steering the app.
+  makeProjection,
   get currentProjectionId() { return currentProjectionId; },
   get currentRecenterRotate() { return currentRecenterRotate; },
   get currentRecenterFlip() { return currentRecenterFlip; },
