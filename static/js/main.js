@@ -24,3 +24,4 @@ import "./tools/true-size.js";
 import "./ui/welcome-modal.js";
 import "./map.js";
 import "./ui/theme.js";
+import "./debug.js";
