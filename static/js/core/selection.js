@@ -2,7 +2,6 @@ import { HEIGHT, WIDTH, mapGroup, svg } from "./scene.js";
 import { zoom } from "./camera.js";
 import { getProjection } from "../data/projections.js";
 import { applySelectionToPanel, compareMode, comparePanels, flightPathMode, refreshReferenceLines, refreshTissot, setFlightPathMode } from "../tools/index.js";
-import { state } from "./state.js";
 import { makeProjection } from "./projection.js";
 import { renderMap } from "./render.js";
 import { resetRecenter, rotationFor } from "./recenter.js";
@@ -42,7 +41,7 @@ function selectCountry(feature) {
   // the map must be re-rendered unrotated before we compute the bounds to
   // center on, since computeCountryFit's bbox math assumes the default
   // orientation.
-  if (state.currentRecenterRotate) {
+  if (getState().recenter.rotate) {
     resetRecenter();
     const projDef = getProjection(getState().projectionId);
     renderMap(makeProjection(projDef, rotationFor(projDef)));

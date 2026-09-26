@@ -2,7 +2,6 @@ import { HEIGHT, WIDTH, globeSphere, mapGroup, referenceGroup, terrainGroup, tis
 import { getProjection } from "../data/projections.js";
 import { RECENTER_PRESETS } from "../data/views.js";
 import { clearSelection } from "./selection.js";
-import { state } from "./state.js";
 import { fitProjection, makeProjection } from "./projection.js";
 import { flightPathMode, referenceVisible, refreshReferenceLines, refreshTissot, setFlightPathMode, tissotVisible, updateReferencePaths, updateTissotPaths } from "../tools/index.js";
 import { hideCompareHighlight, refreshCompareHighlight } from "../ui/compare-card.js";
@@ -10,14 +9,30 @@ import { lightOf } from "./geometry.js";
 import { renderGlobeSphere, renderMap, updateTerrainPaths } from "./render.js";
 import { t } from "../i18n.js";
 import { TIMING } from "../config.js";
-import { getState } from "../state.js";
+import { getState, setState } from "../state.js";
 import { runExclusive } from "./busy.js";
+
+// The active view, `recenter: { rotate, tilt, flip }` in the store: rotate
+// is the longitude-only rotation flat maps take, tilt the globe's full
+// rotation, flip the upside-down mirror. This module is its only writer;
+// the globe drag goes through setViewRotation.
+const DEFAULT_VIEW = { rotate: null, tilt: RECENTER_PRESETS[0].tilt, flip: false };
+setState({ recenter: DEFAULT_VIEW });
+
+function patchView(patch) {
+  setState({ recenter: { ...getState().recenter, ...patch } });
+}
+
+export function setViewRotation(rotate, tilt) {
+  patchView({ rotate, tilt });
+}
 
 // The rotation the active view gives projDef — every render of the main
 // map goes through this so the globe and the flat maps agree on the view.
 export function rotationFor(projDef) {
-  if (projDef.tilted) return state.currentRecenterTilt || state.currentRecenterRotate;
-  return state.currentRecenterRotate;
+  const { rotate, tilt } = getState().recenter;
+  if (projDef.tilted) return tilt || rotate;
+  return rotate;
 }
 
 // Turns the map over like a coin about the equator: scaleY follows
@@ -130,26 +145,24 @@ export async function applyRecenter(presetId) {
     const currentDef = getProjection(getState().projectionId);
     const wantsFlip = !!preset.flipVertical;
 
-    if (wantsFlip !== state.currentRecenterFlip) {
+    if (wantsFlip !== getState().recenter.flip) {
       // Entering or leaving the South America (upside-down) mirror: doing the
       // usual longitude rotation sweep here would spin the sphere WHILE also
       // flipping it, reading as a distorted diagonal spin rather than a clean
       // mirror. Instead turn the map over about the equator and swap the
       // rotation instantly at the edge-on midpoint, where it's invisible.
       await animateRecenterFlip(wantsFlip, () => {
-        state.currentRecenterRotate = preset.rotate;
-        state.currentRecenterTilt = preset.tilt || null;
+        patchView({ rotate: preset.rotate, tilt: preset.tilt || null });
         renderMap(makeProjection(currentDef, rotationFor(currentDef)));
         refreshReferenceLines();
       });
     } else {
       const toRot = currentDef.tilted ? preset.tilt || preset.rotate : preset.rotate;
       await animateRecenterRotation(currentDef, fromRot, toRot, TIMING.recenterRotation);
-      state.currentRecenterRotate = preset.rotate;
-      state.currentRecenterTilt = preset.tilt || null;
+      patchView({ rotate: preset.rotate, tilt: preset.tilt || null });
       renderMap(makeProjection(currentDef, rotationFor(currentDef))); // final render with native clipping
     }
-    state.currentRecenterFlip = wantsFlip;
+    patchView({ flip: wantsFlip });
 
   });
   if (!ran) return;
@@ -159,9 +172,7 @@ export async function applyRecenter(presetId) {
 }
 
 export function resetRecenter() {
-  state.currentRecenterRotate = null;
-  state.currentRecenterTilt = RECENTER_PRESETS[0].tilt;
-  state.currentRecenterFlip = false;
+  setState({ recenter: DEFAULT_VIEW });
   // Cleared synchronously (no transition): if a projection switch is about
   // to run, the morph must not inherit a leftover flip transform on the
   // group it repaints into.
