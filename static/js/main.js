@@ -4,5 +4,6 @@ import "./data/projections.js";
 import "./core/scene.js";
 import "./core/state.js";
 import "./map.js";
+import "./core/projection.js";
 import "./core/geometry.js";
 import "./data/views.js";
