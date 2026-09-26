@@ -1,5 +1,5 @@
 import { PROJECTIONS } from "../data/projections.js";
-import { compareMode, comparePanels } from "../map.js";
+import { compareMode, comparePanels } from "./side-by-side.js";
 import { state } from "../core/state.js";
 import { fitProjection, makeProjection } from "../core/projection.js";
 import { rotationFor } from "../core/recenter.js";
