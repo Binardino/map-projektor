@@ -5,7 +5,7 @@ import { currentZoomTransform } from "../core/camera.js";
 import { fitProjection, makeProjection } from "../core/projection.js";
 import { flightPathGroup, svg } from "../core/scene.js";
 import { resetRecenter, rotationFor } from "../core/recenter.js";
-import { getState } from "../state.js";
+import { getState, on, setState } from "../state.js";
 
 // ============================================================
 // FLIGHT PATH / GREAT CIRCLE
@@ -32,7 +32,8 @@ const flightPathDistanceEl = document.getElementById("flightpath-distance");
 
 const EARTH_RADIUS_KM = 6371;
 
-export let flightPathMode = false;
+// flightPathMode is a store slice (the camera reads it) written only here
+setState({ flightPathMode: false });
 let flightPathA = null; // [lon, lat] or null
 let flightPathB = null; // [lon, lat] or null
 
@@ -93,8 +94,8 @@ export function refreshFlightPath() {
 }
 
 export function setFlightPathMode(active) {
-  flightPathMode = active;
-  flightPathToggleBtn.classList.toggle("active", flightPathMode);
+  setState({ flightPathMode: active });
+  flightPathToggleBtn.classList.toggle("active", active);
   flightPathA = null;
   flightPathB = null;
   refreshFlightPath();
@@ -104,11 +105,11 @@ export function setFlightPathMode(active) {
 if (flightPathToggleBtn) {
   flightPathToggleBtn.addEventListener("click", () => {
     if (getState().busy) return;
-    if (!flightPathMode) {
+    if (!getState().flightPathMode) {
       clearSelection();
       resetRecenter();
     }
-    setFlightPathMode(!flightPathMode);
+    setFlightPathMode(!getState().flightPathMode);
   });
 }
 
@@ -119,7 +120,7 @@ export function handleFlightPathClick(event, svgNode = svg.node(), zoomTransform
   getProjection(getState().projectionId),
   rotationFor(getProjection(getState().projectionId))
 )) {
-  if (!flightPathMode || getState().busy) return;
+  if (!getState().flightPathMode || getState().busy) return;
 
   // Undo the free camera pan/zoom (see CAMERA PAN & ZOOM) to get back to the
   // coordinate space the projection itself draws in before inverting.
@@ -139,3 +140,9 @@ export function handleFlightPathClick(event, svgNode = svg.node(), zoomTransform
   refreshFlightPath();
 }
 svg.node().addEventListener("click", (event) => handleFlightPathClick(event));
+
+on("view:changed", refreshFlightPath);
+// A recenter or a country selection takes the pointer back
+on("pointer:reset", () => {
+  if (getState().flightPathMode) setFlightPathMode(false);
+});

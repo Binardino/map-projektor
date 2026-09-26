@@ -1,6 +1,7 @@
 import { closeCompareCard } from "./compare-card.js";
-import { projectionName } from "../data/projections.js";
+import { getProjection, projectionName } from "../data/projections.js";
 import { t } from "../i18n.js";
+import { subscribe } from "../state.js";
 
 // ============================================================
 // INFO PANEL
@@ -46,3 +47,6 @@ infoToggleBtn.addEventListener("click", () => {
 });
 
 infoCloseBtn.addEventListener("click", () => setInfoVisible(false));
+
+// The card always describes the projection on screen.
+subscribe(["projectionId"], (state) => updateInfo(getProjection(state.projectionId)));

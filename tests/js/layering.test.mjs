@@ -22,17 +22,9 @@ const ALLOWED = {
   tools: [...SHARED, "data", "core"],
 };
 
-// Direct calls that PR 4 turns into events; each is removed from this list
-// then. Listed file by file so a new upward import still fails.
-const TEMPORARY_EXCEPTIONS = new Set([
-  "core/*.js -> tools/index.js",
-  "core/camera.js -> ui/compare-card.js",
-  "core/recenter.js -> ui/compare-card.js",
-  "core/transition.js -> ui/compare-card.js",
-  "core/transition.js -> ui/info-card.js",
-  "core/transition.js -> ui/mobile-sidebar.js",
-  "core/transition.js -> ui/sidebar.js",
-  // A disabled tool (not loaded, see tools/index.js) closing the info card
+// A disabled tool (not loaded, see tools/index.js) closing the info card.
+// Listed file by file so a new upward import still fails.
+const EXCEPTIONS = new Set([
   "tools/side-by-side.js -> ui/info-card.js",
 ]);
 
@@ -61,19 +53,17 @@ test("each layer imports only the layers below it", () => {
       const targetLayer = layerOf(target);
       if (targetLayer === layer || ALLOWED[layer].includes(targetLayer)) continue;
       const edge = `${file} -> ${target}`;
-      const wildcard = `${layer}/*.js -> ${target}`;
-      if (TEMPORARY_EXCEPTIONS.has(edge) || TEMPORARY_EXCEPTIONS.has(wildcard)) continue;
-      violations.push(edge);
+      if (!EXCEPTIONS.has(edge)) violations.push(edge);
     }
   }
   assert.deepEqual(violations, []);
 });
 
-test("core reaches tools only through tools/index.js", () => {
-  const direct = modules()
+test("core reaches tools and ui only through the store and events", () => {
+  const upward = modules()
     .filter((file) => layerOf(file) === "core")
-    .flatMap((file) => importsOf(file).filter((t) => t.startsWith("tools/") && t !== "tools/index.js").map((t) => `${file} -> ${t}`));
-  assert.deepEqual(direct, []);
+    .flatMap((file) => importsOf(file).filter((t) => ["tools", "ui"].includes(layerOf(t))).map((t) => `${file} -> ${t}`));
+  assert.deepEqual(upward, []);
 });
 
 test("nothing imports the entry point or the debug hook", () => {

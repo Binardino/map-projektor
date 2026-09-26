@@ -3,7 +3,7 @@ import { makeProjection } from "../core/projection.js";
 import { referenceGroup } from "../core/scene.js";
 import { rotationFor } from "../core/recenter.js";
 import { MERIDIAN_STEP } from "../config.js";
-import { getState } from "../state.js";
+import { getState, on } from "../state.js";
 
 // ============================================================
 // REFERENCE LINES
@@ -76,3 +76,9 @@ referenceToggleBtn.addEventListener("click", () => {
   referenceToggleBtn.setAttribute("aria-pressed", String(referenceVisible));
   refreshReferenceLines();
 });
+
+// Redrawn on every animation frame and whenever the view settles.
+on("frame", (projection) => {
+  if (referenceVisible) updateReferencePaths(referenceGroup, projection);
+});
+on("view:changed", refreshReferenceLines);

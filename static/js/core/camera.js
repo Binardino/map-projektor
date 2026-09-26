@@ -1,12 +1,10 @@
 import { getProjection } from "../data/projections.js";
-import { flightPathMode, refreshFlightPath, refreshReferenceLines, refreshTissot } from "../tools/index.js";
 import { makeProjection } from "./projection.js";
-import { refreshCompareHighlight } from "../ui/compare-card.js";
 import { renderMap } from "./render.js";
 import { rotationFor, setViewRotation } from "./recenter.js";
 import { svg, zoomLayer } from "./scene.js";
 import { CAMERA_IDENTITY_EPSILON, GLOBE_DRAG_SENSITIVITY, MAIN_ZOOM_SCALE_EXTENT, TIMING, ZOOM_STEP } from "../config.js";
-import { getState } from "../state.js";
+import { emit, getState } from "../state.js";
 
 // ============================================================
 // CAMERA PAN & ZOOM
@@ -117,7 +115,7 @@ zoomOutBtn.addEventListener("click", () => {
 // ============================================================
 
 const globeDrag = d3.drag()
-  .filter((event) => getProjection(getState().projectionId).globe && !getState().busy && !flightPathMode)
+  .filter((event) => getProjection(getState().projectionId).globe && !getState().busy && !getState().flightPathMode)
   .on("start", () => {
     document.querySelectorAll(".recenter-btn").forEach((b) => b.classList.remove("active"));
   })
@@ -129,10 +127,7 @@ const globeDrag = d3.drag()
     // Flat maps keep the dragged longitude but never the tilt (see tilted in data/projections.js)
     setViewRotation([newLambda, 0, 0], tilt);
     renderMap(makeProjection(projDef, rotationFor(projDef)));
-    refreshTissot();
-    refreshReferenceLines();
-    refreshFlightPath();
-    refreshCompareHighlight();
+    emit("view:changed");
   });
 
 svg.call(globeDrag);

@@ -7,7 +7,7 @@ import { t } from "../i18n.js";
 import { COMPARE_MAX } from "../config.js";
 import { readPalette } from "../core/palette.js";
 import { worldData } from "../data/geodata.js";
-import { getState } from "../state.js";
+import { getState, on } from "../state.js";
 
 // ============================================================
 // COMPARE CARD
@@ -300,3 +300,8 @@ compareCardToggleBtn.addEventListener("click", () => {
 });
 
 compareCardCloseBtn.addEventListener("click", closeCompareCard);
+
+// The overlay is pinned to the map's projection: hidden while it morphs or
+// spins, put back on the country once the view settles.
+on("view:changing", hideCompareHighlight);
+on("view:changed", refreshCompareHighlight);

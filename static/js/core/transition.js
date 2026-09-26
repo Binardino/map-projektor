@@ -1,16 +1,11 @@
 import { animateTransition, polarTransition } from "./animation.js";
 import { GLOBE, PROJECTIONS, getProjection } from "../data/projections.js";
 import { applyRecenter, refreshRecenterAvailability, rotationFor } from "./recenter.js";
-import { closeSidebar } from "../ui/mobile-sidebar.js";
-import { hideCompareHighlight, refreshCompareHighlight } from "../ui/compare-card.js";
 import { makeProjection } from "./projection.js";
-import { refreshFlightPath, refreshReferenceLines, refreshTissot, resetTrueSizeOnProjectionSwitch } from "../tools/index.js";
 import { renderMap, updateGlobeBackground } from "./render.js";
 import { resetCamera } from "./camera.js";
-import { setActiveButton } from "../ui/sidebar.js";
-import { updateInfo } from "../ui/info-card.js";
 import { TIMING } from "../config.js";
-import { getState, setState } from "../state.js";
+import { emit, getState, setState } from "../state.js";
 import { runExclusive } from "./busy.js";
 
 // ============================================================
@@ -26,7 +21,7 @@ function transitionTo(newProjId) {
 }
 
 async function morphTo(newProjId) {
-  hideCompareHighlight();
+  emit("view:changing");
 
   // Reset the free camera (pan/zoom on zoomLayer, see CAMERA PAN & ZOOM)
   // to the default centered view before starting the morph, so every
@@ -47,14 +42,9 @@ async function morphTo(newProjId) {
   renderMap(makeProjection(toDef, rotationFor(toDef)));
 
   setState({ projectionId: newProjId });
-  updateInfo(toDef);
   updateGlobeBackground();
-  refreshTissot();
-  refreshReferenceLines();
   refreshRecenterAvailability();
-  refreshFlightPath();
-  resetTrueSizeOnProjectionSwitch();
-  refreshCompareHighlight();
+  emit("view:changed");
 }
 
 // ============================================================
@@ -63,8 +53,9 @@ async function morphTo(newProjId) {
 export async function switchProjection(newProjId) {
   if (getState().busy || newProjId === getState().projectionId) return;
   if (!PROJECTIONS.some((p) => p.id === newProjId)) return;
-  closeSidebar(); // no-op on desktop; on mobile, reveals the map after picking
-  setActiveButton(newProjId); // highlight immediately — don't wait for the ~1.4-2.3s morph to finish
+  // Right away, not after the ~1.4-2.3s morph: the sidebar highlights the
+  // pick, and on mobile the drawer closes to reveal the map.
+  emit("projection:requested", newProjId);
   // The active view carries over to any compatible projection (transitionTo
   // morphs with its rotation). Albers/polar can't be recentred, so ease back
   // to Europe first — otherwise the morph would end on a snapped rotation.
