@@ -19,8 +19,10 @@ def test_static_css_served():
     assert response.status_code == 200
 
 def test_static_js_served():
-    response = client.get("/static/js/map.js")
+    response = client.get("/static/js/main.js")
     assert response.status_code == 200
+    # Browsers refuse to run an ES module served with a non-JavaScript type
+    assert "javascript" in response.headers["content-type"]
 
 def test_geojson_endpoint_returns_200():
     if not pathlib.Path("app/data/world.geojson").exists():
