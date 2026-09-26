@@ -4,6 +4,7 @@ import { currentZoomTransform } from "./core/camera.js";
 import { makeProjection } from "./core/projection.js";
 import { mapGroup, terrainGroup } from "./core/scene.js";
 import { emit, getState } from "./state.js";
+import { setLanguage } from "./i18n.js";
 
 // ============================================================
 // DEBUG HOOK
@@ -29,4 +30,5 @@ window.__app = {
   // Re-renders every text-bearing UI part as a language change would, so a
   // test can check the builders are idempotent.
   rebuildUI() { emit("language:changed"); },
+  setLanguage,
 };

@@ -20,15 +20,12 @@ import "./ui/welcome-modal.js";
 import "./ui/theme.js";
 import "./debug.js";
 import { getProjection } from "./data/projections.js";
-import { buildCompareProjectionOptions } from "./ui/compare-card.js";
 import { buildLightGeometry } from "./core/geometry.js";
-import { buildRecenterPanel, buildSidebar } from "./ui/sidebar.js";
-import { loadLanguage } from "./i18n.js";
+import { setLanguage } from "./i18n.js";
 import { makeProjection } from "./core/projection.js";
 import { openHelpModal } from "./ui/welcome-modal.js";
 import { rotationFor } from "./core/recenter.js";
 import { renderMap, updateGlobeBackground } from "./core/render.js";
-import { updateInfo } from "./ui/info-card.js";
 import { loadGeodata, terrainData, worldData } from "./data/geodata.js";
 import { emit, getState } from "./state.js";
 
@@ -36,9 +33,10 @@ import { emit, getState } from "./state.js";
 // INIT — fetch GeoJSON then render
 // ============================================================
 async function init() {
-  // Before anything renders: sidebar buttons, info card and view labels all
-  // read their text through t().
-  await loadLanguage("en");
+  // Before anything renders: loading the language also builds the sidebar,
+  // view list, compare options and info card (their "language:changed"
+  // subscribers), which all read their text through t().
+  await setLanguage("en");
   openHelpModal(); // after the language loads, or the modal would flash empty
 
   await loadGeodata();
@@ -46,11 +44,7 @@ async function init() {
   buildLightGeometry(terrainData.features);
 
   const initialProj = getProjection(getState().projectionId);
-  buildSidebar();
-  buildRecenterPanel();
-  buildCompareProjectionOptions();
   renderMap(makeProjection(initialProj, rotationFor(initialProj)));
-  updateInfo(initialProj);
   updateGlobeBackground();
   emit("view:changed"); // first draw of the overlays that follow the view
 }

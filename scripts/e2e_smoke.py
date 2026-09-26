@@ -179,6 +179,11 @@ def ui_rebuild(page):
     after = page.evaluate(snapshot)
     for label, a, b in zip(("text", "node count", "active buttons", "compare projection"), before, after):
         assert a == b, f"{label} changed after rebuildUI: {a!r} -> {b!r}"
+    # Switching to the language already shown is the same no-op re-render
+    page.evaluate("() => window.__app.setLanguage('en')")
+    after = page.evaluate(snapshot)
+    for label, a, b in zip(("text", "node count", "active buttons", "compare projection"), before, after):
+        assert a == b, f"{label} changed after setLanguage('en'): {a!r} -> {b!r}"
 
 
 def mobile_drawer(page):
