@@ -26,7 +26,7 @@ import { buildRecenterPanel, buildSidebar } from "./ui/sidebar.js";
 import { loadLanguage } from "./i18n.js";
 import { makeProjection } from "./core/projection.js";
 import { openHelpModal } from "./ui/welcome-modal.js";
-import { refreshRecenterAvailability, rotationFor } from "./core/recenter.js";
+import { rotationFor } from "./core/recenter.js";
 import { renderMap, updateGlobeBackground } from "./core/render.js";
 import { updateInfo } from "./ui/info-card.js";
 import { loadGeodata, terrainData, worldData } from "./data/geodata.js";
@@ -52,7 +52,6 @@ async function init() {
   renderMap(makeProjection(initialProj, rotationFor(initialProj)));
   updateInfo(initialProj);
   updateGlobeBackground();
-  refreshRecenterAvailability();
   emit("view:changed"); // first draw of the overlays that follow the view
 }
 

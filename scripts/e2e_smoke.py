@@ -162,6 +162,25 @@ def tools_and_cards(page):
     assert not page.is_visible("#compare-card")
 
 
+def ui_rebuild(page):
+    """The UI builders are idempotent: re-rendering for a language change
+    leaves the same text, the same number of nodes and the same active
+    buttons, with a non-default view and a compared country in place."""
+    page.keyboard.press("Escape")
+    view(page, "china")
+    page.click("#compare-toggle-btn")
+    page.fill("#compare-country-input", "fra")
+    page.click("#compare-country-results li")
+    snapshot = """() => [document.body.innerText, document.body.getElementsByTagName("*").length,
+        [...document.querySelectorAll(".active")].map((el) => el.id || el.dataset.presetId || el.dataset.projId).join(","),
+        document.getElementById("compare-projection-select").value]"""
+    before = page.evaluate(snapshot)
+    page.evaluate("() => { window.__app.rebuildUI(); window.__app.rebuildUI(); }")
+    after = page.evaluate(snapshot)
+    for label, a, b in zip(("text", "node count", "active buttons", "compare projection"), before, after):
+        assert a == b, f"{label} changed after rebuildUI: {a!r} -> {b!r}"
+
+
 def mobile_drawer(page):
     page.set_viewport_size(MOBILE_VIEWPORT)
     open_app(page)
@@ -172,7 +191,7 @@ def mobile_drawer(page):
     assert not page.evaluate("() => document.getElementById('sidebar').classList.contains('open')"), "drawer should close"
 
 
-SCENARIOS = [welcome_modal, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, mobile_drawer]
+SCENARIOS = [welcome_modal, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, ui_rebuild, mobile_drawer]
 
 
 def main():
