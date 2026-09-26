@@ -2,11 +2,10 @@ import { DEGREES, blendProjection, clipAngleOf, makeProjection } from "./project
 import { HEIGHT, WIDTH, globeSphere, globeSphereFade, mapGroup, referenceGroup, terrainGroup, tissotGroup } from "./scene.js";
 import { PROJECTIONS } from "../data/projections.js";
 import { lightOf } from "./geometry.js";
-import { referenceVisible, updateReferencePaths } from "../tools/reference-lines.js";
+import { referenceVisible, tissotVisible, updateReferencePaths, updateTissotPaths } from "../tools/index.js";
 import { renderGlobeSphere, updateTerrainPaths } from "./render.js";
 import { rotationFor } from "./recenter.js";
 import { t } from "../i18n.js";
-import { tissotVisible, updateTissotPaths } from "../tools/tissot.js";
 
 // Drives one blend from alpha 0 → 1, optionally morphing the clip circle.
 //

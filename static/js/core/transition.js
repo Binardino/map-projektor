@@ -6,12 +6,9 @@ import { closeSidebar } from "../ui/mobile-sidebar.js";
 import { state } from "./state.js";
 import { hideCompareHighlight, refreshCompareHighlight } from "../ui/compare-card.js";
 import { makeProjection } from "./projection.js";
-import { refreshFlightPath } from "../tools/flight-path.js";
-import { refreshReferenceLines } from "../tools/reference-lines.js";
-import { refreshTissot } from "../tools/tissot.js";
+import { refreshFlightPath, refreshReferenceLines, refreshTissot, resetTrueSizeOnProjectionSwitch } from "../tools/index.js";
 import { renderMap, updateGlobeBackground } from "./render.js";
 import { resetCamera } from "./camera.js";
-import { resetTrueSizeOnProjectionSwitch } from "../tools/true-size.js";
 import { setActiveButton } from "../ui/sidebar.js";
 import { updateInfo } from "../ui/info-card.js";
 
