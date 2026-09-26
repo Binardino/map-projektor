@@ -1,7 +1,6 @@
-import { LIGHT_ZOOM_MAX_SCALE, MAIN_ZOOM_SCALE_EXTENT, currentZoomTransform, resetCamera } from "./core/camera.js";
-import { POLAR_ROTATION, animateTransition, polarTransition } from "./core/animation.js";
+import { LIGHT_ZOOM_MAX_SCALE, MAIN_ZOOM_SCALE_EXTENT, currentZoomTransform } from "./core/camera.js";
 import { PROJECTIONS, projectionName } from "./data/projections.js";
-import { RECENTER_INCOMPATIBLE, RECENTER_PRESETS } from "./data/views.js";
+import { RECENTER_PRESETS } from "./data/views.js";
 import { applyRecenter, refreshRecenterAvailability, resetRecenter, rotationFor } from "./core/recenter.js";
 import { buildLightGeometry } from "./core/geometry.js";
 import { clearSelection, selectedCountryName } from "./core/selection.js";
@@ -10,44 +9,7 @@ import { state } from "./core/state.js";
 import { fitProjection, makeProjection } from "./core/projection.js";
 import { loadLanguage, t } from "./i18n.js";
 import { renderGlobeSphere, renderMap, updateGlobeBackground } from "./core/render.js";
-
-// ============================================================
-// TRANSITION — morph source → target
-// ============================================================
-async function transitionTo(newProjId) {
-  state.isAnimating = true;
-  hideCompareHighlight();
-
-  // Reset the free camera (pan/zoom on zoomLayer, see CAMERA PAN & ZOOM)
-  // to the default centered view before starting the morph, so every
-  // projection switch lands on that projection's own standard framing
-  // instead of carrying over whatever pan/zoom the user left it at.
-  await resetCamera();
-
-  const fromDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
-  const toDef   = PROJECTIONS.find((p) => p.id === newProjId);
-
-  if (POLAR_ROTATION[fromDef.id] || POLAR_ROTATION[toDef.id]) {
-    await polarTransition(fromDef, toDef);
-  } else {
-    await animateTransition(fromDef, toDef, 1400);
-  }
-
-  // Final render with the true target projection (native clipping rules)
-  renderMap(makeProjection(toDef, rotationFor(toDef)));
-
-  state.currentProjectionId = newProjId;
-  updateInfo(toDef);
-  updateGlobeBackground();
-  refreshTissot();
-  refreshReferenceLines();
-  refreshRecenterAvailability();
-  refreshFlightPath();
-  resetTrueSizeOnProjectionSwitch();
-  refreshCompareHighlight();
-
-  state.isAnimating = false;
-}
+import { switchProjection } from "./core/transition.js";
 
 // ============================================================
 // INFO PANEL
@@ -67,7 +29,7 @@ function renderTradeoffs(projDef) {
   });
 }
 
-function updateInfo(projDef) {
+export function updateInfo(projDef) {
   document.getElementById("info-name").textContent = projectionName(projDef);
   renderTradeoffs(projDef);
 }
@@ -418,7 +380,7 @@ function buildSidebar() {
   setActiveButton(state.currentProjectionId);
 }
 
-function setActiveButton(projId) {
+export function setActiveButton(projId) {
   document.querySelectorAll(".proj-btn").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.projId === projId);
   });
@@ -435,23 +397,6 @@ function buildRecenterPanel() {
     btn.addEventListener("click", () => applyRecenter(preset.id));
     nav.appendChild(btn);
   });
-}
-
-// ============================================================
-// SWITCH PROJECTION
-// ============================================================
-async function switchProjection(newProjId) {
-  if (state.isAnimating || newProjId === state.currentProjectionId) return;
-  if (!PROJECTIONS.find((p) => p.id === newProjId)) return;
-  closeSidebar(); // no-op on desktop; on mobile, reveals the map after picking
-  setActiveButton(newProjId); // highlight immediately — don't wait for the ~1.4-2.3s morph to finish
-  // The active view carries over to any compatible projection (transitionTo
-  // morphs with its rotation). Albers/polar can't be recentred, so ease back
-  // to Europe first — otherwise the morph would end on a snapped rotation.
-  if (RECENTER_INCOMPATIBLE.has(newProjId) && (state.currentRecenterRotate || state.currentRecenterFlip)) {
-    await applyRecenter("world");
-  }
-  transitionTo(newProjId);
 }
 
 // ============================================================
@@ -623,7 +568,7 @@ const sidebarToggleBtn = document.getElementById("sidebar-toggle");
 const sidebarBackdrop  = document.getElementById("sidebar-backdrop");
 const sidebarEl        = document.getElementById("sidebar");
 
-function closeSidebar() {
+export function closeSidebar() {
   sidebarEl.classList.remove("open");
   sidebarBackdrop.hidden = true;
 }
@@ -1057,7 +1002,7 @@ function renderTrueSizeShapes() {
     });
 }
 
-function resetTrueSizeOnProjectionSwitch() {
+export function resetTrueSizeOnProjectionSwitch() {
   if (trueSizeOrder.length === 0) return;
   trueSizeOffsets.clear();
   renderTrueSizeShapes();
