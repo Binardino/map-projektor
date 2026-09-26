@@ -3,7 +3,7 @@ import { PROJECTIONS, projectionName } from "../data/projections.js";
 import { state } from "../core/state.js";
 import { fitProjection } from "../core/projection.js";
 import { flightPathGroup, globeSphere, mapGroup, oceanRect, svg, tissotGroup, zoomLayer } from "../core/scene.js";
-import { handleFlightPathClick } from "../map.js";
+import { handleFlightPathClick } from "./flight-path.js";
 import { infoVisible, setInfoVisible } from "../ui/info-card.js";
 import { refreshTissot } from "./tissot.js";
 import { renderGlobeSphere } from "../core/render.js";
