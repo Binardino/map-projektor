@@ -86,6 +86,11 @@ def capture_states(page):
 
     page.fill("#compare-country-input", COUNTRY_QUERY)
     states[f"compare card, country search '{COUNTRY_QUERY}'"] = page.evaluate(COLLECT_JS)
+
+    # Picking a result adds a row whose checkbox and remove button carry
+    # their own interpolated labels.
+    page.click("#compare-country-results li")
+    states["compare card, one country picked"] = page.evaluate(COLLECT_JS)
     return states
 
 
