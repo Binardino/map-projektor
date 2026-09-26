@@ -16,3 +16,4 @@ import "./core/recenter.js";
 import "./core/camera.js";
 import "./core/selection.js";
 import "./map.js";
+import "./ui/mobile-sidebar.js";

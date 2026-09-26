@@ -2,10 +2,11 @@ import { POLAR_ROTATION, animateTransition, polarTransition } from "./animation.
 import { PROJECTIONS } from "../data/projections.js";
 import { RECENTER_INCOMPATIBLE } from "../data/views.js";
 import { applyRecenter, refreshRecenterAvailability, rotationFor } from "./recenter.js";
-import { closeSidebar, refreshFlightPath, refreshReferenceLines, refreshTissot, resetTrueSizeOnProjectionSwitch } from "../map.js";
+import { closeSidebar } from "../ui/mobile-sidebar.js";
 import { state } from "./state.js";
 import { hideCompareHighlight, refreshCompareHighlight } from "../ui/compare-card.js";
 import { makeProjection } from "./projection.js";
+import { refreshFlightPath, refreshReferenceLines, refreshTissot, resetTrueSizeOnProjectionSwitch } from "../map.js";
 import { renderMap, updateGlobeBackground } from "./render.js";
 import { resetCamera } from "./camera.js";
 import { setActiveButton } from "../ui/sidebar.js";
