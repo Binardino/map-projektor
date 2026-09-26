@@ -20,6 +20,7 @@ import "./ui/mobile-sidebar.js";
 import "./tools/tissot.js";
 import "./tools/reference-lines.js";
 import "./tools/flight-path.js";
-import "./map.js";
+import "./tools/true-size.js";
 import "./ui/welcome-modal.js";
+import "./map.js";
 import "./ui/theme.js";

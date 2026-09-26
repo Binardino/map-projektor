@@ -11,7 +11,7 @@ import { refreshReferenceLines } from "../tools/reference-lines.js";
 import { refreshTissot } from "../tools/tissot.js";
 import { renderMap, updateGlobeBackground } from "./render.js";
 import { resetCamera } from "./camera.js";
-import { resetTrueSizeOnProjectionSwitch } from "../map.js";
+import { resetTrueSizeOnProjectionSwitch } from "../tools/true-size.js";
 import { setActiveButton } from "../ui/sidebar.js";
 import { updateInfo } from "../ui/info-card.js";
 
