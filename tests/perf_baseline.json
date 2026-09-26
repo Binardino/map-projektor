@@ -1,170 +1,203 @@
 {
   "projection: aitoff -> hammer": {
-    "avg_frame_ms": 20.62,
-    "dropped_frames": 30,
-    "frame_count": 140,
-    "max_frame_ms": 66.6
-  },
-  "projection: albers -> mercator": {
-    "avg_frame_ms": 20.32,
-    "dropped_frames": 27,
-    "frame_count": 147,
-    "max_frame_ms": 83.3
-  },
-  "projection: azimuthalEqualArea -> polarNorth": {
-    "avg_frame_ms": 24.36,
-    "dropped_frames": 48,
-    "frame_count": 118,
-    "max_frame_ms": 116.7
-  },
-  "projection: eckert4 -> sinusoidal": {
-    "avg_frame_ms": 21.2,
-    "dropped_frames": 36,
-    "frame_count": 137,
-    "max_frame_ms": 49.9
-  },
-  "projection: equalEarth -> eckert4": {
-    "avg_frame_ms": 21.55,
-    "dropped_frames": 34,
-    "frame_count": 134,
-    "max_frame_ms": 100.0
-  },
-  "projection: equirectangular -> gallPeters": {
-    "avg_frame_ms": 19.66,
-    "dropped_frames": 23,
-    "frame_count": 146,
-    "max_frame_ms": 66.6
-  },
-  "projection: gallPeters -> robinson": {
-    "avg_frame_ms": 18.89,
-    "dropped_frames": 19,
-    "frame_count": 158,
-    "max_frame_ms": 50.0
-  },
-  "projection: hammer -> albers": {
-    "avg_frame_ms": 19.65,
-    "dropped_frames": 24,
-    "frame_count": 146,
-    "max_frame_ms": 66.7
-  },
-  "projection: mercator -> equirectangular": {
-    "avg_frame_ms": 18.97,
-    "dropped_frames": 20,
-    "frame_count": 153,
-    "max_frame_ms": 50.1
-  },
-  "projection: mollweide -> naturalEarth": {
-    "avg_frame_ms": 20.8,
-    "dropped_frames": 31,
-    "frame_count": 138,
-    "max_frame_ms": 66.6
-  },
-  "projection: naturalEarth -> equalEarth": {
-    "avg_frame_ms": 18.86,
-    "dropped_frames": 19,
-    "frame_count": 153,
-    "max_frame_ms": 50.0
-  },
-  "projection: orthographic -> mercator": {
-    "avg_frame_ms": 21.46,
-    "dropped_frames": 35,
-    "frame_count": 140,
-    "max_frame_ms": 99.9
-  },
-  "projection: polarNorth -> polarSouth": {
-    "avg_frame_ms": 22.8,
-    "dropped_frames": 43,
-    "frame_count": 126,
-    "max_frame_ms": 83.2
-  },
-  "projection: polarSouth -> winkelTripel": {
-    "avg_frame_ms": 21.27,
-    "dropped_frames": 31,
-    "frame_count": 135,
-    "max_frame_ms": 83.4
-  },
-  "projection: robinson -> mollweide": {
-    "avg_frame_ms": 21.55,
-    "dropped_frames": 32,
-    "frame_count": 134,
-    "max_frame_ms": 83.3
-  },
-  "projection: sinusoidal -> azimuthalEqualArea": {
-    "avg_frame_ms": 19.79,
-    "dropped_frames": 25,
-    "frame_count": 145,
-    "max_frame_ms": 66.7
-  },
-  "projection: winkelTripel -> aitoff": {
-    "avg_frame_ms": 21.01,
-    "dropped_frames": 33,
-    "frame_count": 143,
-    "max_frame_ms": 83.4
-  },
-  "recenter: africa -> world": {
-    "avg_frame_ms": 18.03,
-    "dropped_frames": 11,
-    "frame_count": 160,
-    "max_frame_ms": 66.7
-  },
-  "recenter: china -> world": {
-    "avg_frame_ms": 18.39,
-    "dropped_frames": 14,
-    "frame_count": 156,
-    "max_frame_ms": 66.6
-  },
-  "recenter: southAmericaFlipped -> world": {
-    "avg_frame_ms": 16.76,
-    "dropped_frames": 1,
-    "frame_count": 173,
-    "max_frame_ms": 33.3
-  },
-  "recenter: usaPacific -> world": {
-    "avg_frame_ms": 18.63,
-    "dropped_frames": 15,
-    "frame_count": 154,
-    "max_frame_ms": 66.6
-  },
-  "recenter: world -> africa": {
-    "avg_frame_ms": 18.26,
-    "dropped_frames": 13,
-    "frame_count": 158,
-    "max_frame_ms": 66.6
-  },
-  "recenter: world -> china": {
-    "avg_frame_ms": 18.61,
-    "dropped_frames": 14,
-    "frame_count": 155,
-    "max_frame_ms": 83.4
-  },
-  "recenter: world -> southAmericaFlipped": {
-    "avg_frame_ms": 16.86,
+    "avg_frame_ms": 16.77,
     "dropped_frames": 1,
     "frame_count": 170,
+    "max_frame_ms": 33.3
+  },
+  "projection: albers -> mercator": {
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 172,
+    "max_frame_ms": 33.3
+  },
+  "projection: azimuthalEqualArea -> polarNorth": {
+    "avg_frame_ms": 16.97,
+    "dropped_frames": 3,
+    "frame_count": 168,
+    "max_frame_ms": 33.4
+  },
+  "projection: eckert4 -> sinusoidal": {
+    "avg_frame_ms": 16.96,
+    "dropped_frames": 3,
+    "frame_count": 169,
+    "max_frame_ms": 33.4
+  },
+  "projection: equalEarth -> eckert4": {
+    "avg_frame_ms": 16.96,
+    "dropped_frames": 3,
+    "frame_count": 169,
     "max_frame_ms": 50.0
   },
-  "recenter: world -> usaPacific": {
-    "avg_frame_ms": 18.39,
-    "dropped_frames": 13,
-    "frame_count": 156,
-    "max_frame_ms": 66.6
+  "projection: equirectangular -> gallPeters": {
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 171,
+    "max_frame_ms": 33.3
+  },
+  "projection: gallPeters -> robinson": {
+    "avg_frame_ms": 16.77,
+    "dropped_frames": 1,
+    "frame_count": 170,
+    "max_frame_ms": 33.4
+  },
+  "projection: hammer -> albers": {
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 171,
+    "max_frame_ms": 33.4
+  },
+  "projection: mercator -> equirectangular": {
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 171,
+    "max_frame_ms": 33.3
+  },
+  "projection: mollweide -> naturalEarth": {
+    "avg_frame_ms": 16.86,
+    "dropped_frames": 2,
+    "frame_count": 170,
+    "max_frame_ms": 33.3
+  },
+  "projection: naturalEarth -> equalEarth": {
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 170,
+    "max_frame_ms": 33.4
+  },
+  "projection: orthographic -> mercator": {
+    "avg_frame_ms": 17.48,
+    "dropped_frames": 7,
+    "frame_count": 164,
+    "max_frame_ms": 33.4
+  },
+  "projection: polarNorth -> polarSouth": {
+    "avg_frame_ms": 17.07,
+    "dropped_frames": 4,
+    "frame_count": 167,
+    "max_frame_ms": 50
+  },
+  "projection: polarSouth -> winkelTripel": {
+    "avg_frame_ms": 17.49,
+    "dropped_frames": 7,
+    "frame_count": 163,
+    "max_frame_ms": 50.0
+  },
+  "projection: robinson -> mollweide": {
+    "avg_frame_ms": 17.06,
+    "dropped_frames": 3,
+    "frame_count": 168,
+    "max_frame_ms": 33.4
+  },
+  "projection: sinusoidal -> azimuthalEqualArea": {
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 170,
+    "max_frame_ms": 33.3
+  },
+  "projection: winkelTripel -> aitoff": {
+    "avg_frame_ms": 16.86,
+    "dropped_frames": 2,
+    "frame_count": 169,
+    "max_frame_ms": 33.3
+  },
+  "recenter: africa -> world": {
+    "avg_frame_ms": 16.77,
+    "dropped_frames": 1,
+    "frame_count": 170,
+    "max_frame_ms": 33.3
+  },
+  "recenter: america -> world": {
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 170,
+    "max_frame_ms": 33.3
+  },
+  "recenter: china -> world": {
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 170,
+    "max_frame_ms": 33.3
+  },
+  "recenter: oceania -> world": {
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 170,
+    "max_frame_ms": 33.3
+  },
+  "recenter: southAmericaFlipped -> world": {
+    "avg_frame_ms": 16.67,
+    "dropped_frames": 0,
+    "frame_count": 171,
+    "max_frame_ms": 16.8
+  },
+  "recenter: world -> africa": {
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 170,
+    "max_frame_ms": 33.3
+  },
+  "recenter: world -> america": {
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 170,
+    "max_frame_ms": 33.3
+  },
+  "recenter: world -> china": {
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 170,
+    "max_frame_ms": 33.4
+  },
+  "recenter: world -> oceania": {
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 170,
+    "max_frame_ms": 33.4
+  },
+  "recenter: world -> southAmericaFlipped": {
+    "avg_frame_ms": 16.67,
+    "dropped_frames": 0,
+    "frame_count": 172,
+    "max_frame_ms": 16.8
   },
   "view china: mercator -> robinson": {
-    "avg_frame_ms": 19.91,
-    "dropped_frames": 25,
-    "frame_count": 145,
-    "max_frame_ms": 66.6
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 171,
+    "max_frame_ms": 33.4
   },
   "view china: orthographic -> mercator": {
-    "avg_frame_ms": 20.48,
-    "dropped_frames": 28,
-    "frame_count": 141,
-    "max_frame_ms": 83.4
+    "avg_frame_ms": 17.07,
+    "dropped_frames": 4,
+    "frame_count": 167,
+    "max_frame_ms": 33.3
   },
   "view china: robinson -> orthographic": {
-    "avg_frame_ms": 19.26,
-    "dropped_frames": 21,
-    "frame_count": 149,
-    "max_frame_ms": 50.0
+    "avg_frame_ms": 17.28,
+    "dropped_frames": 6,
+    "frame_count": 165,
+    "max_frame_ms": 33.5
+  },
+  "zoom: buttons in": {
+    "avg_frame_ms": 16.67,
+    "dropped_frames": 0,
+    "frame_count": 95,
+    "max_frame_ms": 16.8,
+    "max_zoom_step_pct": 6.2
+  },
+  "zoom: wheel in": {
+    "avg_frame_ms": 16.67,
+    "dropped_frames": 0,
+    "frame_count": 94,
+    "max_frame_ms": 16.8,
+    "max_zoom_step_pct": 4.2
+  },
+  "zoom: wheel out": {
+    "avg_frame_ms": 16.67,
+    "dropped_frames": 0,
+    "frame_count": 94,
+    "max_frame_ms": 16.8,
+    "max_zoom_step_pct": 4.1
   }
 }

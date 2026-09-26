@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-26 — Perf baseline refresh (on `test/perf-baseline-refresh`)
+
+### Changed
+- `scripts/perf_transitions.py --write-baseline` records the median of 3 runs: a single run's dropped-frame counts wander by several frames, so a one-run baseline could enshrine a lucky 0
+- `tests/perf_baseline.json` regenerated on a quiet machine: covers the America- and Oceania-centered views (the old `usaPacific` entries are gone) and the zoom scenarios
+
 ## 2026-09-26 — ES-module split (on `refactor/es-module-split`)
 
 No change to what the app shows or does: the UI text snapshot, the render fingerprint and the e2e smoke test are identical before and after every commit, and every top-level statement of the old `map.js` reappears verbatim in the modules.
