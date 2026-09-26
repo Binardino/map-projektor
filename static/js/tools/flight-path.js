@@ -1,11 +1,11 @@
 import { getProjection } from "../data/projections.js";
 import { clearSelection } from "../core/selection.js";
 import { compareMode, comparePanels } from "./side-by-side.js";
-import { state } from "../core/state.js";
 import { currentZoomTransform } from "../core/camera.js";
 import { fitProjection, makeProjection } from "../core/projection.js";
 import { flightPathGroup, svg } from "../core/scene.js";
 import { resetRecenter, rotationFor } from "../core/recenter.js";
+import { getState } from "../state.js";
 
 // ============================================================
 // FLIGHT PATH / GREAT CIRCLE
@@ -79,7 +79,7 @@ function updateFlightPathDistanceLabel() {
 // Re-renders the route on the single map and, if active, on both
 // comparison panels — called after any projection change.
 export function refreshFlightPath() {
-  const currentDef = getProjection(state.currentProjectionId);
+  const currentDef = getProjection(getState().projectionId);
   renderFlightPath(flightPathGroup, makeProjection(currentDef, rotationFor(currentDef)));
 
   if (compareMode && comparePanels) {
@@ -103,7 +103,7 @@ export function setFlightPathMode(active) {
 // See the compareToggleBtn note above — same guard, same reason.
 if (flightPathToggleBtn) {
   flightPathToggleBtn.addEventListener("click", () => {
-    if (state.isAnimating) return;
+    if (getState().busy) return;
     if (!flightPathMode) {
       clearSelection();
       resetRecenter();
@@ -116,10 +116,10 @@ if (flightPathToggleBtn) {
 // Shared by the main view and each compare-mode panel (see buildComparePanel),
 // each passing its own svg node / zoom transform / projection to invert the click.
 export function handleFlightPathClick(event, svgNode = svg.node(), zoomTransform = currentZoomTransform, projection = makeProjection(
-  getProjection(state.currentProjectionId),
-  rotationFor(getProjection(state.currentProjectionId))
+  getProjection(getState().projectionId),
+  rotationFor(getProjection(getState().projectionId))
 )) {
-  if (!flightPathMode || state.isAnimating) return;
+  if (!flightPathMode || getState().busy) return;
 
   // Undo the free camera pan/zoom (see CAMERA PAN & ZOOM) to get back to the
   // coordinate space the projection itself draws in before inverting.

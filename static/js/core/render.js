@@ -1,9 +1,9 @@
-import { state } from "./state.js";
 import { globeSphere, globeSphereFade, mapGroup, terrainGroup } from "./scene.js";
 import { lightOf } from "./geometry.js";
 import { updatePanExtent } from "./camera.js";
 import { getProjection } from "../data/projections.js";
 import { terrainData, worldData } from "../data/geodata.js";
+import { getState } from "../state.js";
 
 // The sphere-outline stroke only shows in orthographic — it's the only
 // projection where the disc needs a visible edge separating it from the
@@ -11,7 +11,7 @@ import { terrainData, worldData } from "../data/geodata.js";
 // {type: "Sphere"} outline already reaches the void's own dark color at
 // its non-rectangular corners, so no border is needed there.
 export function updateGlobeBackground() {
-  const isGlobe = getProjection(state.currentProjectionId).globe;
+  const isGlobe = getProjection(getState().projectionId).globe;
   globeSphere.classed("active", isGlobe);
 }
 // ============================================================

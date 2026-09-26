@@ -10,6 +10,8 @@ import { lightOf } from "./geometry.js";
 import { renderGlobeSphere, renderMap, updateTerrainPaths } from "./render.js";
 import { t } from "../i18n.js";
 import { TIMING } from "../config.js";
+import { getState } from "../state.js";
+import { runExclusive } from "./busy.js";
 
 // The rotation the active view gives projDef — every render of the main
 // map goes through this so the globe and the flat maps agree on the view.
@@ -109,12 +111,12 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
 }
 
 export async function applyRecenter(presetId) {
-  if (state.isAnimating || !getProjection(state.currentProjectionId).recenterable) return;
+  if (getState().busy || !getProjection(getState().projectionId).recenterable) return;
 
   if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
 
   const preset = RECENTER_PRESETS.find((p) => p.id === presetId);
-  const currentDefForRot = getProjection(state.currentProjectionId);
+  const currentDefForRot = getProjection(getState().projectionId);
   const fromRot = rotationFor(currentDefForRot);
 
   document.querySelectorAll(".recenter-btn").forEach((b) => {
@@ -123,33 +125,34 @@ export async function applyRecenter(presetId) {
 
   clearSelection(); // mutually exclusive with the country-zoom selection, see note above
 
-  state.isAnimating = true;
-  hideCompareHighlight();
-  const currentDef = getProjection(state.currentProjectionId);
-  const wantsFlip = !!preset.flipVertical;
+  const ran = await runExclusive(async () => {
+    hideCompareHighlight();
+    const currentDef = getProjection(getState().projectionId);
+    const wantsFlip = !!preset.flipVertical;
 
-  if (wantsFlip !== state.currentRecenterFlip) {
-    // Entering or leaving the South America (upside-down) mirror: doing the
-    // usual longitude rotation sweep here would spin the sphere WHILE also
-    // flipping it, reading as a distorted diagonal spin rather than a clean
-    // mirror. Instead turn the map over about the equator and swap the
-    // rotation instantly at the edge-on midpoint, where it's invisible.
-    await animateRecenterFlip(wantsFlip, () => {
+    if (wantsFlip !== state.currentRecenterFlip) {
+      // Entering or leaving the South America (upside-down) mirror: doing the
+      // usual longitude rotation sweep here would spin the sphere WHILE also
+      // flipping it, reading as a distorted diagonal spin rather than a clean
+      // mirror. Instead turn the map over about the equator and swap the
+      // rotation instantly at the edge-on midpoint, where it's invisible.
+      await animateRecenterFlip(wantsFlip, () => {
+        state.currentRecenterRotate = preset.rotate;
+        state.currentRecenterTilt = preset.tilt || null;
+        renderMap(makeProjection(currentDef, rotationFor(currentDef)));
+        refreshReferenceLines();
+      });
+    } else {
+      const toRot = currentDef.tilted ? preset.tilt || preset.rotate : preset.rotate;
+      await animateRecenterRotation(currentDef, fromRot, toRot, TIMING.recenterRotation);
       state.currentRecenterRotate = preset.rotate;
       state.currentRecenterTilt = preset.tilt || null;
-      renderMap(makeProjection(currentDef, rotationFor(currentDef)));
-      refreshReferenceLines();
-    });
-  } else {
-    const toRot = currentDef.tilted ? preset.tilt || preset.rotate : preset.rotate;
-    await animateRecenterRotation(currentDef, fromRot, toRot, TIMING.recenterRotation);
-    state.currentRecenterRotate = preset.rotate;
-    state.currentRecenterTilt = preset.tilt || null;
-    renderMap(makeProjection(currentDef, rotationFor(currentDef))); // final render with native clipping
-  }
-  state.currentRecenterFlip = wantsFlip;
+      renderMap(makeProjection(currentDef, rotationFor(currentDef))); // final render with native clipping
+    }
+    state.currentRecenterFlip = wantsFlip;
 
-  state.isAnimating = false;
+  });
+  if (!ran) return;
   refreshTissot();
   refreshReferenceLines();
   refreshCompareHighlight();
@@ -169,5 +172,5 @@ export function resetRecenter() {
 }
 
 export function refreshRecenterAvailability() {
-  document.getElementById("recenter-list").classList.toggle("disabled-list", !getProjection(state.currentProjectionId).recenterable);
+  document.getElementById("recenter-list").classList.toggle("disabled-list", !getProjection(getState().projectionId).recenterable);
 }

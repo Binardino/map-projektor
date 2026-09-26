@@ -4,6 +4,7 @@ import { state } from "./core/state.js";
 import { currentZoomTransform } from "./core/camera.js";
 import { makeProjection } from "./core/projection.js";
 import { mapGroup, terrainGroup } from "./core/scene.js";
+import { getState } from "./state.js";
 
 // ============================================================
 // DEBUG HOOK
@@ -20,9 +21,9 @@ window.__app = {
   // Pure function of a projection definition, so exposing it lets the render
   // fingerprint pin fitProjection's numbers without steering the app.
   makeProjection,
-  get currentProjectionId() { return state.currentProjectionId; },
+  get currentProjectionId() { return getState().projectionId; },
   get currentRecenterRotate() { return state.currentRecenterRotate; },
   get currentRecenterFlip() { return state.currentRecenterFlip; },
-  get isAnimating() { return state.isAnimating; },
+  get isAnimating() { return getState().busy; },
   get currentZoomTransform() { return currentZoomTransform; },
 };

@@ -25,7 +25,6 @@ import { getProjection } from "./data/projections.js";
 import { buildCompareProjectionOptions } from "./ui/compare-card.js";
 import { buildLightGeometry } from "./core/geometry.js";
 import { buildRecenterPanel, buildSidebar } from "./ui/sidebar.js";
-import { state } from "./core/state.js";
 import { loadLanguage } from "./i18n.js";
 import { makeProjection } from "./core/projection.js";
 import { openHelpModal } from "./ui/welcome-modal.js";
@@ -34,6 +33,7 @@ import { refreshRecenterAvailability, rotationFor } from "./core/recenter.js";
 import { renderMap, updateGlobeBackground } from "./core/render.js";
 import { updateInfo } from "./ui/info-card.js";
 import { loadGeodata, terrainData, worldData } from "./data/geodata.js";
+import { getState } from "./state.js";
 
 // ============================================================
 // INIT — fetch GeoJSON then render
@@ -48,7 +48,7 @@ async function init() {
   buildLightGeometry(worldData.features);
   buildLightGeometry(terrainData.features);
 
-  const initialProj = getProjection(state.currentProjectionId);
+  const initialProj = getProjection(getState().projectionId);
   buildSidebar();
   buildRecenterPanel();
   buildCompareProjectionOptions();

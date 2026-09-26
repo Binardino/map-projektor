@@ -9,14 +9,17 @@ import path from "node:path";
 
 const ROOT = new URL("../../static/js/", import.meta.url).pathname;
 
-// What each layer may import, besides itself. config.js (imports nothing)
-// and i18n.js (t() is called everywhere) are shared by every layer.
+// What each layer may import, besides itself. config.js (imports nothing),
+// state.js (the store, imports nothing) and i18n.js (t() is called
+// everywhere) are shared by every layer.
+const SHARED = ["config.js", "state.js", "i18n.js"];
 const ALLOWED = {
   "config.js": [],
-  data: ["config.js", "i18n.js"],
-  core: ["config.js", "data", "i18n.js"],
-  ui: ["config.js", "data", "core", "i18n.js"],
-  tools: ["config.js", "data", "core", "i18n.js"],
+  "state.js": [],
+  data: [...SHARED],
+  core: [...SHARED, "data"],
+  ui: [...SHARED, "data", "core"],
+  tools: [...SHARED, "data", "core"],
 };
 
 // Direct calls that PR 4 turns into events; each is removed from this list

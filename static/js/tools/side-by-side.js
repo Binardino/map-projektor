@@ -1,5 +1,4 @@
 import { PROJECTIONS, getProjection, projectionName } from "../data/projections.js";
-import { state } from "../core/state.js";
 import { fitProjection } from "../core/projection.js";
 import { flightPathGroup, globeSphere, mapGroup, oceanRect, svg, tissotGroup, zoomLayer } from "../core/scene.js";
 import { handleFlightPathClick } from "./flight-path.js";
@@ -9,6 +8,7 @@ import { renderGlobeSphere } from "../core/render.js";
 import { selectedCountryName } from "../core/selection.js";
 import { DEFAULT_COMPARISON_PROJECTION, LIGHT_ZOOM_MAX_SCALE, MAIN_ZOOM_SCALE_EXTENT, TIMING } from "../config.js";
 import { worldData } from "../data/geodata.js";
+import { getState } from "../state.js";
 
 // ============================================================
 // SIDE-BY-SIDE COMPARISON MODE
@@ -157,7 +157,7 @@ if (compareToggleBtn) {
       const panelEls = document.querySelectorAll(".compare-panel");
       const rightDefaultId = PROJECTIONS.some((p) => p.id === DEFAULT_COMPARISON_PROJECTION) ? DEFAULT_COMPARISON_PROJECTION : PROJECTIONS[1].id;
       comparePanels = [
-        buildComparePanel(panelEls[0], state.currentProjectionId),
+        buildComparePanel(panelEls[0], getState().projectionId),
         buildComparePanel(panelEls[1], rightDefaultId),
       ];
     } else {
