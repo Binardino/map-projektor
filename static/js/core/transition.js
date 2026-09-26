@@ -1,6 +1,6 @@
 import { animateTransition, polarTransition } from "./animation.js";
 import { GLOBE, PROJECTIONS, getProjection } from "../data/projections.js";
-import { applyRecenter, refreshRecenterAvailability, rotationFor } from "./recenter.js";
+import { applyRecenter, rotationFor } from "./recenter.js";
 import { makeProjection } from "./projection.js";
 import { renderMap, updateGlobeBackground } from "./render.js";
 import { resetCamera } from "./camera.js";
@@ -43,7 +43,6 @@ async function morphTo(newProjId) {
 
   setState({ projectionId: newProjId });
   updateGlobeBackground();
-  refreshRecenterAvailability();
   emit("view:changed");
 }
 

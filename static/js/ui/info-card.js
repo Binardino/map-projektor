@@ -1,7 +1,7 @@
 import { closeCompareCard } from "./compare-card.js";
 import { getProjection, projectionName } from "../data/projections.js";
 import { t } from "../i18n.js";
-import { subscribe } from "../state.js";
+import { getState, on, subscribe } from "../state.js";
 
 // ============================================================
 // INFO PANEL
@@ -50,3 +50,5 @@ infoCloseBtn.addEventListener("click", () => setInfoVisible(false));
 
 // The card always describes the projection on screen.
 subscribe(["projectionId"], (state) => updateInfo(getProjection(state.projectionId)));
+
+on("language:changed", () => updateInfo(getProjection(getState().projectionId)));

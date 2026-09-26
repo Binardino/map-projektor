@@ -117,7 +117,7 @@ zoomOutBtn.addEventListener("click", () => {
 const globeDrag = d3.drag()
   .filter((event) => getProjection(getState().projectionId).globe && !getState().busy && !getState().flightPathMode)
   .on("start", () => {
-    document.querySelectorAll(".recenter-btn").forEach((b) => b.classList.remove("active"));
+    setViewRotation(getState().recenter.rotate, getState().recenter.tilt); // detaches the preset button
   })
   .on("drag", (event) => {
     const projDef = getProjection(getState().projectionId);

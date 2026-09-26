@@ -10,19 +10,21 @@ import { TIMING } from "../config.js";
 import { emit, getState, setState } from "../state.js";
 import { runExclusive } from "./busy.js";
 
-// The active view, `recenter: { rotate, tilt, flip }` in the store: rotate
-// is the longitude-only rotation flat maps take, tilt the globe's full
+// The active view, `recenter: { preset, rotate, tilt, flip }` in the store:
+// preset is the chosen view's id (null once the globe is dragged), rotate
+// the longitude-only rotation flat maps take, tilt the globe's full
 // rotation, flip the upside-down mirror. This module is its only writer;
 // the globe drag goes through setViewRotation.
-const DEFAULT_VIEW = { rotate: null, tilt: RECENTER_PRESETS[0].tilt, flip: false };
+const DEFAULT_VIEW = { preset: "world", rotate: null, tilt: RECENTER_PRESETS[0].tilt, flip: false };
 setState({ recenter: DEFAULT_VIEW });
 
 function patchView(patch) {
   setState({ recenter: { ...getState().recenter, ...patch } });
 }
 
+// A dragged globe no longer matches any preset.
 export function setViewRotation(rotate, tilt) {
-  patchView({ rotate, tilt });
+  patchView({ preset: null, rotate, tilt });
 }
 
 // The rotation the active view gives projDef — every render of the main
@@ -131,9 +133,7 @@ export async function applyRecenter(presetId) {
   const currentDefForRot = getProjection(getState().projectionId);
   const fromRot = rotationFor(currentDefForRot);
 
-  document.querySelectorAll(".recenter-btn").forEach((b) => {
-    b.classList.toggle("active", b.dataset.presetId === presetId);
-  });
+  patchView({ preset: presetId }); // the button lights up before the animation
 
   clearSelection(); // mutually exclusive with the country-zoom selection, see note above
 
@@ -161,7 +161,6 @@ export async function applyRecenter(presetId) {
       renderMap(makeProjection(currentDef, rotationFor(currentDef))); // final render with native clipping
     }
     patchView({ flip: wantsFlip });
-
   });
   if (!ran) return;
   emit("view:changed");
@@ -173,11 +172,4 @@ export function resetRecenter() {
   // to run, the morph must not inherit a leftover flip transform on the
   // group it repaints into.
   worldGroup.style("transform", null);
-  document.querySelectorAll(".recenter-btn").forEach((b) => {
-    b.classList.toggle("active", b.dataset.presetId === "world");
-  });
-}
-
-export function refreshRecenterAvailability() {
-  document.getElementById("recenter-list").classList.toggle("disabled-list", !getProjection(getState().projectionId).recenterable);
 }

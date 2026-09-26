@@ -305,3 +305,9 @@ compareCardCloseBtn.addEventListener("click", closeCompareCard);
 // spins, put back on the country once the view settles.
 on("view:changing", hideCompareHighlight);
 on("view:changed", refreshCompareHighlight);
+
+on("language:changed", () => {
+  buildCompareProjectionOptions();
+  compareProjectionSelect.value = compareProjectionId ?? ""; // the rebuild dropped the selection
+  renderCompareList();
+});
