@@ -6,10 +6,11 @@ against a committed baseline (tests/perf_baseline.json).
 
 Usage:
     poetry run python scripts/perf_transitions.py                # compare to baseline
-    poetry run python scripts/perf_transitions.py --write-baseline # (re)write baseline
+    poetry run python scripts/perf_transitions.py --write-baseline # (re)write baseline (median of 3 runs)
     poetry run python scripts/perf_transitions.py --headed        # watch it run
 """
 import argparse
+import statistics
 import json
 import pathlib
 import subprocess
@@ -208,30 +209,54 @@ def print_report(results):
               + (f"  max zoom step={m['max_zoom_step_pct']}%" if "max_zoom_step_pct" in m else ""))
 
 
+BASELINE_RUNS = 3
+
+
+def median_results(all_results):
+    """Per transition and per metric, the median over runs."""
+    return {
+        label: {
+            metric: statistics.median(r[label][metric] for r in all_results)
+            for metric in all_results[0][label]
+            if all(metric in r[label] for r in all_results)  # max_zoom_step_pct only exists if the zoom moved
+        }
+        for label in all_results[0]
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write-baseline", action="store_true", help="record current results as the new baseline")
     parser.add_argument("--headed", action="store_true", help="run with a visible browser window")
     args = parser.parse_args()
 
+    # One run's dropped-frame counts wander by several frames (a pair measured
+    # 3, 8 and 9 on three runs), so a baseline taken from a single run can
+    # enshrine a lucky 0 and fail later runs. The baseline takes the median of
+    # BASELINE_RUNS runs instead; a check is still a single run.
+    runs = BASELINE_RUNS if args.write_baseline else 1
     server = start_server()
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=not args.headed)
-            page = browser.new_page(viewport={"width": 1280, "height": 900})
-            page.goto(BASE_URL)
-            page.wait_for_selector("path.country")
-            # The welcome modal opens on every launch and overlays the whole page,
-            # which would intercept every click in the suite.
-            page.click("#help-modal-close")
-            page.wait_for_timeout(300)  # let the initial render settle
+            all_results = []
+            for run in range(runs):
+                page = browser.new_page(viewport={"width": 1280, "height": 900})
+                page.goto(BASE_URL)
+                page.wait_for_selector("path.country")
+                # The welcome modal opens on every launch and overlays the whole page,
+                # which would intercept every click in the suite.
+                page.click("#help-modal-close")
+                page.wait_for_timeout(300)  # let the initial render settle
 
-            print("Running transition suite...")
-            results = run_suite(page)
+                print(f"Running transition suite ({run + 1}/{runs})...")
+                all_results.append(run_suite(page))
+                page.close()
             browser.close()
     finally:
         stop_server(server)
 
+    results = median_results(all_results)
     print_report(results)
 
     if args.write_baseline:
