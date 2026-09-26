@@ -6,6 +6,7 @@ import { makeProjection } from "../core/projection.js";
 import { rotationFor } from "../core/recenter.js";
 import { t } from "../i18n.js";
 import { COMPARE_MAX } from "../config.js";
+import { readPalette } from "../core/palette.js";
 
 // ============================================================
 // COMPARE CARD
@@ -48,7 +49,7 @@ const compareCountries = [];
 // Saturated hues that stay apart from each other and from the map's own
 // colours in both themes: land (pink / navy), ocean (light / mid blue),
 // terrain (tan, sage), the reference lines (atlas red).
-const COMPARE_COLORS = ["#fa6048", "#8e44ad", "#1fa35c", "#f2b705", "#00a6a6"];
+const COMPARE_COLORS = readPalette("compare", COMPARE_MAX); // one per country slot, --compare-* in style.css
 
 // Overseas territories that Natural Earth keeps as separate features but
 // that belong in the country's comparison. France's overseas departments

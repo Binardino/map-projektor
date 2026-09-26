@@ -3,6 +3,7 @@ import { state } from "../core/state.js";
 import { makeProjection } from "../core/projection.js";
 import { rotationFor } from "../core/recenter.js";
 import { truesizeGroup } from "../core/scene.js";
+import { readPalette } from "../core/palette.js";
 
 // ============================================================
 // TRUE SIZE COMPARE
@@ -22,7 +23,7 @@ import { truesizeGroup } from "../core/scene.js";
 // true geographic position under the new projection instead of trying to
 // carry the drag offset over — the offsets are cleared, not preserved.
 // ============================================================
-const TRUESIZE_PALETTE = ["#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6", "#1abc9c", "#e67e22", "#95a5a6"];
+const TRUESIZE_PALETTE = readPalette("truesize", 8); // --truesize-* in style.css
 
 const trueSizeToggleBtn = document.getElementById("truesize-toggle");
 const trueSizePanel     = document.getElementById("truesize-panel");
