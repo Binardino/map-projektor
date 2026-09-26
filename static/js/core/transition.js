@@ -2,11 +2,12 @@ import { POLAR_ROTATION, animateTransition, polarTransition } from "./animation.
 import { PROJECTIONS } from "../data/projections.js";
 import { RECENTER_INCOMPATIBLE } from "../data/views.js";
 import { applyRecenter, refreshRecenterAvailability, rotationFor } from "./recenter.js";
-import { closeSidebar, hideCompareHighlight, refreshCompareHighlight, refreshFlightPath, refreshReferenceLines, refreshTissot, resetTrueSizeOnProjectionSwitch, setActiveButton, updateInfo } from "../map.js";
+import { closeSidebar, hideCompareHighlight, refreshCompareHighlight, refreshFlightPath, refreshReferenceLines, refreshTissot, resetTrueSizeOnProjectionSwitch, setActiveButton } from "../map.js";
 import { state } from "./state.js";
 import { makeProjection } from "./projection.js";
 import { renderMap, updateGlobeBackground } from "./render.js";
 import { resetCamera } from "./camera.js";
+import { updateInfo } from "../ui/info-card.js";
 
 // ============================================================
 // TRANSITION — morph source → target
