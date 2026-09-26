@@ -9,3 +9,4 @@ import "./core/geometry.js";
 import "./core/animation.js";
 import "./map.js";
 import "./data/views.js";
+import "./core/recenter.js";
