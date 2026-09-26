@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-26 — Projection capabilities, config and colour tokens (on `refactor/registry-config`)
+
+No change to what the app shows or does (render fingerprint, UI text snapshot and e2e unchanged; 15 of 17 screenshots byte-identical, the other two within anti-aliasing noise).
+
+### Changed
+- Projections declare their behaviour with capability fields (`globe`, `clipAngle`, `fit`, `polarRotation`, `recenterable`, `tilted`) instead of id checks spread over the code; adding a projection is one object again
+- `getProjection(id)` replaces the repeated `PROJECTIONS.find(...)` and throws on an unknown id
+- Every animation duration is named in `TIMING` (`static/js/config.js`), with the other tunable values (zoom range, drag sensitivity, geometry tolerances, Tissot spacing, compare limit, data URLs); the perf harness reads the polar-route timings from it
+- Every colour is a CSS token in `:root`, including the compare and true-size palettes, which the JS reads once
+
+### Added
+- `tests/js/projections.test.mjs`: `getProjection` and registry invariants
+
 ## 2026-09-26 — Perf baseline refresh (on `test/perf-baseline-refresh`)
 
 ### Changed

@@ -24,6 +24,43 @@
   --font-family:    'Quicksand', 'Georgia', sans-serif;
   --font-size-base: 14px;
   --sidebar-width:  240px;
+
+  /* Fixed colours, the same in both themes: the Figma popovers (tooltips,
+     cards) stay dark and their inputs white whatever the theme. */
+  --popover-bg:         #292929;
+  --popover-text:       #ffffff;
+  --popover-text-muted: #d9d9d9;
+  --field-bg:           #ffffff;
+  --field-text:         #292929;
+  --field-border:       #d1cdcd;
+  --field-disabled-bg:  #e6e6e6;
+  --field-hover-bg:     #f0f0f0;
+
+  --modal-backdrop:  rgba(0, 0, 0, 0.5);
+  --drawer-backdrop: rgba(0, 0, 0, 0.4);
+  --drawer-shadow:   rgba(0, 0, 0, 0.25);
+
+  --terrain-mountain: #8a6642;
+  --terrain-desert:   #d9b768;
+  --terrain-forest:   #3f7d4a;
+
+  /* Overlay palettes, read once by JS (see core/palette.js).
+     Compare: saturated hues that stay apart from each other and from the
+     map's own colours in both themes; the first is the default highlight. */
+  --compare-highlight: var(--compare-1);
+  --compare-1: #fa6048;
+  --compare-2: #8e44ad;
+  --compare-3: #1fa35c;
+  --compare-4: #f2b705;
+  --compare-5: #00a6a6;
+  --truesize-1: #e74c3c;
+  --truesize-2: #3498db;
+  --truesize-3: #2ecc71;
+  --truesize-4: #f39c12;
+  --truesize-5: #9b59b6;
+  --truesize-6: #1abc9c;
+  --truesize-7: #e67e22;
+  --truesize-8: #95a5a6;
 }
 
 /* ============================================================
@@ -146,9 +183,9 @@ body {
 }
 
 .compare-highlight {
-  fill: #fa6048;
+  fill: var(--compare-highlight);
   fill-opacity: 0.5;
-  stroke: #fa6048;
+  stroke: var(--compare-highlight);
   stroke-opacity: 1;
   stroke-width: 1.5px;
   vector-effect: non-scaling-stroke;
@@ -166,7 +203,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--modal-backdrop);
 }
 
 #help-modal-backdrop[hidden] {
@@ -452,7 +489,7 @@ body {
     transform: translateY(-50%);
     padding: 6px 10px;
     border-radius: 8px;
-    background: #292929;
+    background: var(--popover-bg);
     color: white;
     font-family: var(--font-family);
     font-size: 12px;
@@ -519,15 +556,15 @@ body {
 }
 
 .terrain-mountain {
-  fill: #8a6642;
+  fill: var(--terrain-mountain);
 }
 
 .terrain-desert {
-  fill: #d9b768;
+  fill: var(--terrain-desert);
 }
 
 .terrain-forest {
-  fill: #3f7d4a;
+  fill: var(--terrain-forest);
 }
 
 /* Tissot's indicatrix overlay — pointer-events off so it never
@@ -659,8 +696,8 @@ body {
   max-width: calc(100% - 80px);
   padding: 20px;
   border-radius: 12px;
-  background: #292929;
-  color: #ffffff;
+  background: var(--popover-bg);
+  color: var(--popover-text);
 }
 
 .floating-card-header {
@@ -681,7 +718,7 @@ body {
   font-size: 14px;
   background: none;
   border: none;
-  color: #ffffff;
+  color: var(--popover-text);
   cursor: pointer;
   opacity: 0.7;
 }
@@ -692,7 +729,7 @@ body {
 
 .floating-card-description {
   font-size: 16px;
-  color: #d9d9d9;
+  color: var(--popover-text-muted);
   line-height: 1.5;
 }
 
@@ -711,12 +748,12 @@ body {
   margin-top: 16px;
   font-size: 16px;
   line-height: 1.5;
-  color: #d9d9d9;
+  color: var(--popover-text-muted);
 }
 
 #info-tradeoffs-content dt {
   font-weight: bold;
-  color: #ffffff;
+  color: var(--popover-text);
   margin-top: 12px;
 }
 
@@ -752,9 +789,9 @@ body {
   padding: 12px 16px;
   font-family: var(--font-family);
   font-size: 16px;
-  background: #ffffff;
-  color: #292929;
-  border: 1px solid #d1cdcd;
+  background: var(--field-bg);
+  color: var(--field-text);
+  border: 1px solid var(--field-border);
   border-radius: 4px;
 }
 
@@ -769,14 +806,14 @@ body {
   padding: 12px 16px;
   font-family: var(--font-family);
   font-size: 16px;
-  background: #ffffff;
-  color: #292929;
-  border: 1px solid #d1cdcd;
+  background: var(--field-bg);
+  color: var(--field-text);
+  border: 1px solid var(--field-border);
   border-radius: 4px;
 }
 
 #compare-country-input:disabled {
-  background: #e6e6e6;
+  background: var(--field-disabled-bg);
   cursor: not-allowed;
 }
 
@@ -837,21 +874,21 @@ body {
   max-height: 220px;
   overflow-y: auto;
   list-style: none;
-  background: #ffffff;
-  border: 1px solid #d1cdcd;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
   border-radius: 4px;
 }
 
 #compare-country-results li {
   padding: 10px 16px;
   font-size: 14px;
-  color: #292929;
+  color: var(--field-text);
   cursor: pointer;
 }
 
 #compare-country-results li:hover,
 #compare-country-results li.highlighted {
-  background: #f0f0f0;
+  background: var(--field-hover-bg);
 }
 
 /* ============================================================
@@ -878,7 +915,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 90;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--drawer-backdrop);
 }
 
 #sidebar-backdrop:not([hidden]) {
@@ -899,7 +936,7 @@ body {
     z-index: 100;
     transform: translateX(-100%);
     transition: transform 0.25s ease;
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.25);
+    box-shadow: 2px 0 12px var(--drawer-shadow);
   }
 
   #sidebar.open {

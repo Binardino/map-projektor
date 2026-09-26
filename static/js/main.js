@@ -21,7 +21,7 @@ import "./tools/reference-lines.js";
 import "./ui/welcome-modal.js";
 import "./ui/theme.js";
 import "./debug.js";
-import { PROJECTIONS } from "./data/projections.js";
+import { getProjection } from "./data/projections.js";
 import { buildCompareProjectionOptions } from "./ui/compare-card.js";
 import { buildLightGeometry } from "./core/geometry.js";
 import { buildRecenterPanel, buildSidebar } from "./ui/sidebar.js";
@@ -33,6 +33,7 @@ import { refreshFlightPath, refreshTissot } from "./tools/index.js";
 import { refreshRecenterAvailability, rotationFor } from "./core/recenter.js";
 import { renderMap, updateGlobeBackground } from "./core/render.js";
 import { updateInfo } from "./ui/info-card.js";
+import { TERRAIN_GEOJSON_URL, WORLD_GEOJSON_URL } from "./config.js";
 
 // ============================================================
 // INIT — fetch GeoJSON then render
@@ -44,15 +45,15 @@ async function init() {
   openHelpModal(); // after the language loads, or the modal would flash empty
 
   const [worldResponse, terrainResponse] = await Promise.all([
-    fetch("/data/world.geojson"),
-    fetch("/data/terrain.geojson"),
+    fetch(WORLD_GEOJSON_URL),
+    fetch(TERRAIN_GEOJSON_URL),
   ]);
   state.worldData = await worldResponse.json();
   state.terrainData = await terrainResponse.json();
   buildLightGeometry(state.worldData.features);
   buildLightGeometry(state.terrainData.features);
 
-  const initialProj = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
+  const initialProj = getProjection(state.currentProjectionId);
   buildSidebar();
   buildRecenterPanel();
   buildCompareProjectionOptions();

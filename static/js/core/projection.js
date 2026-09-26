@@ -7,7 +7,7 @@ import { t } from "../i18n.js";
 // rotationOverride (optional [lambda, phi, gamma]) recenters the sphere
 // before fitting — used by the recenter presets below. Overrides any
 // rotate() the projection's own d3fn already set (e.g. the polar views),
-// which is why presets are disabled for those (see RECENTER_INCOMPATIBLE).
+// which is why presets are disabled for those (see recenterable in data/projections.js).
 //
 // Mercator is a special case: its y-coordinate diverges near the poles,
 // so even bounded at the sphere's outline its natural fitted aspect ratio
@@ -25,7 +25,7 @@ import { t } from "../i18n.js";
 // own size.
 // ============================================================
 export function fitProjection(projDef, projection, width, height) {
-  if (projDef.id === "mercator") {
+  if (projDef.fit === "width") {
     projection.fitWidth(width, { type: "Sphere" });
     const [[, y0], [, y1]] = d3.geoPath().projection(projection).bounds({ type: "Sphere" });
     const verticalOverflow = (y1 - y0) - height;
@@ -101,10 +101,3 @@ export function blendProjection(projFrom, projTo, rotation = null) {
   return projection.scale(1).precision(2).alpha(0);
 }
 
-// Orthographic clips to the visible hemisphere (90°); everything else
-// clips at the antimeridian, which animateBlend adds on top of the circle.
-// Animating between the two makes back-hemisphere countries shrink
-// smoothly into the horizon instead of snapping in or out.
-export function clipAngleOf(projDef) {
-  return projDef.id === "orthographic" ? 90 : 179.9;
-}

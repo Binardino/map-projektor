@@ -1,8 +1,9 @@
-import { PROJECTIONS } from "../data/projections.js";
+import { getProjection } from "../data/projections.js";
 import { state } from "../core/state.js";
 import { makeProjection } from "../core/projection.js";
 import { referenceGroup } from "../core/scene.js";
 import { rotationFor } from "../core/recenter.js";
+import { MERIDIAN_STEP } from "../config.js";
 
 // ============================================================
 // REFERENCE LINES
@@ -15,7 +16,6 @@ import { rotationFor } from "../core/recenter.js";
 // ============================================================
 const TROPIC_LAT       = 23.44; // Earth's axial tilt
 const POLAR_CIRCLE_LAT = 90 - TROPIC_LAT;
-const MERIDIAN_STEP    = 15;
 
 // A parallel is a small circle, not a great circle: two far-apart
 // vertices would be joined by the shortest arc between them, which
@@ -66,7 +66,7 @@ export function refreshReferenceLines() {
     referenceGroup.selectAll("path.reference-line").remove();
     return;
   }
-  const currentDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
+  const currentDef = getProjection(state.currentProjectionId);
   renderReferenceLines(referenceGroup, makeProjection(currentDef, rotationFor(currentDef)));
 }
 

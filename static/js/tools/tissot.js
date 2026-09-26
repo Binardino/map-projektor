@@ -1,9 +1,10 @@
-import { PROJECTIONS } from "../data/projections.js";
+import { getProjection } from "../data/projections.js";
 import { compareMode, comparePanels } from "./index.js";
 import { state } from "../core/state.js";
 import { fitProjection, makeProjection } from "../core/projection.js";
 import { rotationFor } from "../core/recenter.js";
 import { tissotGroup } from "../core/scene.js";
+import { TISSOT_RADIUS, TISSOT_STEP } from "../config.js";
 
 // ============================================================
 // TISSOT'S INDICATRIX OVERLAY
@@ -16,9 +17,6 @@ import { tissotGroup } from "../core/scene.js";
 // active) mirrored onto both comparison panels.
 // ============================================================
 const tissotToggleBtn = document.getElementById("grid-toggle-btn");
-
-const TISSOT_STEP   = 30; // degrees between grid points
-const TISSOT_RADIUS = 4;  // degrees — the geographic circle radius
 
 const tissotPoints = [];
 for (let lat = -90 + TISSOT_STEP; lat <= 90 - TISSOT_STEP; lat += TISSOT_STEP) {
@@ -71,12 +69,12 @@ export function refreshTissot() {
     return;
   }
 
-  const currentDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
+  const currentDef = getProjection(state.currentProjectionId);
   renderTissot(tissotGroup, makeProjection(currentDef, rotationFor(currentDef)));
 
   if (compareMode && comparePanels) {
     comparePanels.forEach((panel) => {
-      const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
+      const projDef = getProjection(panel.projId);
       renderTissot(panel.tissotGroup, fitProjection(projDef, projDef.d3fn(), panel.width, panel.height));
     });
   }

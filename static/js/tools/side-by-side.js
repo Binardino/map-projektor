@@ -1,5 +1,4 @@
-import { LIGHT_ZOOM_MAX_SCALE, MAIN_ZOOM_SCALE_EXTENT } from "../core/camera.js";
-import { PROJECTIONS, projectionName } from "../data/projections.js";
+import { PROJECTIONS, getProjection, projectionName } from "../data/projections.js";
 import { state } from "../core/state.js";
 import { fitProjection } from "../core/projection.js";
 import { flightPathGroup, globeSphere, mapGroup, oceanRect, svg, tissotGroup, zoomLayer } from "../core/scene.js";
@@ -8,6 +7,7 @@ import { infoVisible, setInfoVisible } from "../ui/info-card.js";
 import { refreshTissot } from "./tissot.js";
 import { renderGlobeSphere } from "../core/render.js";
 import { selectedCountryName } from "../core/selection.js";
+import { DEFAULT_COMPARISON_PROJECTION, LIGHT_ZOOM_MAX_SCALE, MAIN_ZOOM_SCALE_EXTENT, TIMING } from "../config.js";
 
 // ============================================================
 // SIDE-BY-SIDE COMPARISON MODE
@@ -74,13 +74,13 @@ function buildComparePanel(panelEl, initialProjId) {
   // Same click-to-place-A/B as the main view (see FLIGHT PATH), using this
   // panel's own projection and zoom transform to invert the click.
   svg.node().addEventListener("click", (event) => {
-    const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
+    const projDef = getProjection(panel.projId);
     const projection = fitProjection(projDef, projDef.d3fn(), panel.width, panel.height);
     handleFlightPathClick(event, svg.node(), panel.zoomTransform, projection);
   });
 
   panel.render = () => {
-    const projDef     = PROJECTIONS.find((p) => p.id === panel.projId);
+    const projDef     = getProjection(panel.projId);
     const projection  = fitProjection(projDef, projDef.d3fn(), panel.width, panel.height);
     const pathFn       = d3.geoPath().projection(projection);
     const paths = panel.mapGroup
@@ -88,7 +88,7 @@ function buildComparePanel(panelEl, initialProjId) {
       .data(state.worldData.features, (d) => d.properties.name);
     paths.enter().append("path").attr("class", "country").attr("d", pathFn);
     paths.attr("d", pathFn);
-    const isGlobe = panel.projId === "orthographic";
+    const isGlobe = getProjection(panel.projId).globe;
     renderGlobeSphere(panel.globeSphere, projection);
     panel.globeSphere.classed("active", isGlobe);
   };
@@ -115,7 +115,7 @@ export function applySelectionToPanel(panel) {
   if (!selectedCountryName) return;
 
   const feature = state.worldData.features.find((f) => f.properties.name === selectedCountryName);
-  const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
+  const projDef = getProjection(panel.projId);
   const pathFn  = d3.geoPath().projection(fitProjection(projDef, projDef.d3fn(), panel.width, panel.height));
   const [[x0, y0], [x1, y1]] = pathFn.bounds(feature);
 
@@ -130,7 +130,7 @@ export function applySelectionToPanel(panel) {
     .scale(scale)
     .translate(-(x0 + x1) / 2, -(y0 + y1) / 2);
 
-  panel.svg.transition().duration(600).call(panel.zoom.transform, transform);
+  panel.svg.transition().duration(TIMING.countryFocus).call(panel.zoom.transform, transform);
 }
 
 // compareToggleBtn currently has no sidebar UI (see remove(ui) commit) — the
@@ -154,7 +154,7 @@ if (compareToggleBtn) {
 
     if (!comparePanels) {
       const panelEls = document.querySelectorAll(".compare-panel");
-      const rightDefaultId = PROJECTIONS.some((p) => p.id === "gallPeters") ? "gallPeters" : PROJECTIONS[1].id;
+      const rightDefaultId = PROJECTIONS.some((p) => p.id === DEFAULT_COMPARISON_PROJECTION) ? DEFAULT_COMPARISON_PROJECTION : PROJECTIONS[1].id;
       comparePanels = [
         buildComparePanel(panelEls[0], state.currentProjectionId),
         buildComparePanel(panelEls[1], rightDefaultId),

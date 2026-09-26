@@ -1,4 +1,4 @@
-import { PROJECTIONS } from "../data/projections.js";
+import { getProjection } from "../data/projections.js";
 import { clearSelection } from "../core/selection.js";
 import { compareMode, comparePanels } from "./side-by-side.js";
 import { state } from "../core/state.js";
@@ -79,12 +79,12 @@ function updateFlightPathDistanceLabel() {
 // Re-renders the route on the single map and, if active, on both
 // comparison panels — called after any projection change.
 export function refreshFlightPath() {
-  const currentDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
+  const currentDef = getProjection(state.currentProjectionId);
   renderFlightPath(flightPathGroup, makeProjection(currentDef, rotationFor(currentDef)));
 
   if (compareMode && comparePanels) {
     comparePanels.forEach((panel) => {
-      const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
+      const projDef = getProjection(panel.projId);
       renderFlightPath(panel.flightPathGroup, fitProjection(projDef, projDef.d3fn(), panel.width, panel.height));
     });
   }
@@ -116,8 +116,8 @@ if (flightPathToggleBtn) {
 // Shared by the main view and each compare-mode panel (see buildComparePanel),
 // each passing its own svg node / zoom transform / projection to invert the click.
 export function handleFlightPathClick(event, svgNode = svg.node(), zoomTransform = currentZoomTransform, projection = makeProjection(
-  PROJECTIONS.find((p) => p.id === state.currentProjectionId),
-  rotationFor(PROJECTIONS.find((p) => p.id === state.currentProjectionId))
+  getProjection(state.currentProjectionId),
+  rotationFor(getProjection(state.currentProjectionId))
 )) {
   if (!flightPathMode || state.isAnimating) return;
 

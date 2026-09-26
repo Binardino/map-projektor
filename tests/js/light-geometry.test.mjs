@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { thinRing, thinPolygon, buildLightGeometry, lightOf, LIGHT_SPECK_DEG } from "../../static/js/core/geometry.js";
+import { thinRing, thinPolygon, buildLightGeometry, lightOf } from "../../static/js/core/geometry.js";
+import { LIGHT_SPECK_DEG } from "../../static/js/config.js";
 
 // d3 is a page global loaded from the CDN; thinPolygon only needs geoArea,
 // which each test sets to the area it wants the check to see.

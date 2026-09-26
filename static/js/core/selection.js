@@ -1,11 +1,12 @@
 import { HEIGHT, WIDTH, mapGroup, svg } from "./scene.js";
-import { LIGHT_ZOOM_MAX_SCALE, zoom } from "./camera.js";
-import { PROJECTIONS } from "../data/projections.js";
+import { zoom } from "./camera.js";
+import { getProjection } from "../data/projections.js";
 import { applySelectionToPanel, compareMode, comparePanels, flightPathMode, refreshReferenceLines, refreshTissot, setFlightPathMode } from "../tools/index.js";
 import { state } from "./state.js";
 import { makeProjection } from "./projection.js";
 import { renderMap } from "./render.js";
 import { resetRecenter, rotationFor } from "./recenter.js";
+import { LIGHT_ZOOM_MAX_SCALE, TIMING } from "../config.js";
 
 // ============================================================
 // COUNTRY SELECTION
@@ -42,7 +43,7 @@ function selectCountry(feature) {
   // orientation.
   if (state.currentRecenterRotate) {
     resetRecenter();
-    const projDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
+    const projDef = getProjection(state.currentProjectionId);
     renderMap(makeProjection(projDef, rotationFor(projDef)));
     refreshTissot();
     refreshReferenceLines();
@@ -54,13 +55,13 @@ function selectCountry(feature) {
     .selectAll("path.country")
     .classed("selected", (d) => d.properties.name === selectedCountryName);
 
-  const projDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
+  const projDef = getProjection(state.currentProjectionId);
   const fit     = computeCountryFit(feature, projDef);
   const transform = d3.zoomIdentity
     .translate(WIDTH / 2, HEIGHT / 2)
     .scale(fit.scale)
     .translate(-fit.cx, -fit.cy);
-  svg.transition().duration(600).call(zoom.transform, transform);
+  svg.transition().duration(TIMING.countryFocus).call(zoom.transform, transform);
 
   if (compareMode) comparePanels.forEach(applySelectionToPanel);
 }

@@ -1,6 +1,6 @@
 import { HEIGHT, WIDTH, globeSphere, mapGroup, referenceGroup, terrainGroup, tissotGroup, worldGroup } from "./scene.js";
-import { PROJECTIONS } from "../data/projections.js";
-import { RECENTER_INCOMPATIBLE, RECENTER_PRESETS, TILTED_PROJECTIONS } from "../data/views.js";
+import { getProjection } from "../data/projections.js";
+import { RECENTER_PRESETS } from "../data/views.js";
 import { clearSelection } from "./selection.js";
 import { state } from "./state.js";
 import { fitProjection, makeProjection } from "./projection.js";
@@ -9,11 +9,12 @@ import { hideCompareHighlight, refreshCompareHighlight } from "../ui/compare-car
 import { lightOf } from "./geometry.js";
 import { renderGlobeSphere, renderMap, updateTerrainPaths } from "./render.js";
 import { t } from "../i18n.js";
+import { TIMING } from "../config.js";
 
 // The rotation the active view gives projDef — every render of the main
 // map goes through this so the globe and the flat maps agree on the view.
 export function rotationFor(projDef) {
-  if (TILTED_PROJECTIONS.has(projDef.id)) return state.currentRecenterTilt || state.currentRecenterRotate;
+  if (projDef.tilted) return state.currentRecenterTilt || state.currentRecenterRotate;
   return state.currentRecenterRotate;
 }
 
@@ -49,7 +50,7 @@ export function rotationFor(projDef) {
 // using vector-effect:non-scaling-stroke, which itself isn't cheap to
 // recompute) plus terrain, that repaint cost was the actual source of
 // the dropped frames during this flip.
-function animateRecenterFlip(flip, onEdgeOn, duration = 900) {
+function animateRecenterFlip(flip, onEdgeOn, duration = TIMING.recenterFlip) {
   const axis = HEIGHT / 2;
   const sign = flip ? 1 : -1; // start upright when flipping in, mirrored when flipping out
   let swapped = false;
@@ -108,12 +109,12 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
 }
 
 export async function applyRecenter(presetId) {
-  if (state.isAnimating || RECENTER_INCOMPATIBLE.has(state.currentProjectionId)) return;
+  if (state.isAnimating || !getProjection(state.currentProjectionId).recenterable) return;
 
   if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
 
   const preset = RECENTER_PRESETS.find((p) => p.id === presetId);
-  const currentDefForRot = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
+  const currentDefForRot = getProjection(state.currentProjectionId);
   const fromRot = rotationFor(currentDefForRot);
 
   document.querySelectorAll(".recenter-btn").forEach((b) => {
@@ -124,7 +125,7 @@ export async function applyRecenter(presetId) {
 
   state.isAnimating = true;
   hideCompareHighlight();
-  const currentDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
+  const currentDef = getProjection(state.currentProjectionId);
   const wantsFlip = !!preset.flipVertical;
 
   if (wantsFlip !== state.currentRecenterFlip) {
@@ -140,8 +141,8 @@ export async function applyRecenter(presetId) {
       refreshReferenceLines();
     });
   } else {
-    const toRot = TILTED_PROJECTIONS.has(currentDef.id) ? preset.tilt || preset.rotate : preset.rotate;
-    await animateRecenterRotation(currentDef, fromRot, toRot, 900);
+    const toRot = currentDef.tilted ? preset.tilt || preset.rotate : preset.rotate;
+    await animateRecenterRotation(currentDef, fromRot, toRot, TIMING.recenterRotation);
     state.currentRecenterRotate = preset.rotate;
     state.currentRecenterTilt = preset.tilt || null;
     renderMap(makeProjection(currentDef, rotationFor(currentDef))); // final render with native clipping
@@ -168,5 +169,5 @@ export function resetRecenter() {
 }
 
 export function refreshRecenterAvailability() {
-  document.getElementById("recenter-list").classList.toggle("disabled-list", RECENTER_INCOMPATIBLE.has(state.currentProjectionId));
+  document.getElementById("recenter-list").classList.toggle("disabled-list", !getProjection(state.currentProjectionId).recenterable);
 }

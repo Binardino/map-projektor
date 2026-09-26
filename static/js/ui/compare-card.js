@@ -1,10 +1,12 @@
-import { PROJECTIONS, projectionName } from "../data/projections.js";
+import { PROJECTIONS, getProjection, projectionName } from "../data/projections.js";
 import { compareHighlightGroup } from "../core/scene.js";
 import { state } from "../core/state.js";
 import { infoVisible, setInfoVisible } from "./info-card.js";
 import { makeProjection } from "../core/projection.js";
 import { rotationFor } from "../core/recenter.js";
 import { t } from "../i18n.js";
+import { COMPARE_MAX } from "../config.js";
+import { readPalette } from "../core/palette.js";
 
 // ============================================================
 // COMPARE CARD
@@ -44,11 +46,10 @@ let compareProjectionId    = null; // null until a country is picked, then defau
 // { name, color, visible, shift: pins its anchor on the map's copy of the
 //   country, offset: how far the user has dragged it from there }.
 const compareCountries = [];
-const COMPARE_MAX = 5;
 // Saturated hues that stay apart from each other and from the map's own
 // colours in both themes: land (pink / navy), ocean (light / mid blue),
 // terrain (tan, sage), the reference lines (atlas red).
-const COMPARE_COLORS = ["#fa6048", "#8e44ad", "#1fa35c", "#f2b705", "#00a6a6"];
+const COMPARE_COLORS = readPalette("compare", COMPARE_MAX); // one per country slot, --compare-* in style.css
 
 // Overseas territories that Natural Earth keeps as separate features but
 // that belong in the country's comparison. France's overseas departments
@@ -92,8 +93,8 @@ export function refreshCompareHighlight() {
   compareHighlightGroup.style("display", null);
   if (!state.worldData) return;
 
-  const mapDef      = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
-  const compareDef  = PROJECTIONS.find((p) => p.id === compareProjectionId) || mapDef;
+  const mapDef      = getProjection(state.currentProjectionId);
+  const compareDef  = compareProjectionId ? getProjection(compareProjectionId) : mapDef;
   const mapProj     = makeProjection(mapDef, rotationFor(mapDef));
   const compareProj = makeProjection(compareDef, rotationFor(compareDef));
   const comparePath = d3.geoPath().projection(compareProj);
@@ -105,7 +106,7 @@ export function refreshCompareHighlight() {
     const anchor = compareAnchor(feature);
     // A projection returns a point even for the globe's far side, which
     // would pin the overlay on a country the user can't see.
-    if (state.currentProjectionId === "orthographic" && d3.geoDistance(anchor, [-rl, -rp]) > Math.PI / 2) return;
+    if (getProjection(state.currentProjectionId).globe && d3.geoDistance(anchor, [-rl, -rp]) > Math.PI / 2) return;
     const [mx, my] = mapProj(anchor);
     const [cx, cy] = compareProj(anchor);
     entry.shift = [mx - cx, my - cy];

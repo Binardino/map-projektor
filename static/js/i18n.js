@@ -1,3 +1,5 @@
+import { I18N_BASE_URL } from "./config.js";
+
 // ============================================================
 // I18N — every user-visible string lives in static/i18n/<lang>.json
 //
@@ -40,7 +42,7 @@ function applyStaticTranslations() {
 }
 
 export async function loadLanguage(lang) {
-  const response = await fetch(`/static/i18n/${lang}.json`);
+  const response = await fetch(`${I18N_BASE_URL}${lang}.json`);
   messages = await response.json();
   document.documentElement.lang = lang;
   applyStaticTranslations();

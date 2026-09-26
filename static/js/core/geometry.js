@@ -1,3 +1,5 @@
+import { LIGHT_SPECK_DEG, LIGHT_TOLERANCE_DEG } from "../config.js";
+
 // ============================================================
 // LIGHT GEOMETRY — animation-only copy of the country/terrain shapes
 //
@@ -10,18 +12,6 @@
 // while shapes are moving. The final render always uses the full data,
 // so the resting map is unchanged.
 // ============================================================
-
-// Douglas-Peucker keeps the points that shape a coastline (capes, gulfs,
-// peninsulas) and drops the ones lying on a straight run. At 0.3° it
-// costs the same per frame as the plain spacing rule it replaced (drop
-// any point within 1° of the last kept one), which flattened Italy,
-// Greece and Norway into crude polygons. 0.2° looks slightly smoother but
-// tripled the dropped frames in the headless perf run.
-const LIGHT_TOLERANCE_DEG = 0.3;
-
-// Rings whose points all sit within this of their first point are islands
-// too small to matter mid-morph (see thinPolygon for why they're skipped).
-export const LIGHT_SPECK_DEG = 1;
 
 // Keyed by the original feature object, so animation loops can look up a
 // bound datum's light twin without a name lookup (terrain has duplicate names).

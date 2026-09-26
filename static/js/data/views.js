@@ -40,9 +40,4 @@ export const RECENTER_PRESETS = [
   { id: "southAmericaFlipped", rotate: [60, 0, 0], flipVertical: true },
 ];
 
-export const RECENTER_INCOMPATIBLE = new Set(["albers", "polarNorth", "polarSouth"]);
 
-// Only these take the tilt: tipping a flat projection turns it oblique
-// (the equator becomes a curve and continents warp), which reads as a
-// broken map rather than a recentred one.
-export const TILTED_PROJECTIONS = new Set(["orthographic", "azimuthalEqualArea"]);

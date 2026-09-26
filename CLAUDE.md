@@ -61,6 +61,19 @@ Add one object to the `PROJECTIONS` array in `static/js/data/projections.js`, pl
 }
 ```
 
+Behaviour that differs between projections is declared on the object, never tested by id in the code. All optional, defaults in `PROJECTION_DEFAULTS`:
+
+| Field | Default | Set it when |
+|---|---|---|
+| `globe` | `false` | it is the 3D globe (exactly one: void backdrop, drag-to-rotate, hub of the polar route) |
+| `clipAngle` | `179.9` | it shows one hemisphere (`90`) |
+| `fit` | `"sphere"` | the fitted sphere is too tall for the viewport (`"width"`, Mercator) |
+| `polarRotation` | `null` | it is centred on a pole (`[0, ±90]`): transitions route through the globe |
+| `recenterable` | `true` | its own `rotate()` matters (polar views) or it is tuned to one region (Albers) |
+| `tilted` | `false` | it should take a view's full tilt, not just its longitude (globe-like azimuthals) |
+
+`tests/js/projections.test.mjs` checks the registry (unique ids, one globe, polar views not recenterable, family labels).
+
 ```json
 "projection.myProjection.name": "My Projection",
 "projection.myProjection.preserves": "...",
@@ -82,7 +95,7 @@ Transitions morph a blended projection frame by frame, reprojecting a thinned co
 
 ## Changing the Theme
 
-Edit only the `:root` block in `static/css/style.css`. All colors are CSS variables — one change propagates everywhere.
+Edit only the `:root` block in `static/css/style.css`. All colors are CSS variables, including the compare and true-size palettes that the JS reads once (`core/palette.js`) — one change propagates everywhere. Durations and other tunable numbers live in `static/js/config.js`.
 
 ---
 

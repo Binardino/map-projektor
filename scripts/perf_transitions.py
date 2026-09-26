@@ -12,6 +12,7 @@ Usage:
 import argparse
 import statistics
 import json
+import re
 import pathlib
 import subprocess
 import sys
@@ -25,9 +26,18 @@ BASELINE_PATH = ROOT_DIR / "tests" / "perf_baseline.json"
 PORT = 8793
 BASE_URL = f"http://127.0.0.1:{PORT}"
 
-# Long enough to cover the slowest transition (the polar route: fold 800ms +
-# spin 700ms + unfold 800ms = 2300ms), with margin.
-WAIT_AFTER_CLICK_MS = 2800
+
+
+def polar_route_ms():
+    """The polar route's three legs, read from TIMING in static/js/config.js
+    so the recording window can't drift from the code."""
+    config = (ROOT_DIR / "static" / "js" / "config.js").read_text()
+    return sum(int(re.search(rf"^\s*{leg}: (\d+),", config, re.M).group(1)) for leg in ("polarFold", "polarSpin", "polarUnfold"))
+
+
+# Long enough to cover the slowest transition (the polar route: fold + spin
+# + unfold), with margin.
+WAIT_AFTER_CLICK_MS = polar_route_ms() + 500
 # A frame later than this reads as a visible stutter (worse than 30fps).
 DROPPED_FRAME_THRESHOLD_MS = 33
 # How far a run may regress past the baseline before failing — generous

@@ -6,11 +6,12 @@
 // replaces it with a proper store and events.
 // ============================================================
 import { RECENTER_PRESETS } from "../data/views.js";
+import { GLOBE } from "../data/projections.js";
 
 export const state = {
   // Defaults to the orthographic globe — the "space view" reads better as a
   // first impression than a flat map, per UX feedback.
-  currentProjectionId: "orthographic",
+  currentProjectionId: GLOBE.id,
   isAnimating: false,
   worldData: null,
   terrainData: null,

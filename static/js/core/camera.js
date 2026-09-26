@@ -1,4 +1,4 @@
-import { PROJECTIONS } from "../data/projections.js";
+import { getProjection } from "../data/projections.js";
 import { state } from "./state.js";
 import { flightPathMode, refreshFlightPath, refreshReferenceLines, refreshTissot } from "../tools/index.js";
 import { makeProjection } from "./projection.js";
@@ -6,6 +6,7 @@ import { refreshCompareHighlight } from "../ui/compare-card.js";
 import { renderMap } from "./render.js";
 import { rotationFor } from "./recenter.js";
 import { svg, zoomLayer } from "./scene.js";
+import { CAMERA_IDENTITY_EPSILON, GLOBE_DRAG_SENSITIVITY, MAIN_ZOOM_SCALE_EXTENT, TIMING, ZOOM_STEP } from "../config.js";
 
 // ============================================================
 // CAMERA PAN & ZOOM
@@ -16,8 +17,6 @@ import { svg, zoomLayer } from "./scene.js";
 // and compare-mode panel changes. Replaces the old model where zoom
 // was only possible while a country was selected and locked to it.
 // ============================================================
-export const MAIN_ZOOM_SCALE_EXTENT = [1, 40];
-export const LIGHT_ZOOM_MAX_SCALE   = 3; // gentle zoom-in cap when centering on a clicked/searched country
 
 export let currentZoomTransform = d3.zoomIdentity;
 
@@ -28,7 +27,7 @@ export const zoom = d3.zoom()
   // wheel zoom further down, not by d3.zoom.
   .filter((event) => {
     if (event.type === "wheel") return false;
-    if (state.currentProjectionId === "orthographic") return false;
+    if (getProjection(state.currentProjectionId).globe) return false;
     return !event.ctrlKey && !event.button;
   })
   .on("zoom", (event) => {
@@ -50,8 +49,6 @@ export function updatePanExtent(projection) {
   zoom.translateExtent(d3.geoPath().projection(projection).bounds({ type: "Sphere" }));
 }
 
-const CAMERA_IDENTITY_EPSILON = 0.001;
-
 function isCameraAtIdentity() {
   return (
     Math.abs(currentZoomTransform.k - 1) < CAMERA_IDENTITY_EPSILON &&
@@ -63,7 +60,7 @@ function isCameraAtIdentity() {
 // Animates the camera back to the default centered view. Returns a promise
 // so callers (e.g. transitionTo) can await it before proceeding; resolves
 // immediately if the camera is already at rest.
-export function resetCamera(duration = 500) {
+export function resetCamera(duration = TIMING.cameraReset) {
   if (isCameraAtIdentity()) return Promise.resolve();
   return svg.transition().duration(duration).call(zoom.transform, d3.zoomIdentity).end();
 }
@@ -76,7 +73,6 @@ export function resetCamera(duration = 500) {
 // stays put. Trackpad pinches arrive as ctrl+wheel and take the same path.
 // Ignored during morphs: interrupting resetCamera's transition would
 // reject the promise transitionTo awaits.
-const WHEEL_ZOOM_MS = 150;
 let wheelTargetScale = null;
 let wheelZoomId = 0;
 
@@ -89,7 +85,7 @@ svg.on("wheel.smooth", (event) => {
   wheelTargetScale = Math.max(kMin, Math.min(kMax, (wheelTargetScale ?? currentZoomTransform.k) * 2 ** delta));
   const id = ++wheelZoomId;
   svg.transition()
-    .duration(WHEEL_ZOOM_MS)
+    .duration(TIMING.wheelZoom)
     .ease(d3.easeCubicOut)
     .call(zoom.scaleTo, wheelTargetScale, d3.pointer(event, svg.node()))
     // A newer notch interrupting this one keeps the target it built on;
@@ -99,14 +95,13 @@ svg.on("wheel.smooth", (event) => {
 
 const zoomInBtn  = document.getElementById("zoom-in-btn");
 const zoomOutBtn = document.getElementById("zoom-out-btn");
-const ZOOM_STEP  = 1.3; // multiplicative factor per click, same feel as one mouse-wheel notch
 
 zoomInBtn.addEventListener("click", () => {
-  svg.transition().duration(200).call(zoom.scaleBy, ZOOM_STEP);
+  svg.transition().duration(TIMING.zoomButton).call(zoom.scaleBy, ZOOM_STEP);
 });
 
 zoomOutBtn.addEventListener("click", () => {
-  svg.transition().duration(200).call(zoom.scaleBy, 1 / ZOOM_STEP);
+  svg.transition().duration(TIMING.zoomButton).call(zoom.scaleBy, 1 / ZOOM_STEP);
 });
 
 // ============================================================
@@ -120,19 +115,18 @@ zoomOutBtn.addEventListener("click", () => {
 // drag/touch-pan on this projection so the two behaviors don't fight over
 // the pointer.
 // ============================================================
-const GLOBE_DRAG_SENSITIVITY = 0.35; // degrees rotated per pixel dragged
 
 const globeDrag = d3.drag()
-  .filter((event) => state.currentProjectionId === "orthographic" && !state.isAnimating && !flightPathMode)
+  .filter((event) => getProjection(state.currentProjectionId).globe && !state.isAnimating && !flightPathMode)
   .on("start", () => {
     document.querySelectorAll(".recenter-btn").forEach((b) => b.classList.remove("active"));
   })
   .on("drag", (event) => {
-    const projDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
+    const projDef = getProjection(state.currentProjectionId);
     const [lambda, phi] = rotationFor(projDef) || [0, 0, 0];
     const newLambda = lambda + event.dx * GLOBE_DRAG_SENSITIVITY;
     state.currentRecenterTilt = [newLambda, Math.max(-90, Math.min(90, phi - event.dy * GLOBE_DRAG_SENSITIVITY)), 0];
-    // Flat maps keep the dragged longitude but never the tilt (see TILTED_PROJECTIONS)
+    // Flat maps keep the dragged longitude but never the tilt (see tilted in data/projections.js)
     state.currentRecenterRotate = [newLambda, 0, 0];
     renderMap(makeProjection(projDef, rotationFor(projDef)));
     refreshTissot();
