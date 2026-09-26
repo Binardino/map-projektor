@@ -1203,10 +1203,12 @@ let currentZoomTransform = d3.zoomIdentity;
 const zoom = d3.zoom()
   .scaleExtent(MAIN_ZOOM_SCALE_EXTENT)
   // On the orthographic globe, drag/touch-pan is handed off to globeDrag
-  // below instead (see GLOBE ROTATION) — wheel/pinch still zoom as usual.
+  // below instead (see GLOBE ROTATION). The wheel is handled by the smooth
+  // wheel zoom further down, not by d3.zoom.
   .filter((event) => {
-    if (currentProjectionId === "orthographic" && event.type !== "wheel") return false;
-    return (!event.ctrlKey || event.type === "wheel") && !event.button;
+    if (event.type === "wheel") return false;
+    if (currentProjectionId === "orthographic") return false;
+    return !event.ctrlKey && !event.button;
   })
   .on("zoom", (event) => {
     currentZoomTransform = event.transform;
@@ -1244,6 +1246,35 @@ function resetCamera(duration = 500) {
   if (isCameraAtIdentity()) return Promise.resolve();
   return svg.transition().duration(duration).call(zoom.transform, d3.zoomIdentity).end();
 }
+
+// d3.zoom applies each wheel notch in a single frame: a mouse wheel's
+// notch is a ~15% scale jump, which read as a choppy zoom (measured in
+// scripts/perf_transitions.py). Each notch instead eases towards a target
+// scale; notches that arrive mid-ease add to that target, so spinning the
+// wheel fast still zooms as far as before, and the point under the cursor
+// stays put. Trackpad pinches arrive as ctrl+wheel and take the same path.
+// Ignored during morphs: interrupting resetCamera's transition would
+// reject the promise transitionTo awaits.
+const WHEEL_ZOOM_MS = 150;
+let wheelTargetScale = null;
+let wheelZoomId = 0;
+
+svg.on("wheel.smooth", (event) => {
+  event.preventDefault();
+  if (isAnimating) return;
+  // Same notch-to-scale rate as d3.zoom's default wheelDelta.
+  const delta = -event.deltaY * (event.deltaMode === 1 ? 0.05 : event.deltaMode ? 1 : 0.002) * (event.ctrlKey ? 10 : 1);
+  const [kMin, kMax] = MAIN_ZOOM_SCALE_EXTENT;
+  wheelTargetScale = Math.max(kMin, Math.min(kMax, (wheelTargetScale ?? currentZoomTransform.k) * 2 ** delta));
+  const id = ++wheelZoomId;
+  svg.transition()
+    .duration(WHEEL_ZOOM_MS)
+    .ease(d3.easeCubicOut)
+    .call(zoom.scaleTo, wheelTargetScale, d3.pointer(event, svg.node()))
+    // A newer notch interrupting this one keeps the target it built on;
+    // anything else (end, zoom buttons, camera reset) starts afresh.
+    .on("end interrupt", () => { if (id === wheelZoomId) wheelTargetScale = null; });
+}, { passive: false });
 
 const zoomInBtn  = document.getElementById("zoom-in-btn");
 const zoomOutBtn = document.getElementById("zoom-out-btn");
