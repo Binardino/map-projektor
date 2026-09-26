@@ -1,72 +1,9 @@
+import { HEIGHT, WIDTH, compareHighlightGroup, flightPathGroup, globeSphere, globeSphereFade, mapGroup, oceanRect, referenceGroup, svg, terrainGroup, tissotGroup, truesizeGroup, worldGroup, zoomLayer } from "./core/scene.js";
 import { PROJECTIONS, projectionName } from "./data/projections.js";
 import { RECENTER_INCOMPATIBLE, RECENTER_PRESETS, TILTED_PROJECTIONS } from "./data/views.js";
 import { buildLightGeometry, lightOf } from "./core/geometry.js";
 import { state } from "./core/state.js";
 import { loadLanguage, t } from "./i18n.js";
-
-// ============================================================
-// SVG SETUP
-// ============================================================
-const container = document.getElementById("map-container");
-const WIDTH  = container.clientWidth;
-const HEIGHT = container.clientHeight;
-
-const svg = d3
-  .select("#map-svg")
-  .attr("viewBox", `0 0 ${WIDTH} ${HEIGHT}`)
-  .attr("preserveAspectRatio", "xMidYMid meet");
-
-// Ocean background rectangle — stays outside the zoom layer so it always
-// fills the viewport regardless of the current pan/zoom transform, and
-// swaps to the globe backdrop color (see updateGlobeBackground) whenever
-// the orthographic view is active.
-const oceanRect = svg.append("rect").attr("class", "ocean").attr("width", WIDTH).attr("height", HEIGHT);
-
-// Zoom layer — receives the free pan/zoom transform (see CAMERA PAN & ZOOM
-// below). Everything that pans/zooms with the map lives inside it.
-const zoomLayer = svg.append("g").attr("class", "viewport");
-
-// Single wrapper for every world-space layer, so the South America
-// (upside-down) mirror flip (see animateRecenterFlip) animates ONE
-// group's transform instead of seven separate transitions — cheaper to
-// run, and guarantees every layer stays perfectly in sync.
-const worldGroup = zoomLayer.append("g").attr("class", "world");
-
-// Sphere outline — a distinct shape (not just the background rect) so the
-// globe's edge is visible against the void backdrop in orthographic view.
-// Appended before mapGroup so countries paint on top of it.
-const globeSphere = worldGroup.append("path").attr("class", "globe-sphere");
-
-// Second sphere shape, used only to crossfade during clip-angle-animated
-// blends (see animateBlend's `crossfade` branch) — kept empty/transparent
-// otherwise.
-const globeSphereFade = worldGroup.append("path").attr("class", "globe-sphere").style("opacity", 0);
-
-// Group that holds all country <path> elements
-const mapGroup = worldGroup.append("g").attr("class", "countries");
-
-// Mountain range/plateau terrain patches — appended after mapGroup so they
-// paint over the flat country fill, purely decorative (pointer-events:none
-// in CSS so clicks still reach the country underneath).
-const terrainGroup = worldGroup.append("g").attr("class", "terrain-layer");
-
-// Tissot's indicatrix overlay — appended after mapGroup so it paints on top
-const tissotGroup = worldGroup.append("g").attr("class", "tissot-layer");
-
-// Reference lines (equator, tropics, polar circles, meridians) — above
-// Tissot so the named lines stay readable when both overlays are on.
-const referenceGroup = worldGroup.append("g").attr("class", "reference-layer");
-
-// Flight path overlay — appended after tissotGroup so the arc paints on top
-const flightPathGroup = worldGroup.append("g").attr("class", "flightpath-layer");
-
-// True-size country shapes — appended last so dragged shapes paint on top
-// of everything else. Main view only (not mirrored to compare panels).
-const truesizeGroup = worldGroup.append("g").attr("class", "truesize-layer");
-
-// Compare-mode country highlight — appended last of all so it always
-// paints on top. See COMPARE CARD below.
-const compareHighlightGroup = worldGroup.append("g").attr("class", "compare-highlight-layer");
 
 // The sphere-outline stroke only shows in orthographic — it's the only
 // projection where the disc needs a visible edge separating it from the
