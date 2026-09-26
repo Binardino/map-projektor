@@ -129,6 +129,22 @@ body {
   pointer-events: none;
 }
 
+/* Invisible grab area under the visible shape: its wide stroke makes tiny
+   countries (Luxembourg, Singapore) grabbable at world scale. Re-enables
+   the pointer events the layer above turns off, for this shape only. */
+.compare-hit {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 14px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: all;
+  cursor: grab;
+}
+
+.compare-overlay.dragging .compare-hit {
+  cursor: grabbing;
+}
+
 .compare-highlight {
   fill: #fa6048;
   fill-opacity: 0.5;
@@ -757,6 +773,58 @@ body {
   color: #292929;
   border: 1px solid #d1cdcd;
   border-radius: 4px;
+}
+
+#compare-country-input:disabled {
+  background: #e6e6e6;
+  cursor: not-allowed;
+}
+
+/* Picked countries: swatch (the country's overlay colour) + show/hide
+   checkbox + name + remove button, one row each. */
+#compare-country-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+}
+
+#compare-country-list[hidden] {
+  display: none;
+}
+
+#compare-country-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#compare-country-list label {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+#compare-country-list input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.compare-swatch {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+/* Unticked: the row stays so the country can be shown again, but reads as off */
+#compare-country-list li.hidden-country .compare-country-name,
+#compare-country-list li.hidden-country .compare-swatch {
+  opacity: 0.4;
 }
 
 #compare-country-results {

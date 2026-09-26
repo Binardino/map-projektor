@@ -726,6 +726,7 @@ async function polarTransition(fromDef, toDef) {
 // ============================================================
 async function transitionTo(newProjId) {
   isAnimating = true;
+  hideCompareHighlight();
 
   // Reset the free camera (pan/zoom on zoomLayer, see CAMERA PAN & ZOOM)
   // to the default centered view before starting the morph, so every
@@ -753,6 +754,7 @@ async function transitionTo(newProjId) {
   refreshRecenterAvailability();
   refreshFlightPath();
   resetTrueSizeOnProjectionSwitch();
+  refreshCompareHighlight();
 
   isAnimating = false;
 }
@@ -817,6 +819,7 @@ const compareCardEl           = document.getElementById("compare-card");
 const compareProjectionSelect = document.getElementById("compare-projection-select");
 const compareCountryInput     = document.getElementById("compare-country-input");
 const compareCountryResults   = document.getElementById("compare-country-results");
+const compareCountryList      = document.getElementById("compare-country-list");
 
 // Called from init() once the language is loaded (names come from t()); it
 // keeps the HTML placeholder option (empty value) and replaces the rest, so a
@@ -833,23 +836,167 @@ function buildCompareProjectionOptions() {
 
 let compareCardVisible     = false;
 let compareCountryNames    = null; // populated lazily once worldData is ready — full alphabetical list
-let compareSelectedCountry = null;
 let compareProjectionId    = null; // null until a country is picked, then defaults to currentProjectionId
 
-// Redraws (or clears) the highlighted country under compareProjectionId.
-// Shares the main map's zoomLayer, so it pans/zooms together with it —
-// the point is comparing two projections' shapes side by side on the
-// same canvas, not tracking a separate camera.
+// Countries being compared, in pick order. Each entry:
+// { name, color, visible, shift: pins its anchor on the map's copy of the
+//   country, offset: how far the user has dragged it from there }.
+const compareCountries = [];
+const COMPARE_MAX = 5;
+// Saturated hues that stay apart from each other and from the map's own
+// colours in both themes: land (pink / navy), ocean (light / mid blue),
+// terrain (tan, sage), the reference lines (atlas red).
+const COMPARE_COLORS = ["#fa6048", "#8e44ad", "#1fa35c", "#f2b705", "#00a6a6"];
+
+// Overseas territories that Natural Earth keeps as separate features but
+// that belong in the country's comparison. France's overseas departments
+// (Guiana, Réunion, the Antilles, Mayotte) are already part of "France";
+// these are its collectivities and TAAF. Other countries' territories
+// (Greenland, Puerto Rico, the Falklands) stay separate, pickable on their own.
+const COMPARE_TERRITORIES = {
+  France: [
+    "Fr. Polynesia", "New Caledonia", "Fr. S. Antarctic Lands", "Wallis and Futuna Is.",
+    "St. Pierre and Miquelon", "St-Martin", "St-Barthélemy",
+  ],
+};
+
+// The shape drawn for a compared country: the feature plus its territories.
+function compareShape(feature) {
+  const territories = (COMPARE_TERRITORIES[feature.properties.name] || [])
+    .map((name) => worldData.features.find((f) => f.properties.name === name))
+    .filter(Boolean);
+  if (!territories.length) return feature;
+  return { type: "FeatureCollection", features: [feature, ...territories] };
+}
+
+// The point of the country the overlay is pinned on: the centre of its
+// largest polygon, not of the whole feature — overseas parts (French
+// Guiana for France, Alaska for the USA) would otherwise drag the anchor
+// off the mainland people are actually comparing.
+function compareAnchor(feature) {
+  if (feature.geometry.type !== "MultiPolygon") return d3.geoCentroid(feature);
+  const largest = d3.greatest(feature.geometry.coordinates, (rings) => d3.geoArea({ type: "Polygon", coordinates: rings }));
+  return d3.geoCentroid({ type: "Polygon", coordinates: largest });
+}
+
+// Redraws (or clears) every visible compared country under compareProjectionId,
+// each shifted so its anchor sits on the same country in the map on screen:
+// each projection places a country at its own screen position, so drawn
+// as-is, France under Equirectangular landed on Chad in a Gall-Peters map.
+// Uses the active view's rotation so both shapes share an orientation.
+// Shares the main map's zoomLayer, so it pans/zooms together with it.
 function refreshCompareHighlight() {
   compareHighlightGroup.selectAll("*").remove();
-  if (!compareSelectedCountry || !worldData) return;
+  compareHighlightGroup.style("display", null);
+  if (!worldData) return;
 
-  const feature = worldData.features.find((f) => f.properties.name === compareSelectedCountry);
-  if (!feature) return;
+  const mapDef      = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const compareDef  = PROJECTIONS.find((p) => p.id === compareProjectionId) || mapDef;
+  const mapProj     = makeProjection(mapDef, rotationFor(mapDef));
+  const compareProj = makeProjection(compareDef, rotationFor(compareDef));
+  const comparePath = d3.geoPath().projection(compareProj);
+  const [rl, rp]    = mapProj.rotate();
 
-  const projDef = PROJECTIONS.find((p) => p.id === compareProjectionId) || PROJECTIONS.find((p) => p.id === currentProjectionId);
-  const pathFn  = d3.geoPath().projection(makeProjection(projDef));
-  compareHighlightGroup.append("path").attr("class", "compare-highlight").attr("d", pathFn(feature));
+  compareCountries.filter((entry) => entry.visible).forEach((entry) => {
+    const feature = worldData.features.find((f) => f.properties.name === entry.name);
+    if (!feature) return;
+    const anchor = compareAnchor(feature);
+    // A projection returns a point even for the globe's far side, which
+    // would pin the overlay on a country the user can't see.
+    if (currentProjectionId === "orthographic" && d3.geoDistance(anchor, [-rl, -rp]) > Math.PI / 2) return;
+    const [mx, my] = mapProj(anchor);
+    const [cx, cy] = compareProj(anchor);
+    entry.shift = [mx - cx, my - cy];
+
+    const d = comparePath(compareShape(feature));
+    const overlay = compareHighlightGroup.append("g")
+      .datum(entry)
+      .attr("class", "compare-overlay")
+      .attr("transform", compareOverlayTransform(entry))
+      .call(compareDrag);
+    overlay.append("path").attr("class", "compare-hit").attr("d", d);
+    overlay.append("path").attr("class", "compare-highlight").attr("d", d)
+      .style("fill", entry.color)
+      .style("stroke", entry.color);
+  });
+}
+
+function compareOverlayTransform(entry) {
+  return `translate(${entry.shift[0] + entry.offset[0]},${entry.shift[1] + entry.offset[1]})`;
+}
+
+function resetCompareOffsets() {
+  compareCountries.forEach((entry) => { entry.offset = [0, 0]; });
+}
+
+// Grabbing the overlay moves it; d3.drag stops the pointer-down from
+// reaching d3.zoom and globeDrag, so a drag anywhere else still pans the
+// map (or turns the globe), and the wheel still zooms over it. dx/dy come
+// in the overlay's parent coordinates, which already undo the camera zoom
+// and the upside-down flip, so the shape stays under the cursor.
+// Each country moves on its own; the one being dragged is raised so it
+// passes over the others.
+const compareDrag = d3.drag()
+  .on("start", function () { d3.select(this).classed("dragging", true).raise(); })
+  .on("drag", function (event, entry) {
+    entry.offset = [entry.offset[0] + event.dx, entry.offset[1] + event.dy];
+    d3.select(this).attr("transform", compareOverlayTransform(entry));
+  })
+  .on("end", function () { d3.select(this).classed("dragging", false); });
+
+// The overlay is pinned to the map's projection, so it's stale for the
+// whole morph or spin — hidden until the matching refresh at the end.
+// A drag only holds until the next projection or view change, which puts
+// the overlay back on the country (the anchor is what's being compared).
+function hideCompareHighlight() {
+  compareHighlightGroup.style("display", "none");
+  resetCompareOffsets();
+}
+
+// Rebuilds the picked-country rows and locks the search field once the
+// list is full, saying why in its placeholder.
+function renderCompareList() {
+  compareCountryList.innerHTML = "";
+  compareCountries.forEach((entry) => {
+    const li = document.createElement("li");
+    li.classList.toggle("hidden-country", !entry.visible);
+
+    const label = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = entry.visible;
+    checkbox.setAttribute("aria-label", t("compare.showCountry", { name: entry.name }));
+    checkbox.addEventListener("change", () => {
+      entry.visible = checkbox.checked;
+      renderCompareList();
+      refreshCompareHighlight();
+    });
+    const swatch = document.createElement("span");
+    swatch.className = "compare-swatch";
+    swatch.style.background = entry.color;
+    const name = document.createElement("span");
+    name.className = "compare-country-name";
+    name.textContent = entry.name;
+    label.append(checkbox, swatch, name);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "floating-card-close";
+    removeBtn.textContent = "✕";
+    removeBtn.setAttribute("aria-label", t("compare.removeCountry", { name: entry.name }));
+    removeBtn.addEventListener("click", () => {
+      compareCountries.splice(compareCountries.indexOf(entry), 1);
+      renderCompareList();
+      refreshCompareHighlight();
+    });
+
+    li.append(label, removeBtn);
+    compareCountryList.appendChild(li);
+  });
+  compareCountryList.hidden = compareCountries.length === 0;
+
+  const full = compareCountries.length >= COMPARE_MAX;
+  compareCountryInput.disabled = full;
+  compareCountryInput.placeholder = t(full ? "compare.limitReached" : "compare.countryPlaceholder");
 }
 
 function hideCompareCountryResults() {
@@ -869,9 +1016,13 @@ function showCompareCountryResults(names) {
 }
 
 function selectCompareCountry(name) {
-  compareSelectedCountry = name;
-  compareCountryInput.value = name;
+  compareCountryInput.value = "";
   hideCompareCountryResults();
+  if (compareCountries.length >= COMPARE_MAX || compareCountries.some((entry) => entry.name === name)) return;
+  // First colour no listed country is using, so removing one frees its colour
+  const color = COMPARE_COLORS.find((c) => !compareCountries.some((entry) => entry.color === c));
+  compareCountries.push({ name, color, visible: true, shift: [0, 0], offset: [0, 0] });
+  renderCompareList();
 
   // First pick since the card opened (or since it was last cleared):
   // default the projection to whatever the main map is currently showing.
@@ -901,14 +1052,16 @@ compareCountryInput.addEventListener("keydown", (event) => {
 
 compareProjectionSelect.addEventListener("change", () => {
   compareProjectionId = compareProjectionSelect.value;
+  resetCompareOffsets();
   refreshCompareHighlight();
 });
 
 function resetCompareSelection() {
-  compareSelectedCountry = null;
+  compareCountries.length = 0;
   compareProjectionId = null;
   compareCountryInput.value = "";
   compareProjectionSelect.value = "";
+  renderCompareList();
   hideCompareCountryResults();
   refreshCompareHighlight();
 }
@@ -1160,6 +1313,7 @@ async function applyRecenter(presetId) {
   clearSelection(); // mutually exclusive with the country-zoom selection, see note above
 
   isAnimating = true;
+  hideCompareHighlight();
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
   const wantsFlip = !!preset.flipVertical;
 
@@ -1187,6 +1341,7 @@ async function applyRecenter(presetId) {
   isAnimating = false;
   refreshTissot();
   refreshReferenceLines();
+  refreshCompareHighlight();
 }
 
 function resetRecenter() {
@@ -1354,6 +1509,7 @@ const globeDrag = d3.drag()
     refreshTissot();
     refreshReferenceLines();
     refreshFlightPath();
+    refreshCompareHighlight();
   });
 
 svg.call(globeDrag);
