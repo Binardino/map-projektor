@@ -7,6 +7,7 @@ import { renderMap } from "./render.js";
 import { rotationFor } from "./recenter.js";
 import { svg, zoomLayer } from "./scene.js";
 import { CAMERA_IDENTITY_EPSILON, GLOBE_DRAG_SENSITIVITY, MAIN_ZOOM_SCALE_EXTENT, TIMING, ZOOM_STEP } from "../config.js";
+import { getState } from "../state.js";
 
 // ============================================================
 // CAMERA PAN & ZOOM
@@ -27,7 +28,7 @@ export const zoom = d3.zoom()
   // wheel zoom further down, not by d3.zoom.
   .filter((event) => {
     if (event.type === "wheel") return false;
-    if (getProjection(state.currentProjectionId).globe) return false;
+    if (getProjection(getState().projectionId).globe) return false;
     return !event.ctrlKey && !event.button;
   })
   .on("zoom", (event) => {
@@ -78,7 +79,7 @@ let wheelZoomId = 0;
 
 svg.on("wheel.smooth", (event) => {
   event.preventDefault();
-  if (state.isAnimating) return;
+  if (getState().busy) return;
   // Same notch-to-scale rate as d3.zoom's default wheelDelta.
   const delta = -event.deltaY * (event.deltaMode === 1 ? 0.05 : event.deltaMode ? 1 : 0.002) * (event.ctrlKey ? 10 : 1);
   const [kMin, kMax] = MAIN_ZOOM_SCALE_EXTENT;
@@ -117,12 +118,12 @@ zoomOutBtn.addEventListener("click", () => {
 // ============================================================
 
 const globeDrag = d3.drag()
-  .filter((event) => getProjection(state.currentProjectionId).globe && !state.isAnimating && !flightPathMode)
+  .filter((event) => getProjection(getState().projectionId).globe && !getState().busy && !flightPathMode)
   .on("start", () => {
     document.querySelectorAll(".recenter-btn").forEach((b) => b.classList.remove("active"));
   })
   .on("drag", (event) => {
-    const projDef = getProjection(state.currentProjectionId);
+    const projDef = getProjection(getState().projectionId);
     const [lambda, phi] = rotationFor(projDef) || [0, 0, 0];
     const newLambda = lambda + event.dx * GLOBE_DRAG_SENSITIVITY;
     state.currentRecenterTilt = [newLambda, Math.max(-90, Math.min(90, phi - event.dy * GLOBE_DRAG_SENSITIVITY)), 0];

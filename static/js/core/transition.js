@@ -1,5 +1,5 @@
 import { animateTransition, polarTransition } from "./animation.js";
-import { PROJECTIONS, getProjection } from "../data/projections.js";
+import { GLOBE, PROJECTIONS, getProjection } from "../data/projections.js";
 import { applyRecenter, refreshRecenterAvailability, rotationFor } from "./recenter.js";
 import { closeSidebar } from "../ui/mobile-sidebar.js";
 import { state } from "./state.js";
@@ -11,12 +11,22 @@ import { resetCamera } from "./camera.js";
 import { setActiveButton } from "../ui/sidebar.js";
 import { updateInfo } from "../ui/info-card.js";
 import { TIMING } from "../config.js";
+import { getState, setState } from "../state.js";
+import { runExclusive } from "./busy.js";
 
 // ============================================================
 // TRANSITION — morph source → target
 // ============================================================
-async function transitionTo(newProjId) {
-  state.isAnimating = true;
+// Defaults to the orthographic globe — the "space view" reads better as a
+// first impression than a flat map, per UX feedback. This module is the
+// only writer of projectionId.
+setState({ projectionId: GLOBE.id });
+
+function transitionTo(newProjId) {
+  return runExclusive(() => morphTo(newProjId));
+}
+
+async function morphTo(newProjId) {
   hideCompareHighlight();
 
   // Reset the free camera (pan/zoom on zoomLayer, see CAMERA PAN & ZOOM)
@@ -25,7 +35,7 @@ async function transitionTo(newProjId) {
   // instead of carrying over whatever pan/zoom the user left it at.
   await resetCamera();
 
-  const fromDef = getProjection(state.currentProjectionId);
+  const fromDef = getProjection(getState().projectionId);
   const toDef   = getProjection(newProjId);
 
   if (fromDef.polarRotation || toDef.polarRotation) {
@@ -37,7 +47,7 @@ async function transitionTo(newProjId) {
   // Final render with the true target projection (native clipping rules)
   renderMap(makeProjection(toDef, rotationFor(toDef)));
 
-  state.currentProjectionId = newProjId;
+  setState({ projectionId: newProjId });
   updateInfo(toDef);
   updateGlobeBackground();
   refreshTissot();
@@ -46,15 +56,13 @@ async function transitionTo(newProjId) {
   refreshFlightPath();
   resetTrueSizeOnProjectionSwitch();
   refreshCompareHighlight();
-
-  state.isAnimating = false;
 }
 
 // ============================================================
 // SWITCH PROJECTION
 // ============================================================
 export async function switchProjection(newProjId) {
-  if (state.isAnimating || newProjId === state.currentProjectionId) return;
+  if (getState().busy || newProjId === getState().projectionId) return;
   if (!PROJECTIONS.some((p) => p.id === newProjId)) return;
   closeSidebar(); // no-op on desktop; on mobile, reveals the map after picking
   setActiveButton(newProjId); // highlight immediately — don't wait for the ~1.4-2.3s morph to finish

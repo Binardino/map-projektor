@@ -1,10 +1,10 @@
 import { getProjection } from "../data/projections.js";
-import { state } from "../core/state.js";
 import { makeProjection } from "../core/projection.js";
 import { rotationFor } from "../core/recenter.js";
 import { truesizeGroup } from "../core/scene.js";
 import { readPalette } from "../core/palette.js";
 import { worldData } from "../data/geodata.js";
+import { getState } from "../state.js";
 
 // ============================================================
 // TRUE SIZE COMPARE
@@ -104,7 +104,7 @@ const trueSizeDrag = d3.drag().on("drag", function (event, feature) {
 // other refresh call sites use this — only a projection switch clears
 // offsets, see resetTrueSizeOnProjectionSwitch).
 function renderTrueSizeShapes() {
-  const projDef    = getProjection(state.currentProjectionId);
+  const projDef    = getProjection(getState().projectionId);
   const projection = makeProjection(projDef, rotationFor(projDef));
   const pathFn     = d3.geoPath().projection(projection);
 

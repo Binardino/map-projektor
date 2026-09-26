@@ -1,9 +1,9 @@
 import { PROJECTIONS, projectionName } from "../data/projections.js";
 import { RECENTER_PRESETS } from "../data/views.js";
 import { applyRecenter } from "../core/recenter.js";
-import { state } from "../core/state.js";
 import { switchProjection } from "../core/transition.js";
 import { t } from "../i18n.js";
+import { getState } from "../state.js";
 
 // ============================================================
 // SIDEBAR — built dynamically from PROJECTIONS
@@ -33,7 +33,7 @@ export function buildSidebar() {
     nav.appendChild(btn);
   });
 
-  setActiveButton(state.currentProjectionId);
+  setActiveButton(getState().projectionId);
 }
 
 export function setActiveButton(projId) {

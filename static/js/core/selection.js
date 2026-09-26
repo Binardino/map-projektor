@@ -7,6 +7,7 @@ import { makeProjection } from "./projection.js";
 import { renderMap } from "./render.js";
 import { resetRecenter, rotationFor } from "./recenter.js";
 import { LIGHT_ZOOM_MAX_SCALE, TIMING } from "../config.js";
+import { getState } from "../state.js";
 
 // ============================================================
 // COUNTRY SELECTION
@@ -43,7 +44,7 @@ function selectCountry(feature) {
   // orientation.
   if (state.currentRecenterRotate) {
     resetRecenter();
-    const projDef = getProjection(state.currentProjectionId);
+    const projDef = getProjection(getState().projectionId);
     renderMap(makeProjection(projDef, rotationFor(projDef)));
     refreshTissot();
     refreshReferenceLines();
@@ -55,7 +56,7 @@ function selectCountry(feature) {
     .selectAll("path.country")
     .classed("selected", (d) => d.properties.name === selectedCountryName);
 
-  const projDef = getProjection(state.currentProjectionId);
+  const projDef = getProjection(getState().projectionId);
   const fit     = computeCountryFit(feature, projDef);
   const transform = d3.zoomIdentity
     .translate(WIDTH / 2, HEIGHT / 2)

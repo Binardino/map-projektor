@@ -1,6 +1,5 @@
 import { PROJECTIONS, getProjection, projectionName } from "../data/projections.js";
 import { compareHighlightGroup } from "../core/scene.js";
-import { state } from "../core/state.js";
 import { infoVisible, setInfoVisible } from "./info-card.js";
 import { makeProjection } from "../core/projection.js";
 import { rotationFor } from "../core/recenter.js";
@@ -8,6 +7,7 @@ import { t } from "../i18n.js";
 import { COMPARE_MAX } from "../config.js";
 import { readPalette } from "../core/palette.js";
 import { worldData } from "../data/geodata.js";
+import { getState } from "../state.js";
 
 // ============================================================
 // COMPARE CARD
@@ -94,7 +94,7 @@ export function refreshCompareHighlight() {
   compareHighlightGroup.style("display", null);
   if (!worldData) return;
 
-  const mapDef      = getProjection(state.currentProjectionId);
+  const mapDef      = getProjection(getState().projectionId);
   const compareDef  = compareProjectionId ? getProjection(compareProjectionId) : mapDef;
   const mapProj     = makeProjection(mapDef, rotationFor(mapDef));
   const compareProj = makeProjection(compareDef, rotationFor(compareDef));
@@ -107,7 +107,7 @@ export function refreshCompareHighlight() {
     const anchor = compareAnchor(feature);
     // A projection returns a point even for the globe's far side, which
     // would pin the overlay on a country the user can't see.
-    if (getProjection(state.currentProjectionId).globe && d3.geoDistance(anchor, [-rl, -rp]) > Math.PI / 2) return;
+    if (getProjection(getState().projectionId).globe && d3.geoDistance(anchor, [-rl, -rp]) > Math.PI / 2) return;
     const [mx, my] = mapProj(anchor);
     const [cx, cy] = compareProj(anchor);
     entry.shift = [mx - cx, my - cy];
@@ -231,8 +231,8 @@ function selectCompareCountry(name) {
   // First pick since the card opened (or since it was last cleared):
   // default the projection to whatever the main map is currently showing.
   if (compareProjectionId === null) {
-    compareProjectionId = state.currentProjectionId;
-    compareProjectionSelect.value = state.currentProjectionId;
+    compareProjectionId = getState().projectionId;
+    compareProjectionSelect.value = getState().projectionId;
   }
   refreshCompareHighlight();
 }
