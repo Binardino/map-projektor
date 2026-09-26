@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-26 — ES-module split (on `refactor/es-module-split`)
+
+No change to what the app shows or does: the UI text snapshot, the render fingerprint and the e2e smoke test are identical before and after every commit, and every top-level statement of the old `map.js` reappears verbatim in the modules.
+
+### Changed
+- `static/js/map.js` (2 347 lines) is split into 24 ES modules under `data/`, `core/`, `ui/` and `tools/` (largest: 300 lines), loaded from `main.js`. Code was moved, not rewritten; `i18n.js` is a module too
+- The seven variables that code in other sections reassigns (current projection, animation flag, world/terrain data, recenter rotation/tilt/flip) live on one `state` object (`core/state.js`), since imported bindings are read-only
+- Core reaches the tools only through `tools/index.js`. Side-by-side comparison, flight path and true size, unreachable since the redesign, are no longer loaded; `tools/index.js` gives core inert stand-ins for them
+- Every module is `<link rel="modulepreload">`ed: loading them level by level cost ~160ms of cold load at 40ms latency; with the preload, cold load matches the single `map.js` within noise
+
+### Added
+- `tests/js/layering.test.mjs`: layers import downwards only (`data` < `core` < `ui`/`tools` < `main`/`debug`); the core → ui calls that PR 4 turns into events are listed as temporary exceptions
+- `tests/js/modulepreload.test.mjs`: the preload list in `index.html` equals the static import graph
+- The JS unit tests import the modules directly; the `vm` harness is gone
+
 ## 2026-09-26 — Refactor safety net (on `test/refactor-safety-net`)
 
 No change to what the app shows or does; these checks give the upcoming modularization of `map.js` an objective yardstick.
