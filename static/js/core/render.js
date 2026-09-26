@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { globeSphere, globeSphereFade, mapGroup, terrainGroup } from "./scene.js";
 import { lightOf } from "./geometry.js";
-import { updatePanExtent } from "../map.js";
+import { updatePanExtent } from "./camera.js";
 
 // The sphere-outline stroke only shows in orthographic — it's the only
 // projection where the disc needs a visible edge separating it from the
