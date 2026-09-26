@@ -6,7 +6,7 @@ import { refreshCompareHighlight } from "../ui/compare-card.js";
 import { renderMap } from "./render.js";
 import { rotationFor } from "./recenter.js";
 import { svg, zoomLayer } from "./scene.js";
-import { TIMING } from "../config.js";
+import { CAMERA_IDENTITY_EPSILON, GLOBE_DRAG_SENSITIVITY, MAIN_ZOOM_SCALE_EXTENT, TIMING, ZOOM_STEP } from "../config.js";
 
 // ============================================================
 // CAMERA PAN & ZOOM
@@ -17,8 +17,6 @@ import { TIMING } from "../config.js";
 // and compare-mode panel changes. Replaces the old model where zoom
 // was only possible while a country was selected and locked to it.
 // ============================================================
-export const MAIN_ZOOM_SCALE_EXTENT = [1, 40];
-export const LIGHT_ZOOM_MAX_SCALE   = 3; // gentle zoom-in cap when centering on a clicked/searched country
 
 export let currentZoomTransform = d3.zoomIdentity;
 
@@ -50,8 +48,6 @@ svg.call(zoom);
 export function updatePanExtent(projection) {
   zoom.translateExtent(d3.geoPath().projection(projection).bounds({ type: "Sphere" }));
 }
-
-const CAMERA_IDENTITY_EPSILON = 0.001;
 
 function isCameraAtIdentity() {
   return (
@@ -99,7 +95,6 @@ svg.on("wheel.smooth", (event) => {
 
 const zoomInBtn  = document.getElementById("zoom-in-btn");
 const zoomOutBtn = document.getElementById("zoom-out-btn");
-const ZOOM_STEP  = 1.3; // multiplicative factor per click, same feel as one mouse-wheel notch
 
 zoomInBtn.addEventListener("click", () => {
   svg.transition().duration(TIMING.zoomButton).call(zoom.scaleBy, ZOOM_STEP);
@@ -120,7 +115,6 @@ zoomOutBtn.addEventListener("click", () => {
 // drag/touch-pan on this projection so the two behaviors don't fight over
 // the pointer.
 // ============================================================
-const GLOBE_DRAG_SENSITIVITY = 0.35; // degrees rotated per pixel dragged
 
 const globeDrag = d3.drag()
   .filter((event) => getProjection(state.currentProjectionId).globe && !state.isAnimating && !flightPathMode)

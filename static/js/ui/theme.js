@@ -1,3 +1,5 @@
+import { THEME_STORAGE_KEY } from "../config.js";
+
 // ============================================================
 // THEME SWITCHER
 // Persists the chosen theme in localStorage so it survives page
@@ -6,7 +8,6 @@
 // the sidebar used to have its own checkbox too, dropped as a
 // duplicate once the toolbar icon existed.
 // ============================================================
-const THEME_STORAGE_KEY = "mapProjektorTheme";
 
 const themeToggleBtn = document.getElementById("theme-toggle-btn");
 

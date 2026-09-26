@@ -5,6 +5,7 @@ import { infoVisible, setInfoVisible } from "./info-card.js";
 import { makeProjection } from "../core/projection.js";
 import { rotationFor } from "../core/recenter.js";
 import { t } from "../i18n.js";
+import { COMPARE_MAX } from "../config.js";
 
 // ============================================================
 // COMPARE CARD
@@ -44,7 +45,6 @@ let compareProjectionId    = null; // null until a country is picked, then defau
 // { name, color, visible, shift: pins its anchor on the map's copy of the
 //   country, offset: how far the user has dragged it from there }.
 const compareCountries = [];
-const COMPARE_MAX = 5;
 // Saturated hues that stay apart from each other and from the map's own
 // colours in both themes: land (pink / navy), ocean (light / mid blue),
 // terrain (tan, sage), the reference lines (atlas red).

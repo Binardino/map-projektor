@@ -1,12 +1,12 @@
 import { HEIGHT, WIDTH, mapGroup, svg } from "./scene.js";
-import { LIGHT_ZOOM_MAX_SCALE, zoom } from "./camera.js";
+import { zoom } from "./camera.js";
 import { getProjection } from "../data/projections.js";
 import { applySelectionToPanel, compareMode, comparePanels, flightPathMode, refreshReferenceLines, refreshTissot, setFlightPathMode } from "../tools/index.js";
 import { state } from "./state.js";
 import { makeProjection } from "./projection.js";
 import { renderMap } from "./render.js";
 import { resetRecenter, rotationFor } from "./recenter.js";
-import { TIMING } from "../config.js";
+import { LIGHT_ZOOM_MAX_SCALE, TIMING } from "../config.js";
 
 // ============================================================
 // COUNTRY SELECTION

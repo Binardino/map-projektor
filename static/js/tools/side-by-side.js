@@ -1,4 +1,3 @@
-import { LIGHT_ZOOM_MAX_SCALE, MAIN_ZOOM_SCALE_EXTENT } from "../core/camera.js";
 import { PROJECTIONS, getProjection, projectionName } from "../data/projections.js";
 import { state } from "../core/state.js";
 import { fitProjection } from "../core/projection.js";
@@ -8,7 +7,7 @@ import { infoVisible, setInfoVisible } from "../ui/info-card.js";
 import { refreshTissot } from "./tissot.js";
 import { renderGlobeSphere } from "../core/render.js";
 import { selectedCountryName } from "../core/selection.js";
-import { DEFAULT_COMPARISON_PROJECTION, TIMING } from "../config.js";
+import { DEFAULT_COMPARISON_PROJECTION, LIGHT_ZOOM_MAX_SCALE, MAIN_ZOOM_SCALE_EXTENT, TIMING } from "../config.js";
 
 // ============================================================
 // SIDE-BY-SIDE COMPARISON MODE

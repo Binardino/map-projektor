@@ -33,6 +33,7 @@ import { refreshFlightPath, refreshTissot } from "./tools/index.js";
 import { refreshRecenterAvailability, rotationFor } from "./core/recenter.js";
 import { renderMap, updateGlobeBackground } from "./core/render.js";
 import { updateInfo } from "./ui/info-card.js";
+import { TERRAIN_GEOJSON_URL, WORLD_GEOJSON_URL } from "./config.js";
 
 // ============================================================
 // INIT — fetch GeoJSON then render
@@ -44,8 +45,8 @@ async function init() {
   openHelpModal(); // after the language loads, or the modal would flash empty
 
   const [worldResponse, terrainResponse] = await Promise.all([
-    fetch("/data/world.geojson"),
-    fetch("/data/terrain.geojson"),
+    fetch(WORLD_GEOJSON_URL),
+    fetch(TERRAIN_GEOJSON_URL),
   ]);
   state.worldData = await worldResponse.json();
   state.terrainData = await terrainResponse.json();
