@@ -1,6 +1,5 @@
-import { POLAR_ROTATION, animateTransition, polarTransition } from "./animation.js";
+import { animateTransition, polarTransition } from "./animation.js";
 import { PROJECTIONS, getProjection } from "../data/projections.js";
-import { RECENTER_INCOMPATIBLE } from "../data/views.js";
 import { applyRecenter, refreshRecenterAvailability, rotationFor } from "./recenter.js";
 import { closeSidebar } from "../ui/mobile-sidebar.js";
 import { state } from "./state.js";
@@ -28,7 +27,7 @@ async function transitionTo(newProjId) {
   const fromDef = getProjection(state.currentProjectionId);
   const toDef   = getProjection(newProjId);
 
-  if (POLAR_ROTATION[fromDef.id] || POLAR_ROTATION[toDef.id]) {
+  if (fromDef.polarRotation || toDef.polarRotation) {
     await polarTransition(fromDef, toDef);
   } else {
     await animateTransition(fromDef, toDef, 1400);
@@ -61,7 +60,7 @@ export async function switchProjection(newProjId) {
   // The active view carries over to any compatible projection (transitionTo
   // morphs with its rotation). Albers/polar can't be recentred, so ease back
   // to Europe first — otherwise the morph would end on a snapped rotation.
-  if (RECENTER_INCOMPATIBLE.has(newProjId) && (state.currentRecenterRotate || state.currentRecenterFlip)) {
+  if (!getProjection(newProjId).recenterable && (state.currentRecenterRotate || state.currentRecenterFlip)) {
     await applyRecenter("world");
   }
   transitionTo(newProjId);

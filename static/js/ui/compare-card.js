@@ -105,7 +105,7 @@ export function refreshCompareHighlight() {
     const anchor = compareAnchor(feature);
     // A projection returns a point even for the globe's far side, which
     // would pin the overlay on a country the user can't see.
-    if (state.currentProjectionId === "orthographic" && d3.geoDistance(anchor, [-rl, -rp]) > Math.PI / 2) return;
+    if (getProjection(state.currentProjectionId).globe && d3.geoDistance(anchor, [-rl, -rp]) > Math.PI / 2) return;
     const [mx, my] = mapProj(anchor);
     const [cx, cy] = compareProj(anchor);
     entry.shift = [mx - cx, my - cy];

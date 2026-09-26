@@ -9,10 +9,33 @@ import { t } from "../i18n.js";
 //
 // d3fn must return a D3 projection instance (not yet fitted to
 // the viewport — that happens in makeProjection()).
+//
+// Optional capabilities (defaults in PROJECTION_DEFAULTS below), so no
+// code elsewhere has to test for a projection by its id:
+//   globe          the one projection that is the 3D globe: void backdrop,
+//                  drag-to-rotate, hub of the polar route
+//   clipAngle      clip circle in degrees; 90 keeps only the visible hemisphere
+//   fit            "sphere" fits the whole sphere; "width" fits the width and
+//                  lets the rest overflow (see fitProjection)
+//   polarRotation  set on pole-centred views: the transition routes through
+//                  the globe (see POLAR ROUTE) instead of blending directly
+//   recenterable   false where the projection's own rotate() is load-bearing
+//                  (polar views) or tuned to one region (Albers)
+//   tilted         takes a view's full tilt, not just its longitude: tipping
+//                  a flat map turns it oblique, which reads as a broken map
 // ============================================================
 // name and tradeoffs live in static/i18n/<lang>.json under projection.<id>.*;
 // `family` is a grouping identifier whose label is family.<lowercase family>.
 export const projectionName = (proj) => t(`projection.${proj.id}.name`);
+
+const PROJECTION_DEFAULTS = {
+  globe: false,
+  clipAngle: 179.9,
+  fit: "sphere",
+  polarRotation: null,
+  recenterable: true,
+  tilted: false,
+};
 
 export const PROJECTIONS = [
   {
@@ -23,6 +46,7 @@ export const PROJECTIONS = [
       "Preserves angles (conformal). Severely distorts area near the poles. " +
       "The standard for maritime navigation for centuries.",
     d3fn: () => d3.geoMercator(),
+    fit: "width",
   },
   {
     id: "equirectangular",
@@ -106,6 +130,9 @@ export const PROJECTIONS = [
       "Simulates viewing Earth from infinite distance — the 'space view'. " +
       "Only one hemisphere is visible at a time.",
     d3fn: () => d3.geoOrthographic(),
+    globe: true,
+    clipAngle: 90,
+    tilted: true,
   },
   {
     id: "azimuthalEqualArea",
@@ -115,6 +142,7 @@ export const PROJECTIONS = [
       "Preserves area accurately across the entire map from a central anchor point. " +
       "Unlike Mercator, Greenland and Africa appear at their true relative sizes.",
     d3fn: () => d3.geoAzimuthalEqualArea(),
+    tilted: true,
   },
   {
     id: "polarNorth",
@@ -126,6 +154,8 @@ export const PROJECTIONS = [
     // clipAngle(179) trims a 1° cap around the antipode (the South Pole),
     // where this projection is singular — Antarctica renders as the outer ring
     d3fn: () => d3.geoAzimuthalEquidistant().rotate([0, -90]).clipAngle(179),
+    polarRotation: [0, -90],
+    recenterable: false,
   },
   {
     id: "polarSouth",
@@ -135,6 +165,8 @@ export const PROJECTIONS = [
       "Azimuthal equidistant centred on the South Pole. Antarctica sits at the " +
       "centre, surrounded by the Southern Ocean and every other continent.",
     d3fn: () => d3.geoAzimuthalEquidistant().rotate([0, 90]).clipAngle(179),
+    polarRotation: [0, 90],
+    recenterable: false,
   },
   {
     id: "winkelTripel",
@@ -172,8 +204,12 @@ export const PROJECTIONS = [
       "mid-latitude regions. Official projection for US Census maps.",
     // Recentred for a world view — default is tuned for the USA
     d3fn: () => d3.geoAlbers().rotate([0, 0]).parallels([20, 50]).scale(153),
+    recenterable: false,
   },
-];
+].map((projDef) => ({ ...PROJECTION_DEFAULTS, ...projDef }));
+
+// The globe (exactly one, see tests/js/projections.test.mjs).
+export const GLOBE = PROJECTIONS.find((p) => p.globe);
 
 // Fails loudly on an unknown id instead of handing back undefined to be
 // dereferenced somewhere further down.

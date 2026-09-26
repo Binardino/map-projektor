@@ -1,6 +1,6 @@
-import { DEGREES, blendProjection, clipAngleOf, makeProjection } from "./projection.js";
+import { DEGREES, blendProjection, makeProjection } from "./projection.js";
 import { HEIGHT, WIDTH, globeSphere, globeSphereFade, mapGroup, referenceGroup, terrainGroup, tissotGroup } from "./scene.js";
-import { getProjection } from "../data/projections.js";
+import { GLOBE } from "../data/projections.js";
 import { lightOf } from "./geometry.js";
 import { referenceVisible, tissotVisible, updateReferencePaths, updateTissotPaths } from "../tools/index.js";
 import { renderGlobeSphere, updateTerrainPaths } from "./render.js";
@@ -10,7 +10,7 @@ import { t } from "../i18n.js";
 // Drives one blend from alpha 0 → 1, optionally morphing the clip circle.
 //
 // fromSphereProj/toSphereProj (only passed for clip-angle-animated blends,
-// which always pair orthographic with something else — see clipAngleOf)
+// which always pair orthographic with something else — see clipAngle in data/projections.js)
 // are each endpoint's own plain, unblended projection. They're there
 // because tracing the special {type: "Sphere"} whole-globe marker THROUGH
 // the live blended+clip-animating projection collapses to a degenerate
@@ -90,8 +90,12 @@ export function animateTransition(fromDef, toDef, duration) {
   // The crossfade outlines are static endpoint shapes, so they carry the rotation themselves
   const fromProjection = makeProjection(fromDef, rotFrom);
   const toProjection   = makeProjection(toDef, rotTo);
-  const clipFrom = clipAngleOf(fromDef);
-  const clipTo   = clipAngleOf(toDef);
+  // The globe clips to the visible hemisphere (90°); everything else clips
+  // at the antimeridian, which animateBlend adds on top of the circle.
+  // Animating between the two makes back-hemisphere countries shrink
+  // smoothly into the horizon instead of snapping in or out.
+  const clipFrom = fromDef.clipAngle;
+  const clipTo   = toDef.clipAngle;
   // Only azimuthal-hemisphere transitions need the circle clip; other
   // pairs keep D3's default antimeridian clipping untouched.
   if (clipFrom !== clipTo) return animateBlend(projection, duration, clipFrom, clipTo, fromProjection, toProjection, rotationAt);
@@ -109,8 +113,6 @@ export function animateTransition(fromDef, toDef, duration) {
 // (a true projection every frame — always clean), then unfold
 // into the polar azimuthal view.
 // ============================================================
-export const POLAR_ROTATION = { polarNorth: [0, -90], polarSouth: [0, 90] };
-
 // Spins a real orthographic globe between two orientations.
 function animateRotation(fromRot, toRot, duration) {
   const projection = d3.geoOrthographic().fitSize([WIDTH, HEIGHT], { type: "Sphere" });
@@ -164,14 +166,14 @@ function animatePolarUnfold(rotation, foldToGlobe, duration) {
 }
 
 export async function polarTransition(fromDef, toDef) {
-  const orthoDef = getProjection("orthographic");
-  const fromRot  = POLAR_ROTATION[fromDef.id];
-  const toRot    = POLAR_ROTATION[toDef.id];
+  const orthoDef = GLOBE;
+  const fromRot  = fromDef.polarRotation;
+  const toRot    = toDef.polarRotation;
 
   // Fold: reach an orthographic globe at the starting orientation
   if (fromRot) {
     await animatePolarUnfold(fromRot, true, 800);
-  } else if (fromDef.id !== "orthographic") {
+  } else if (!fromDef.globe) {
     await animateTransition(fromDef, orthoDef, 800);
   }
 
@@ -183,7 +185,7 @@ export async function polarTransition(fromDef, toDef) {
   // Unfold: from the globe to the target
   if (toRot) {
     await animatePolarUnfold(toRot, false, 800);
-  } else if (toDef.id !== "orthographic") {
+  } else if (!toDef.globe) {
     await animateTransition(orthoDef, toDef, 800);
   }
 }

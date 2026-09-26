@@ -8,6 +8,7 @@ import { infoVisible, setInfoVisible } from "../ui/info-card.js";
 import { refreshTissot } from "./tissot.js";
 import { renderGlobeSphere } from "../core/render.js";
 import { selectedCountryName } from "../core/selection.js";
+import { DEFAULT_COMPARISON_PROJECTION } from "../config.js";
 
 // ============================================================
 // SIDE-BY-SIDE COMPARISON MODE
@@ -88,7 +89,7 @@ function buildComparePanel(panelEl, initialProjId) {
       .data(state.worldData.features, (d) => d.properties.name);
     paths.enter().append("path").attr("class", "country").attr("d", pathFn);
     paths.attr("d", pathFn);
-    const isGlobe = panel.projId === "orthographic";
+    const isGlobe = getProjection(panel.projId).globe;
     renderGlobeSphere(panel.globeSphere, projection);
     panel.globeSphere.classed("active", isGlobe);
   };
@@ -154,7 +155,7 @@ if (compareToggleBtn) {
 
     if (!comparePanels) {
       const panelEls = document.querySelectorAll(".compare-panel");
-      const rightDefaultId = PROJECTIONS.some((p) => p.id === "gallPeters") ? "gallPeters" : PROJECTIONS[1].id;
+      const rightDefaultId = PROJECTIONS.some((p) => p.id === DEFAULT_COMPARISON_PROJECTION) ? DEFAULT_COMPARISON_PROJECTION : PROJECTIONS[1].id;
       comparePanels = [
         buildComparePanel(panelEls[0], state.currentProjectionId),
         buildComparePanel(panelEls[1], rightDefaultId),

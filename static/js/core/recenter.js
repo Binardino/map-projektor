@@ -1,6 +1,6 @@
 import { HEIGHT, WIDTH, globeSphere, mapGroup, referenceGroup, terrainGroup, tissotGroup, worldGroup } from "./scene.js";
 import { getProjection } from "../data/projections.js";
-import { RECENTER_INCOMPATIBLE, RECENTER_PRESETS, TILTED_PROJECTIONS } from "../data/views.js";
+import { RECENTER_PRESETS } from "../data/views.js";
 import { clearSelection } from "./selection.js";
 import { state } from "./state.js";
 import { fitProjection, makeProjection } from "./projection.js";
@@ -13,7 +13,7 @@ import { t } from "../i18n.js";
 // The rotation the active view gives projDef — every render of the main
 // map goes through this so the globe and the flat maps agree on the view.
 export function rotationFor(projDef) {
-  if (TILTED_PROJECTIONS.has(projDef.id)) return state.currentRecenterTilt || state.currentRecenterRotate;
+  if (projDef.tilted) return state.currentRecenterTilt || state.currentRecenterRotate;
   return state.currentRecenterRotate;
 }
 
@@ -108,7 +108,7 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
 }
 
 export async function applyRecenter(presetId) {
-  if (state.isAnimating || RECENTER_INCOMPATIBLE.has(state.currentProjectionId)) return;
+  if (state.isAnimating || !getProjection(state.currentProjectionId).recenterable) return;
 
   if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
 
@@ -140,7 +140,7 @@ export async function applyRecenter(presetId) {
       refreshReferenceLines();
     });
   } else {
-    const toRot = TILTED_PROJECTIONS.has(currentDef.id) ? preset.tilt || preset.rotate : preset.rotate;
+    const toRot = currentDef.tilted ? preset.tilt || preset.rotate : preset.rotate;
     await animateRecenterRotation(currentDef, fromRot, toRot, 900);
     state.currentRecenterRotate = preset.rotate;
     state.currentRecenterTilt = preset.tilt || null;
@@ -168,5 +168,5 @@ export function resetRecenter() {
 }
 
 export function refreshRecenterAvailability() {
-  document.getElementById("recenter-list").classList.toggle("disabled-list", RECENTER_INCOMPATIBLE.has(state.currentProjectionId));
+  document.getElementById("recenter-list").classList.toggle("disabled-list", !getProjection(state.currentProjectionId).recenterable);
 }

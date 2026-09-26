@@ -28,7 +28,7 @@ export const zoom = d3.zoom()
   // wheel zoom further down, not by d3.zoom.
   .filter((event) => {
     if (event.type === "wheel") return false;
-    if (state.currentProjectionId === "orthographic") return false;
+    if (getProjection(state.currentProjectionId).globe) return false;
     return !event.ctrlKey && !event.button;
   })
   .on("zoom", (event) => {
@@ -123,7 +123,7 @@ zoomOutBtn.addEventListener("click", () => {
 const GLOBE_DRAG_SENSITIVITY = 0.35; // degrees rotated per pixel dragged
 
 const globeDrag = d3.drag()
-  .filter((event) => state.currentProjectionId === "orthographic" && !state.isAnimating && !flightPathMode)
+  .filter((event) => getProjection(state.currentProjectionId).globe && !state.isAnimating && !flightPathMode)
   .on("start", () => {
     document.querySelectorAll(".recenter-btn").forEach((b) => b.classList.remove("active"));
   })
@@ -132,7 +132,7 @@ const globeDrag = d3.drag()
     const [lambda, phi] = rotationFor(projDef) || [0, 0, 0];
     const newLambda = lambda + event.dx * GLOBE_DRAG_SENSITIVITY;
     state.currentRecenterTilt = [newLambda, Math.max(-90, Math.min(90, phi - event.dy * GLOBE_DRAG_SENSITIVITY)), 0];
-    // Flat maps keep the dragged longitude but never the tilt (see TILTED_PROJECTIONS)
+    // Flat maps keep the dragged longitude but never the tilt (see tilted in data/projections.js)
     state.currentRecenterRotate = [newLambda, 0, 0];
     renderMap(makeProjection(projDef, rotationFor(projDef)));
     refreshTissot();
