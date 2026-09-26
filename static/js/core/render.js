@@ -3,6 +3,7 @@ import { globeSphere, globeSphereFade, mapGroup, terrainGroup } from "./scene.js
 import { lightOf } from "./geometry.js";
 import { updatePanExtent } from "./camera.js";
 import { getProjection } from "../data/projections.js";
+import { terrainData, worldData } from "../data/geodata.js";
 
 // The sphere-outline stroke only shows in orthographic — it's the only
 // projection where the disc needs a visible edge separating it from the
@@ -35,7 +36,7 @@ export function renderMap(projection) {
   // D3 data join keyed by country name — handles enter/update/exit
   const paths = mapGroup
     .selectAll("path.country")
-    .data(state.worldData.features, (d) => d.properties.name);
+    .data(worldData.features, (d) => d.properties.name);
 
   paths
     .enter()
@@ -58,7 +59,7 @@ export function renderMap(projection) {
 function renderTerrain(group, projection) {
   const path = d3.geoPath().projection(projection);
 
-  const patches = group.selectAll("path.terrain-patch").data(state.terrainData.features);
+  const patches = group.selectAll("path.terrain-patch").data(terrainData.features);
 
   patches
     .enter()

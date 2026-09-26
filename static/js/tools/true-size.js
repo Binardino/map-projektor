@@ -4,6 +4,7 @@ import { makeProjection } from "../core/projection.js";
 import { rotationFor } from "../core/recenter.js";
 import { truesizeGroup } from "../core/scene.js";
 import { readPalette } from "../core/palette.js";
+import { worldData } from "../data/geodata.js";
 
 // ============================================================
 // TRUE SIZE COMPARE
@@ -108,7 +109,7 @@ function renderTrueSizeShapes() {
   const pathFn     = d3.geoPath().projection(projection);
 
   const features = trueSizeOrder
-    .map((name) => state.worldData.features.find((f) => f.properties.name === name))
+    .map((name) => worldData.features.find((f) => f.properties.name === name))
     .filter(Boolean);
 
   const shapes = truesizeGroup
@@ -142,11 +143,11 @@ export function resetTrueSizeOnProjectionSwitch() {
 if (trueSizeInput) {
   trueSizeInput.addEventListener("input", () => {
     const query = trueSizeInput.value.trim().toLowerCase();
-    if (!query || !state.worldData) {
+    if (!query || !worldData) {
       hideTrueSizeResults();
       return;
     }
-    const matches = state.worldData.features
+    const matches = worldData.features
       .filter((f) => !trueSizeOrder.includes(f.properties.name))
       .filter((f) => f.properties.name.toLowerCase().includes(query))
       .sort((a, b) => {
