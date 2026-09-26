@@ -9,6 +9,7 @@ import "./core/geometry.js";
 import "./core/animation.js";
 import "./core/transition.js";
 import "./ui/info-card.js";
+import "./ui/compare-card.js";
 import "./map.js";
 import "./data/views.js";
 import "./core/recenter.js";

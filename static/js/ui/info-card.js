@@ -1,4 +1,4 @@
-import { closeCompareCard } from "../map.js";
+import { closeCompareCard } from "./compare-card.js";
 import { projectionName } from "../data/projections.js";
 import { t } from "../i18n.js";
 

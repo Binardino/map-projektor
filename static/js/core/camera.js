@@ -1,7 +1,8 @@
 import { PROJECTIONS } from "../data/projections.js";
 import { state } from "./state.js";
-import { flightPathMode, refreshCompareHighlight, refreshFlightPath, refreshReferenceLines, refreshTissot } from "../map.js";
+import { flightPathMode, refreshFlightPath, refreshReferenceLines, refreshTissot } from "../map.js";
 import { makeProjection } from "./projection.js";
+import { refreshCompareHighlight } from "../ui/compare-card.js";
 import { renderMap } from "./render.js";
 import { rotationFor } from "./recenter.js";
 import { svg, zoomLayer } from "./scene.js";
