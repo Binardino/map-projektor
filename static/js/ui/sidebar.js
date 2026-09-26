@@ -3,7 +3,7 @@ import { RECENTER_PRESETS } from "../data/views.js";
 import { applyRecenter } from "../core/recenter.js";
 import { switchProjection } from "../core/transition.js";
 import { t } from "../i18n.js";
-import { getState } from "../state.js";
+import { getState, on } from "../state.js";
 
 // ============================================================
 // SIDEBAR — built dynamically from PROJECTIONS
@@ -54,3 +54,5 @@ export function buildRecenterPanel() {
     nav.appendChild(btn);
   });
 }
+
+on("projection:requested", setActiveButton);

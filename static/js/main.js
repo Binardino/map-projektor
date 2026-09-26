@@ -15,8 +15,7 @@ import "./core/recenter.js";
 import "./core/camera.js";
 import "./core/selection.js";
 import "./ui/mobile-sidebar.js";
-import "./tools/tissot.js";
-import "./tools/reference-lines.js";
+import "./tools/index.js";
 import "./ui/welcome-modal.js";
 import "./ui/theme.js";
 import "./debug.js";
@@ -27,12 +26,11 @@ import { buildRecenterPanel, buildSidebar } from "./ui/sidebar.js";
 import { loadLanguage } from "./i18n.js";
 import { makeProjection } from "./core/projection.js";
 import { openHelpModal } from "./ui/welcome-modal.js";
-import { refreshFlightPath, refreshTissot } from "./tools/index.js";
 import { refreshRecenterAvailability, rotationFor } from "./core/recenter.js";
 import { renderMap, updateGlobeBackground } from "./core/render.js";
 import { updateInfo } from "./ui/info-card.js";
 import { loadGeodata, terrainData, worldData } from "./data/geodata.js";
-import { getState } from "./state.js";
+import { emit, getState } from "./state.js";
 
 // ============================================================
 // INIT — fetch GeoJSON then render
@@ -54,9 +52,8 @@ async function init() {
   renderMap(makeProjection(initialProj, rotationFor(initialProj)));
   updateInfo(initialProj);
   updateGlobeBackground();
-  refreshTissot();
   refreshRecenterAvailability();
-  refreshFlightPath();
+  emit("view:changed"); // first draw of the overlays that follow the view
 }
 
 init();

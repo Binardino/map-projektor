@@ -1,3 +1,5 @@
+import { on } from "../state.js";
+
 // ============================================================
 // MOBILE SIDEBAR TOGGLE
 // The sidebar becomes an off-canvas drawer under the mobile
@@ -21,3 +23,6 @@ sidebarToggleBtn.addEventListener("click", () => {
 });
 
 sidebarBackdrop.addEventListener("click", closeSidebar);
+
+// No-op on desktop; on mobile, picking a projection reveals the map.
+on("projection:requested", closeSidebar);

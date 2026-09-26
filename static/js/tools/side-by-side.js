@@ -8,7 +8,7 @@ import { renderGlobeSphere } from "../core/render.js";
 import { selectedCountryName } from "../core/selection.js";
 import { DEFAULT_COMPARISON_PROJECTION, LIGHT_ZOOM_MAX_SCALE, MAIN_ZOOM_SCALE_EXTENT, TIMING } from "../config.js";
 import { worldData } from "../data/geodata.js";
-import { getState } from "../state.js";
+import { getState, on } from "../state.js";
 
 // ============================================================
 // SIDE-BY-SIDE COMPARISON MODE
@@ -167,3 +167,7 @@ if (compareToggleBtn) {
     refreshTissot();
   });
 }
+
+on("selection:changed", () => {
+  if (compareMode) comparePanels.forEach(applySelectionToPanel);
+});

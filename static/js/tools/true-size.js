@@ -4,7 +4,7 @@ import { rotationFor } from "../core/recenter.js";
 import { truesizeGroup } from "../core/scene.js";
 import { readPalette } from "../core/palette.js";
 import { worldData } from "../data/geodata.js";
-import { getState } from "../state.js";
+import { getState, subscribe } from "../state.js";
 
 // ============================================================
 // TRUE SIZE COMPARE
@@ -175,3 +175,5 @@ if (trueSizeInput) {
     if (event.key === "Escape") hideTrueSizeResults();
   });
 }
+
+subscribe(["projectionId"], resetTrueSizeOnProjectionSwitch);

@@ -1,15 +1,13 @@
-import { HEIGHT, WIDTH, globeSphere, mapGroup, referenceGroup, terrainGroup, tissotGroup, worldGroup } from "./scene.js";
+import { HEIGHT, WIDTH, globeSphere, mapGroup, terrainGroup, worldGroup } from "./scene.js";
 import { getProjection } from "../data/projections.js";
 import { RECENTER_PRESETS } from "../data/views.js";
 import { clearSelection } from "./selection.js";
 import { fitProjection, makeProjection } from "./projection.js";
-import { flightPathMode, referenceVisible, refreshReferenceLines, refreshTissot, setFlightPathMode, tissotVisible, updateReferencePaths, updateTissotPaths } from "../tools/index.js";
-import { hideCompareHighlight, refreshCompareHighlight } from "../ui/compare-card.js";
 import { lightOf } from "./geometry.js";
 import { renderGlobeSphere, renderMap, updateTerrainPaths } from "./render.js";
 import { t } from "../i18n.js";
 import { TIMING } from "../config.js";
-import { getState, setState } from "../state.js";
+import { emit, getState, setState } from "../state.js";
 import { runExclusive } from "./busy.js";
 
 // The active view, `recenter: { rotate, tilt, flip }` in the store: rotate
@@ -115,8 +113,7 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
       // rotation while countries alone animated.
       renderGlobeSphere(globeSphere, projection);
       updateTerrainPaths(terrainGroup, projection);
-      if (tissotVisible) updateTissotPaths(tissotGroup, projection);
-      if (referenceVisible) updateReferencePaths(referenceGroup, projection);
+      emit("frame", projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -128,7 +125,7 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
 export async function applyRecenter(presetId) {
   if (getState().busy || !getProjection(getState().projectionId).recenterable) return;
 
-  if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
+  emit("pointer:reset"); // a view change ends any pointer mode (flight path)
 
   const preset = RECENTER_PRESETS.find((p) => p.id === presetId);
   const currentDefForRot = getProjection(getState().projectionId);
@@ -141,7 +138,7 @@ export async function applyRecenter(presetId) {
   clearSelection(); // mutually exclusive with the country-zoom selection, see note above
 
   const ran = await runExclusive(async () => {
-    hideCompareHighlight();
+    emit("view:changing");
     const currentDef = getProjection(getState().projectionId);
     const wantsFlip = !!preset.flipVertical;
 
@@ -153,8 +150,9 @@ export async function applyRecenter(presetId) {
       // rotation instantly at the edge-on midpoint, where it's invisible.
       await animateRecenterFlip(wantsFlip, () => {
         patchView({ rotate: preset.rotate, tilt: preset.tilt || null });
-        renderMap(makeProjection(currentDef, rotationFor(currentDef)));
-        refreshReferenceLines();
+        const projection = makeProjection(currentDef, rotationFor(currentDef));
+        renderMap(projection);
+        emit("frame", projection); // overlays follow the swapped rotation
       });
     } else {
       const toRot = currentDef.tilted ? preset.tilt || preset.rotate : preset.rotate;
@@ -166,9 +164,7 @@ export async function applyRecenter(presetId) {
 
   });
   if (!ran) return;
-  refreshTissot();
-  refreshReferenceLines();
-  refreshCompareHighlight();
+  emit("view:changed");
 }
 
 export function resetRecenter() {

@@ -4,7 +4,7 @@ import { fitProjection, makeProjection } from "../core/projection.js";
 import { rotationFor } from "../core/recenter.js";
 import { tissotGroup } from "../core/scene.js";
 import { TISSOT_RADIUS, TISSOT_STEP } from "../config.js";
-import { getState } from "../state.js";
+import { getState, on } from "../state.js";
 
 // ============================================================
 // TISSOT'S INDICATRIX OVERLAY
@@ -90,3 +90,9 @@ if (tissotToggleBtn) {
     refreshTissot();
   });
 }
+
+// Redrawn on every animation frame and whenever the view settles.
+on("frame", (projection) => {
+  if (tissotVisible) updateTissotPaths(tissotGroup, projection);
+});
+on("view:changed", refreshTissot);
