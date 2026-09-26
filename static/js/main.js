@@ -18,3 +18,4 @@ import "./core/selection.js";
 import "./map.js";
 import "./ui/mobile-sidebar.js";
 import "./ui/welcome-modal.js";
+import "./ui/theme.js";
