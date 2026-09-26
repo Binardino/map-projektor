@@ -2,5 +2,6 @@
 // code used to run in the single map.js, then map.js itself.
 import "./data/projections.js";
 import "./map.js";
+import "./core/state.js";
 import "./core/geometry.js";
 import "./data/views.js";

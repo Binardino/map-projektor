@@ -1,6 +1,7 @@
 import { PROJECTIONS, projectionName } from "./data/projections.js";
 import { RECENTER_INCOMPATIBLE, RECENTER_PRESETS, TILTED_PROJECTIONS } from "./data/views.js";
 import { buildLightGeometry, lightOf } from "./core/geometry.js";
+import { state } from "./core/state.js";
 import { loadLanguage, t } from "./i18n.js";
 
 // ============================================================
@@ -67,26 +68,15 @@ const truesizeGroup = worldGroup.append("g").attr("class", "truesize-layer");
 // paints on top. See COMPARE CARD below.
 const compareHighlightGroup = worldGroup.append("g").attr("class", "compare-highlight-layer");
 
-// ============================================================
-// APPLICATION STATE
-// ============================================================
-// Defaults to the orthographic globe — the "space view" reads better as a
-// first impression than a flat map, per UX feedback.
-let currentProjectionId = "orthographic";
-let isAnimating = false;
-
 // The sphere-outline stroke only shows in orthographic — it's the only
 // projection where the disc needs a visible edge separating it from the
 // void background (see .globe-sphere.active); every other projection's
 // {type: "Sphere"} outline already reaches the void's own dark color at
 // its non-rectangular corners, so no border is needed there.
 function updateGlobeBackground() {
-  const isGlobe = currentProjectionId === "orthographic";
+  const isGlobe = state.currentProjectionId === "orthographic";
   globeSphere.classed("active", isGlobe);
 }
-let worldData = null;
-let terrainData = null;
-
 // ============================================================
 // PROJECTION FACTORY
 // fitSize scales and centres the projection to fill the viewport.
@@ -150,7 +140,7 @@ function renderMap(projection) {
   // D3 data join keyed by country name — handles enter/update/exit
   const paths = mapGroup
     .selectAll("path.country")
-    .data(worldData.features, (d) => d.properties.name);
+    .data(state.worldData.features, (d) => d.properties.name);
 
   paths
     .enter()
@@ -173,7 +163,7 @@ function renderMap(projection) {
 function renderTerrain(group, projection) {
   const path = d3.geoPath().projection(projection);
 
-  const patches = group.selectAll("path.terrain-patch").data(terrainData.features);
+  const patches = group.selectAll("path.terrain-patch").data(state.terrainData.features);
 
   patches
     .enter()
@@ -446,7 +436,7 @@ async function polarTransition(fromDef, toDef) {
 // TRANSITION — morph source → target
 // ============================================================
 async function transitionTo(newProjId) {
-  isAnimating = true;
+  state.isAnimating = true;
   hideCompareHighlight();
 
   // Reset the free camera (pan/zoom on zoomLayer, see CAMERA PAN & ZOOM)
@@ -455,7 +445,7 @@ async function transitionTo(newProjId) {
   // instead of carrying over whatever pan/zoom the user left it at.
   await resetCamera();
 
-  const fromDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const fromDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
   const toDef   = PROJECTIONS.find((p) => p.id === newProjId);
 
   if (POLAR_ROTATION[fromDef.id] || POLAR_ROTATION[toDef.id]) {
@@ -467,7 +457,7 @@ async function transitionTo(newProjId) {
   // Final render with the true target projection (native clipping rules)
   renderMap(makeProjection(toDef, rotationFor(toDef)));
 
-  currentProjectionId = newProjId;
+  state.currentProjectionId = newProjId;
   updateInfo(toDef);
   updateGlobeBackground();
   refreshTissot();
@@ -477,7 +467,7 @@ async function transitionTo(newProjId) {
   resetTrueSizeOnProjectionSwitch();
   refreshCompareHighlight();
 
-  isAnimating = false;
+  state.isAnimating = false;
 }
 
 // ============================================================
@@ -584,7 +574,7 @@ const COMPARE_TERRITORIES = {
 // The shape drawn for a compared country: the feature plus its territories.
 function compareShape(feature) {
   const territories = (COMPARE_TERRITORIES[feature.properties.name] || [])
-    .map((name) => worldData.features.find((f) => f.properties.name === name))
+    .map((name) => state.worldData.features.find((f) => f.properties.name === name))
     .filter(Boolean);
   if (!territories.length) return feature;
   return { type: "FeatureCollection", features: [feature, ...territories] };
@@ -609,9 +599,9 @@ function compareAnchor(feature) {
 function refreshCompareHighlight() {
   compareHighlightGroup.selectAll("*").remove();
   compareHighlightGroup.style("display", null);
-  if (!worldData) return;
+  if (!state.worldData) return;
 
-  const mapDef      = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const mapDef      = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
   const compareDef  = PROJECTIONS.find((p) => p.id === compareProjectionId) || mapDef;
   const mapProj     = makeProjection(mapDef, rotationFor(mapDef));
   const compareProj = makeProjection(compareDef, rotationFor(compareDef));
@@ -619,12 +609,12 @@ function refreshCompareHighlight() {
   const [rl, rp]    = mapProj.rotate();
 
   compareCountries.filter((entry) => entry.visible).forEach((entry) => {
-    const feature = worldData.features.find((f) => f.properties.name === entry.name);
+    const feature = state.worldData.features.find((f) => f.properties.name === entry.name);
     if (!feature) return;
     const anchor = compareAnchor(feature);
     // A projection returns a point even for the globe's far side, which
     // would pin the overlay on a country the user can't see.
-    if (currentProjectionId === "orthographic" && d3.geoDistance(anchor, [-rl, -rp]) > Math.PI / 2) return;
+    if (state.currentProjectionId === "orthographic" && d3.geoDistance(anchor, [-rl, -rp]) > Math.PI / 2) return;
     const [mx, my] = mapProj(anchor);
     const [cx, cy] = compareProj(anchor);
     entry.shift = [mx - cx, my - cy];
@@ -748,8 +738,8 @@ function selectCompareCountry(name) {
   // First pick since the card opened (or since it was last cleared):
   // default the projection to whatever the main map is currently showing.
   if (compareProjectionId === null) {
-    compareProjectionId = currentProjectionId;
-    compareProjectionSelect.value = currentProjectionId;
+    compareProjectionId = state.currentProjectionId;
+    compareProjectionSelect.value = state.currentProjectionId;
   }
   refreshCompareHighlight();
 }
@@ -803,8 +793,8 @@ function openCompareCard() {
 
   // Country names depend on the geodata fetch in init() — populate the
   // alphabetical list once it's available instead of duplicating it here.
-  if (worldData && !compareCountryNames) {
-    compareCountryNames = [...new Set(worldData.features.map((f) => f.properties.name))].sort();
+  if (state.worldData && !compareCountryNames) {
+    compareCountryNames = [...new Set(state.worldData.features.map((f) => f.properties.name))].sort();
   }
 
   // Only one toolbar popover at a time — mirrors the info-card guard above.
@@ -846,7 +836,7 @@ function buildSidebar() {
     nav.appendChild(btn);
   });
 
-  setActiveButton(currentProjectionId);
+  setActiveButton(state.currentProjectionId);
 }
 
 function setActiveButton(projId) {
@@ -855,15 +845,11 @@ function setActiveButton(projId) {
   });
 }
 
-let currentRecenterRotate = null;
-let currentRecenterTilt = RECENTER_PRESETS[0].tilt;
-let currentRecenterFlip = false;
-
 // The rotation the active view gives projDef — every render of the main
 // map goes through this so the globe and the flat maps agree on the view.
 function rotationFor(projDef) {
-  if (TILTED_PROJECTIONS.has(projDef.id)) return currentRecenterTilt || currentRecenterRotate;
-  return currentRecenterRotate;
+  if (TILTED_PROJECTIONS.has(projDef.id)) return state.currentRecenterTilt || state.currentRecenterRotate;
+  return state.currentRecenterRotate;
 }
 
 function buildRecenterPanel() {
@@ -970,12 +956,12 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
 }
 
 async function applyRecenter(presetId) {
-  if (isAnimating || RECENTER_INCOMPATIBLE.has(currentProjectionId)) return;
+  if (state.isAnimating || RECENTER_INCOMPATIBLE.has(state.currentProjectionId)) return;
 
   if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
 
   const preset = RECENTER_PRESETS.find((p) => p.id === presetId);
-  const currentDefForRot = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const currentDefForRot = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
   const fromRot = rotationFor(currentDefForRot);
 
   document.querySelectorAll(".recenter-btn").forEach((b) => {
@@ -984,42 +970,42 @@ async function applyRecenter(presetId) {
 
   clearSelection(); // mutually exclusive with the country-zoom selection, see note above
 
-  isAnimating = true;
+  state.isAnimating = true;
   hideCompareHighlight();
-  const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const currentDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
   const wantsFlip = !!preset.flipVertical;
 
-  if (wantsFlip !== currentRecenterFlip) {
+  if (wantsFlip !== state.currentRecenterFlip) {
     // Entering or leaving the South America (upside-down) mirror: doing the
     // usual longitude rotation sweep here would spin the sphere WHILE also
     // flipping it, reading as a distorted diagonal spin rather than a clean
     // mirror. Instead turn the map over about the equator and swap the
     // rotation instantly at the edge-on midpoint, where it's invisible.
     await animateRecenterFlip(wantsFlip, () => {
-      currentRecenterRotate = preset.rotate;
-      currentRecenterTilt = preset.tilt || null;
+      state.currentRecenterRotate = preset.rotate;
+      state.currentRecenterTilt = preset.tilt || null;
       renderMap(makeProjection(currentDef, rotationFor(currentDef)));
       refreshReferenceLines();
     });
   } else {
     const toRot = TILTED_PROJECTIONS.has(currentDef.id) ? preset.tilt || preset.rotate : preset.rotate;
     await animateRecenterRotation(currentDef, fromRot, toRot, 900);
-    currentRecenterRotate = preset.rotate;
-    currentRecenterTilt = preset.tilt || null;
+    state.currentRecenterRotate = preset.rotate;
+    state.currentRecenterTilt = preset.tilt || null;
     renderMap(makeProjection(currentDef, rotationFor(currentDef))); // final render with native clipping
   }
-  currentRecenterFlip = wantsFlip;
+  state.currentRecenterFlip = wantsFlip;
 
-  isAnimating = false;
+  state.isAnimating = false;
   refreshTissot();
   refreshReferenceLines();
   refreshCompareHighlight();
 }
 
 function resetRecenter() {
-  currentRecenterRotate = null;
-  currentRecenterTilt = RECENTER_PRESETS[0].tilt;
-  currentRecenterFlip = false;
+  state.currentRecenterRotate = null;
+  state.currentRecenterTilt = RECENTER_PRESETS[0].tilt;
+  state.currentRecenterFlip = false;
   // Cleared synchronously (no transition): if a projection switch is about
   // to run, the morph must not inherit a leftover flip transform on the
   // group it repaints into.
@@ -1030,21 +1016,21 @@ function resetRecenter() {
 }
 
 function refreshRecenterAvailability() {
-  document.getElementById("recenter-list").classList.toggle("disabled-list", RECENTER_INCOMPATIBLE.has(currentProjectionId));
+  document.getElementById("recenter-list").classList.toggle("disabled-list", RECENTER_INCOMPATIBLE.has(state.currentProjectionId));
 }
 
 // ============================================================
 // SWITCH PROJECTION
 // ============================================================
 async function switchProjection(newProjId) {
-  if (isAnimating || newProjId === currentProjectionId) return;
+  if (state.isAnimating || newProjId === state.currentProjectionId) return;
   if (!PROJECTIONS.find((p) => p.id === newProjId)) return;
   closeSidebar(); // no-op on desktop; on mobile, reveals the map after picking
   setActiveButton(newProjId); // highlight immediately — don't wait for the ~1.4-2.3s morph to finish
   // The active view carries over to any compatible projection (transitionTo
   // morphs with its rotation). Albers/polar can't be recentred, so ease back
   // to Europe first — otherwise the morph would end on a snapped rotation.
-  if (RECENTER_INCOMPATIBLE.has(newProjId) && (currentRecenterRotate || currentRecenterFlip)) {
+  if (RECENTER_INCOMPATIBLE.has(newProjId) && (state.currentRecenterRotate || state.currentRecenterFlip)) {
     await applyRecenter("world");
   }
   transitionTo(newProjId);
@@ -1071,7 +1057,7 @@ const zoom = d3.zoom()
   // wheel zoom further down, not by d3.zoom.
   .filter((event) => {
     if (event.type === "wheel") return false;
-    if (currentProjectionId === "orthographic") return false;
+    if (state.currentProjectionId === "orthographic") return false;
     return !event.ctrlKey && !event.button;
   })
   .on("zoom", (event) => {
@@ -1125,7 +1111,7 @@ let wheelZoomId = 0;
 
 svg.on("wheel.smooth", (event) => {
   event.preventDefault();
-  if (isAnimating) return;
+  if (state.isAnimating) return;
   // Same notch-to-scale rate as d3.zoom's default wheelDelta.
   const delta = -event.deltaY * (event.deltaMode === 1 ? 0.05 : event.deltaMode ? 1 : 0.002) * (event.ctrlKey ? 10 : 1);
   const [kMin, kMax] = MAIN_ZOOM_SCALE_EXTENT;
@@ -1166,17 +1152,17 @@ zoomOutBtn.addEventListener("click", () => {
 const GLOBE_DRAG_SENSITIVITY = 0.35; // degrees rotated per pixel dragged
 
 const globeDrag = d3.drag()
-  .filter((event) => currentProjectionId === "orthographic" && !isAnimating && !flightPathMode)
+  .filter((event) => state.currentProjectionId === "orthographic" && !state.isAnimating && !flightPathMode)
   .on("start", () => {
     document.querySelectorAll(".recenter-btn").forEach((b) => b.classList.remove("active"));
   })
   .on("drag", (event) => {
-    const projDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+    const projDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
     const [lambda, phi] = rotationFor(projDef) || [0, 0, 0];
     const newLambda = lambda + event.dx * GLOBE_DRAG_SENSITIVITY;
-    currentRecenterTilt = [newLambda, Math.max(-90, Math.min(90, phi - event.dy * GLOBE_DRAG_SENSITIVITY)), 0];
+    state.currentRecenterTilt = [newLambda, Math.max(-90, Math.min(90, phi - event.dy * GLOBE_DRAG_SENSITIVITY)), 0];
     // Flat maps keep the dragged longitude but never the tilt (see TILTED_PROJECTIONS)
-    currentRecenterRotate = [newLambda, 0, 0];
+    state.currentRecenterRotate = [newLambda, 0, 0];
     renderMap(makeProjection(projDef, rotationFor(projDef)));
     refreshTissot();
     refreshReferenceLines();
@@ -1219,9 +1205,9 @@ function selectCountry(feature) {
   // the map must be re-rendered unrotated before we compute the bounds to
   // center on, since computeCountryFit's bbox math assumes the default
   // orientation.
-  if (currentRecenterRotate) {
+  if (state.currentRecenterRotate) {
     resetRecenter();
-    const projDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+    const projDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
     renderMap(makeProjection(projDef, rotationFor(projDef)));
     refreshTissot();
     refreshReferenceLines();
@@ -1233,7 +1219,7 @@ function selectCountry(feature) {
     .selectAll("path.country")
     .classed("selected", (d) => d.properties.name === selectedCountryName);
 
-  const projDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const projDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
   const fit     = computeCountryFit(feature, projDef);
   const transform = d3.zoomIdentity
     .translate(WIDTH / 2, HEIGHT / 2)
@@ -1331,7 +1317,7 @@ function buildComparePanel(panelEl, initialProjId) {
     const pathFn       = d3.geoPath().projection(projection);
     const paths = panel.mapGroup
       .selectAll("path.country")
-      .data(worldData.features, (d) => d.properties.name);
+      .data(state.worldData.features, (d) => d.properties.name);
     paths.enter().append("path").attr("class", "country").attr("d", pathFn);
     paths.attr("d", pathFn);
     const isGlobe = panel.projId === "orthographic";
@@ -1360,7 +1346,7 @@ function applySelectionToPanel(panel) {
 
   if (!selectedCountryName) return;
 
-  const feature = worldData.features.find((f) => f.properties.name === selectedCountryName);
+  const feature = state.worldData.features.find((f) => f.properties.name === selectedCountryName);
   const projDef = PROJECTIONS.find((p) => p.id === panel.projId);
   const pathFn  = d3.geoPath().projection(fitProjection(projDef, projDef.d3fn(), panel.width, panel.height));
   const [[x0, y0], [x1, y1]] = pathFn.bounds(feature);
@@ -1402,7 +1388,7 @@ if (compareToggleBtn) {
       const panelEls = document.querySelectorAll(".compare-panel");
       const rightDefaultId = PROJECTIONS.some((p) => p.id === "gallPeters") ? "gallPeters" : PROJECTIONS[1].id;
       comparePanels = [
-        buildComparePanel(panelEls[0], currentProjectionId),
+        buildComparePanel(panelEls[0], state.currentProjectionId),
         buildComparePanel(panelEls[1], rightDefaultId),
       ];
     } else {
@@ -1503,7 +1489,7 @@ function refreshTissot() {
     return;
   }
 
-  const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const currentDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
   renderTissot(tissotGroup, makeProjection(currentDef, rotationFor(currentDef)));
 
   if (compareMode && comparePanels) {
@@ -1587,7 +1573,7 @@ function refreshReferenceLines() {
     referenceGroup.selectAll("path.reference-line").remove();
     return;
   }
-  const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const currentDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
   renderReferenceLines(referenceGroup, makeProjection(currentDef, rotationFor(currentDef)));
 }
 
@@ -1670,7 +1656,7 @@ function updateFlightPathDistanceLabel() {
 // Re-renders the route on the single map and, if active, on both
 // comparison panels — called after any projection change.
 function refreshFlightPath() {
-  const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const currentDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
   renderFlightPath(flightPathGroup, makeProjection(currentDef, rotationFor(currentDef)));
 
   if (compareMode && comparePanels) {
@@ -1694,7 +1680,7 @@ function setFlightPathMode(active) {
 // See the compareToggleBtn note above — same guard, same reason.
 if (flightPathToggleBtn) {
   flightPathToggleBtn.addEventListener("click", () => {
-    if (isAnimating) return;
+    if (state.isAnimating) return;
     if (!flightPathMode) {
       clearSelection();
       resetRecenter();
@@ -1707,10 +1693,10 @@ if (flightPathToggleBtn) {
 // Shared by the main view and each compare-mode panel (see buildComparePanel),
 // each passing its own svg node / zoom transform / projection to invert the click.
 function handleFlightPathClick(event, svgNode = svg.node(), zoomTransform = currentZoomTransform, projection = makeProjection(
-  PROJECTIONS.find((p) => p.id === currentProjectionId),
-  rotationFor(PROJECTIONS.find((p) => p.id === currentProjectionId))
+  PROJECTIONS.find((p) => p.id === state.currentProjectionId),
+  rotationFor(PROJECTIONS.find((p) => p.id === state.currentProjectionId))
 )) {
-  if (!flightPathMode || isAnimating) return;
+  if (!flightPathMode || state.isAnimating) return;
 
   // Undo the free camera pan/zoom (see CAMERA PAN & ZOOM) to get back to the
   // coordinate space the projection itself draws in before inverting.
@@ -1829,12 +1815,12 @@ const trueSizeDrag = d3.drag().on("drag", function (event, feature) {
 // other refresh call sites use this — only a projection switch clears
 // offsets, see resetTrueSizeOnProjectionSwitch).
 function renderTrueSizeShapes() {
-  const projDef    = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const projDef    = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
   const projection = makeProjection(projDef, rotationFor(projDef));
   const pathFn     = d3.geoPath().projection(projection);
 
   const features = trueSizeOrder
-    .map((name) => worldData.features.find((f) => f.properties.name === name))
+    .map((name) => state.worldData.features.find((f) => f.properties.name === name))
     .filter(Boolean);
 
   const shapes = truesizeGroup
@@ -1868,11 +1854,11 @@ function resetTrueSizeOnProjectionSwitch() {
 if (trueSizeInput) {
   trueSizeInput.addEventListener("input", () => {
     const query = trueSizeInput.value.trim().toLowerCase();
-    if (!query || !worldData) {
+    if (!query || !state.worldData) {
       hideTrueSizeResults();
       return;
     }
-    const matches = worldData.features
+    const matches = state.worldData.features
       .filter((f) => !trueSizeOrder.includes(f.properties.name))
       .filter((f) => f.properties.name.toLowerCase().includes(query))
       .sort((a, b) => {
@@ -1944,12 +1930,12 @@ async function init() {
     fetch("/data/world.geojson"),
     fetch("/data/terrain.geojson"),
   ]);
-  worldData = await worldResponse.json();
-  terrainData = await terrainResponse.json();
-  buildLightGeometry(worldData.features);
-  buildLightGeometry(terrainData.features);
+  state.worldData = await worldResponse.json();
+  state.terrainData = await terrainResponse.json();
+  buildLightGeometry(state.worldData.features);
+  buildLightGeometry(state.terrainData.features);
 
-  const initialProj = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const initialProj = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
   buildSidebar();
   buildRecenterPanel();
   buildCompareProjectionOptions();
@@ -2009,9 +1995,9 @@ window.__app = {
   // Pure function of a projection definition, so exposing it lets the render
   // fingerprint pin fitProjection's numbers without steering the app.
   makeProjection,
-  get currentProjectionId() { return currentProjectionId; },
-  get currentRecenterRotate() { return currentRecenterRotate; },
-  get currentRecenterFlip() { return currentRecenterFlip; },
-  get isAnimating() { return isAnimating; },
+  get currentProjectionId() { return state.currentProjectionId; },
+  get currentRecenterRotate() { return state.currentRecenterRotate; },
+  get currentRecenterFlip() { return state.currentRecenterFlip; },
+  get isAnimating() { return state.isAnimating; },
   get currentZoomTransform() { return currentZoomTransform; },
 };
