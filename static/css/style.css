@@ -625,17 +625,22 @@ body {
   min-height: 0;
 }
 
-/* Shared shell for the map's floating popovers (info, compare) — bottom
-   right of the map, only one shown at a time. Figma hardcodes a dark
-   card regardless of the light/dark toggle (like the tool tooltips), so
-   this uses fixed colors instead of the --bg-sidebar/--text-* tokens. */
+/* Shared shell for the map's floating popovers (info, compare) — only one
+   shown at a time. Docked top-right, level with the zoom pill and just left
+   of the toolbar column (12px + 40px + 12px gap): anchored to the bottom,
+   they covered the toolbar and cut the compare card's country list off at
+   the bottom of the screen. z-index sits one below the toolbar's so its
+   hover tooltips, which pop out to the left, still paint over an open card.
+   Figma hardcodes a dark card regardless of the light/dark toggle (like the
+   tool tooltips), so this uses fixed colors instead of the
+   --bg-sidebar/--text-* tokens. */
 .floating-card {
   position: absolute;
-  bottom: 16px;
-  right: 16px;
-  z-index: 10;
+  top: 84px;
+  right: 64px;
+  z-index: 9;
   width: 339px;
-  max-width: calc(100% - 32px);
+  max-width: calc(100% - 80px);
   padding: 20px;
   border-radius: 12px;
   background: #292929;
@@ -679,6 +684,13 @@ body {
    #info-tradeoffs-content lays the three terms out inline (Figma flattens
    them into one running paragraph — this keeps them as distinguishable
    label/value pairs instead, at the same 16px size). */
+/* Only the info card scrolls: its text can outgrow a short window, while
+   the compare card must not clip its absolutely-positioned country list. */
+#projection-info {
+  max-height: calc(100% - 100px);
+  overflow-y: auto;
+}
+
 #info-tradeoffs-content {
   margin-top: 16px;
   font-size: 16px;
