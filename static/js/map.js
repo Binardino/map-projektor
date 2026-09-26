@@ -440,6 +440,7 @@ function renderMap(projection) {
   paths.attr("d", path);
 
   renderTerrain(terrainGroup, projection);
+  updatePanExtent(projection);
 }
 
 // Draws the terrain patches (mountains, deserts, forest-basin proxies —
@@ -1213,6 +1214,18 @@ const zoom = d3.zoom()
   });
 
 svg.call(zoom);
+
+// Panning stops once the map's edge reaches the window's edge, so the map
+// can never be dragged off-screen. The limit is the projected sphere itself:
+// on an axis where the zoomed map is smaller than the window, d3.zoom keeps
+// it centred instead, and on Mercator the poles (which overflow the initial
+// frame on purpose, see fitProjection) stay reachable. Set on every
+// renderMap since the outline depends on the projection; the recenter
+// rotation and the upside-down flip (a mirror about the viewport's centre)
+// don't change its bounding box.
+function updatePanExtent(projection) {
+  zoom.translateExtent(d3.geoPath().projection(projection).bounds({ type: "Sphere" }));
+}
 
 const CAMERA_IDENTITY_EPSILON = 0.001;
 
