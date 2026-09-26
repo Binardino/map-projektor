@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-26 — Colleague test feedback (on `feature/colleague-feedback`)
+
+### Fixed
+- The info and compare cards are docked top-right, beside the toolbar, instead of bottom-right over it. The compare card's country list no longer runs off the bottom of the screen
+- The map can no longer be dragged out of the window: panning stops when the map's edge reaches the window's edge (`zoom.translateExtent` on the projected sphere). Mercator's poles stay reachable
+- The compare overlay now sits on the same country in the map on screen. Each projection places a country at its own position, so France drawn under Equirectangular used to land on Chad in a Gall-Peters map. It is re-drawn after every projection or view change (it used to stay frozen), and hidden when the country is on the far side of the globe
+- Mouse-wheel zoom eases each notch over 150ms instead of jumping ~15% in one frame. The largest per-frame zoom step went from 14.9% to 4.4% (`scripts/perf_transitions.py`, new zoom scenarios)
+
+### Added
+- The compare overlay can be dragged across the map: grabbing it moves it, while dragging anywhere else still pans. A wide invisible grab area keeps tiny countries (Luxembourg) grabbable. A projection or view change puts it back on the country
+- Compare up to five countries at once under one shared compare projection, each in its own colour, listed with a show/hide checkbox and a remove button. The search field locks once five are picked
+- France's comparison includes its overseas collectivities and TAAF (French Polynesia, New Caledonia, Wallis and Futuna, St-Pierre-et-Miquelon, St-Martin, St-Barthélemy)
+- Oceania-centered view (150°E)
+
+### Changed
+- On the orthographic and azimuthal equal-area views, the recenter presets also tilt the globe so their region sits in the middle of the disc. Flat maps keep a longitude-only rotation (tilting them turns them oblique)
+- "USA / Pacific-centered" becomes "America-centered" (90°W), with the whole of the Americas facing the viewer on the globe
+
 ## 2026-09-25 — Comparison mode label typo (on `fix/comparison-mode-typo`)
 
 ### Fixed
