@@ -30,21 +30,26 @@ The golden files take `--write` after a deliberate change. **Before a PR:** `scr
 |---|---|
 | `app/main.py` | FastAPI: 3 routes (index, GeoJSON, static) |
 | `app/data/world.geojson` | Simplified Natural Earth data (gitignored, generated) |
-| `static/js/map.js` | PROJECTIONS registry + D3 rendering + animation |
+| `static/js/main.js` | ES module entry: imports every module, then `init()` |
+| `static/js/data/` | `projections.js` (PROJECTIONS registry), `views.js` (recenter presets) |
+| `static/js/core/` | Scene, state, projection factory, rendering, animation, recenter, camera, selection, transitions |
+| `static/js/ui/` | Info card, compare card, sidebar, mobile drawer, welcome modal, theme |
+| `static/js/tools/` | Distortion grid, reference lines; `index.js` is core's only way in (side-by-side, flight path, true size are kept but not loaded) |
+| `static/js/debug.js` | Read-only `window.__app` hook for the test scripts |
 | `static/css/style.css` | CSS variables (theme) + layout |
 | `templates/index.html` | HTML structure: sidebar + SVG |
 | `scripts/fetch_geodata.py` | One-shot data fetch + Douglas-Peucker simplification |
 | `scripts/check_all.sh` | Runs every check below in order, stops at the first failure |
-| `scripts/perf_transitions.py`, `ui_text_snapshot.py`, `render_fingerprint.py`, `e2e_smoke.py` | Playwright checks; read app state through the read-only `window.__app` hook in `map.js` |
+| `scripts/perf_transitions.py`, `ui_text_snapshot.py`, `render_fingerprint.py`, `e2e_smoke.py` | Playwright checks; read app state through the read-only `window.__app` hook (`debug.js`) |
 | `tests/*.py` | pytest: FastAPI routes, i18n key coverage |
 | `tests/*.json` | Golden files and perf baseline for the scripts above |
-| `tests/js/` | node:test unit tests; `harness.mjs` loads `map.js`/`i18n.js` functions in a `vm` context |
+| `tests/js/` | node:test unit tests importing the modules directly, plus the layering and modulepreload guards |
 
 ---
 
 ## Adding a Projection
 
-Add one object to the `PROJECTIONS` array in `static/js/map.js`, plus its texts in `static/i18n/en.json`. Nothing else changes.
+Add one object to the `PROJECTIONS` array in `static/js/data/projections.js`, plus its texts in `static/i18n/en.json`. Nothing else changes.
 
 ```js
 {
@@ -65,11 +70,13 @@ Add one object to the `PROJECTIONS` array in `static/js/map.js`, plus its texts 
 
 `tests/test_i18n.py` fails if a projection or view is missing any of its keys.
 
-**Texts:** no user-visible string is written in `map.js` or `index.html` — they live in `static/i18n/<lang>.json` (English is the source) and are read through `t("key")` in JS or `data-i18n` attributes in the markup (see `static/js/i18n.js`).
+**Texts:** no user-visible string is written in the JS modules or `index.html` — they live in `static/i18n/<lang>.json` (English is the source) and are read through `t("key")` in JS or `data-i18n` attributes in the markup (see `static/js/i18n.js`).
 
 Projections requiring `d3-geo-projection` (CDN loaded in index.html): Robinson, Mollweide, Sinusoidal, Winkel Tripel, Aitoff, Hammer, Gall-Peters, Eckert IV.
 
-Transitions morph a blended projection frame by frame, reprojecting a thinned copy of the geometry (`buildLightGeometry`) for speed; the active recenter view carries over between projections; pairs involving a polar view route through the orthographic globe (fold → spin → unfold) — see the POLAR ROUTE section in `static/js/map.js`.
+Transitions morph a blended projection frame by frame, reprojecting a thinned copy of the geometry (`buildLightGeometry`) for speed; the active recenter view carries over between projections; pairs involving a polar view route through the orthographic globe (fold → spin → unfold) — see the POLAR ROUTE section in `static/js/core/animation.js`.
+
+**Modules:** layers import downwards only — `data` < `core` < `ui`/`tools` < `main.js`/`debug.js` (enforced by `tests/js/layering.test.mjs`, which lists the temporary core → ui/tools calls). A `let` another module reassigns lives on the `state` object in `core/state.js`. A new module must also get a `<link rel="modulepreload">` in `index.html` (a test checks the list).
 
 ---
 
