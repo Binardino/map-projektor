@@ -2,7 +2,6 @@ import { animateTransition, polarTransition } from "./animation.js";
 import { GLOBE, PROJECTIONS, getProjection } from "../data/projections.js";
 import { applyRecenter, refreshRecenterAvailability, rotationFor } from "./recenter.js";
 import { closeSidebar } from "../ui/mobile-sidebar.js";
-import { state } from "./state.js";
 import { hideCompareHighlight, refreshCompareHighlight } from "../ui/compare-card.js";
 import { makeProjection } from "./projection.js";
 import { refreshFlightPath, refreshReferenceLines, refreshTissot, resetTrueSizeOnProjectionSwitch } from "../tools/index.js";
@@ -69,7 +68,7 @@ export async function switchProjection(newProjId) {
   // The active view carries over to any compatible projection (transitionTo
   // morphs with its rotation). Albers/polar can't be recentred, so ease back
   // to Europe first — otherwise the morph would end on a snapped rotation.
-  if (!getProjection(newProjId).recenterable && (state.currentRecenterRotate || state.currentRecenterFlip)) {
+  if (!getProjection(newProjId).recenterable && (getState().recenter.rotate || getState().recenter.flip)) {
     await applyRecenter("world");
   }
   transitionTo(newProjId);

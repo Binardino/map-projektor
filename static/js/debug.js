@@ -1,6 +1,5 @@
 import { PROJECTIONS } from "./data/projections.js";
 import { RECENTER_PRESETS } from "./data/views.js";
-import { state } from "./core/state.js";
 import { currentZoomTransform } from "./core/camera.js";
 import { makeProjection } from "./core/projection.js";
 import { mapGroup, terrainGroup } from "./core/scene.js";
@@ -22,8 +21,8 @@ window.__app = {
   // fingerprint pin fitProjection's numbers without steering the app.
   makeProjection,
   get currentProjectionId() { return getState().projectionId; },
-  get currentRecenterRotate() { return state.currentRecenterRotate; },
-  get currentRecenterFlip() { return state.currentRecenterFlip; },
+  get currentRecenterRotate() { return getState().recenter.rotate; },
+  get currentRecenterFlip() { return getState().recenter.flip; },
   get isAnimating() { return getState().busy; },
   get currentZoomTransform() { return currentZoomTransform; },
 };

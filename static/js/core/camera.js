@@ -1,10 +1,9 @@
 import { getProjection } from "../data/projections.js";
-import { state } from "./state.js";
 import { flightPathMode, refreshFlightPath, refreshReferenceLines, refreshTissot } from "../tools/index.js";
 import { makeProjection } from "./projection.js";
 import { refreshCompareHighlight } from "../ui/compare-card.js";
 import { renderMap } from "./render.js";
-import { rotationFor } from "./recenter.js";
+import { rotationFor, setViewRotation } from "./recenter.js";
 import { svg, zoomLayer } from "./scene.js";
 import { CAMERA_IDENTITY_EPSILON, GLOBE_DRAG_SENSITIVITY, MAIN_ZOOM_SCALE_EXTENT, TIMING, ZOOM_STEP } from "../config.js";
 import { getState } from "../state.js";
@@ -126,9 +125,9 @@ const globeDrag = d3.drag()
     const projDef = getProjection(getState().projectionId);
     const [lambda, phi] = rotationFor(projDef) || [0, 0, 0];
     const newLambda = lambda + event.dx * GLOBE_DRAG_SENSITIVITY;
-    state.currentRecenterTilt = [newLambda, Math.max(-90, Math.min(90, phi - event.dy * GLOBE_DRAG_SENSITIVITY)), 0];
+    const tilt = [newLambda, Math.max(-90, Math.min(90, phi - event.dy * GLOBE_DRAG_SENSITIVITY)), 0];
     // Flat maps keep the dragged longitude but never the tilt (see tilted in data/projections.js)
-    state.currentRecenterRotate = [newLambda, 0, 0];
+    setViewRotation([newLambda, 0, 0], tilt);
     renderMap(makeProjection(projDef, rotationFor(projDef)));
     refreshTissot();
     refreshReferenceLines();
