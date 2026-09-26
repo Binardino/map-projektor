@@ -78,7 +78,7 @@ def measure_transition(page, action_fn, wait_ms=WAIT_AFTER_CLICK_MS):
             const loop = (ts) => {
                 if (!window.__recording) return;
                 window.__frames.push(ts);
-                window.__zoomScales.push(currentZoomTransform.k);
+                window.__zoomScales.push(window.__app.currentZoomTransform.k);
                 requestAnimationFrame(loop);
             };
             requestAnimationFrame(loop);

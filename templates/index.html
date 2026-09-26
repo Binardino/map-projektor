@@ -10,6 +10,33 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/css/style.css" />
+  <!-- Every module main.js imports, fetched in parallel instead of level by
+       level as imports are discovered (tests/js/modulepreload.test.mjs keeps
+       this list in step with the code) -->
+  <link rel="modulepreload" href="/static/js/core/animation.js" />
+  <link rel="modulepreload" href="/static/js/core/camera.js" />
+  <link rel="modulepreload" href="/static/js/core/geometry.js" />
+  <link rel="modulepreload" href="/static/js/core/projection.js" />
+  <link rel="modulepreload" href="/static/js/core/recenter.js" />
+  <link rel="modulepreload" href="/static/js/core/render.js" />
+  <link rel="modulepreload" href="/static/js/core/scene.js" />
+  <link rel="modulepreload" href="/static/js/core/selection.js" />
+  <link rel="modulepreload" href="/static/js/core/state.js" />
+  <link rel="modulepreload" href="/static/js/core/transition.js" />
+  <link rel="modulepreload" href="/static/js/data/projections.js" />
+  <link rel="modulepreload" href="/static/js/data/views.js" />
+  <link rel="modulepreload" href="/static/js/debug.js" />
+  <link rel="modulepreload" href="/static/js/i18n.js" />
+  <link rel="modulepreload" href="/static/js/main.js" />
+  <link rel="modulepreload" href="/static/js/tools/index.js" />
+  <link rel="modulepreload" href="/static/js/tools/reference-lines.js" />
+  <link rel="modulepreload" href="/static/js/tools/tissot.js" />
+  <link rel="modulepreload" href="/static/js/ui/compare-card.js" />
+  <link rel="modulepreload" href="/static/js/ui/info-card.js" />
+  <link rel="modulepreload" href="/static/js/ui/mobile-sidebar.js" />
+  <link rel="modulepreload" href="/static/js/ui/sidebar.js" />
+  <link rel="modulepreload" href="/static/js/ui/theme.js" />
+  <link rel="modulepreload" href="/static/js/ui/welcome-modal.js" />
 </head>
 <body>
   <div id="app">
@@ -119,7 +146,6 @@
   <!-- CDN libraries — order matters: d3-geo-projection extends d3, map.js uses both -->
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4/dist/d3-geo-projection.min.js"></script>
-  <script src="/static/js/i18n.js"></script>
-  <script src="/static/js/map.js"></script>
+  <script type="module" src="/static/js/main.js"></script>
 </body>
 </html>
