@@ -1018,7 +1018,8 @@ const RECENTER_PRESETS = [
   { id: "world", rotate: null, tilt: [-15, -50, 0] },
   { id: "africa", rotate: [-20, 0, 0] },
   { id: "china", rotate: [-105, 0, 0], tilt: [-100, -35, 0] },
-  { id: "usaPacific", rotate: [98, 0, 0] },
+  { id: "america", rotate: [90, 0, 0], tilt: [90, -20, 0] },
+  { id: "oceania", rotate: [-150, 0, 0], tilt: [-150, -10, 0] },
   { id: "southAmericaFlipped", rotate: [60, 0, 0], flipVertical: true },
 ];
 
