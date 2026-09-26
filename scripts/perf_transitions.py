@@ -74,9 +74,11 @@ def measure_transition(page, action_fn, wait_ms=WAIT_AFTER_CLICK_MS):
         """() => {
             window.__frames = [];
             window.__recording = true;
+            window.__zoomScales = [];
             const loop = (ts) => {
                 if (!window.__recording) return;
                 window.__frames.push(ts);
+                window.__zoomScales.push(currentZoomTransform.k);
                 requestAnimationFrame(loop);
             };
             requestAnimationFrame(loop);
@@ -86,17 +88,36 @@ def measure_transition(page, action_fn, wait_ms=WAIT_AFTER_CLICK_MS):
     page.wait_for_timeout(wait_ms)
     page.evaluate("() => { window.__recording = false; }")
     frames = page.evaluate("() => window.__frames")
+    scales = page.evaluate("() => window.__zoomScales")
 
     deltas = [b - a for a, b in zip(frames, frames[1:])]
     if not deltas:
         return {"frame_count": len(frames), "avg_frame_ms": 0, "max_frame_ms": 0, "dropped_frames": 0}
 
-    return {
+    result = {
         "frame_count": len(frames),
         "avg_frame_ms": round(sum(deltas) / len(deltas), 2),
         "max_frame_ms": round(max(deltas), 2),
         "dropped_frames": sum(1 for d in deltas if d > DROPPED_FRAME_THRESHOLD_MS),
     }
+    # Smooth frames aren't enough for a zoom to look smooth: if the scale
+    # jumps by a big step in one frame, it reads as choppy at any frame rate.
+    zoom_steps = [abs(b / a - 1) for a, b in zip(scales, scales[1:]) if a and b != a]
+    if zoom_steps:
+        result["max_zoom_step_pct"] = round(max(zoom_steps) * 100, 1)
+    return result
+
+
+# One mouse-wheel notch as Chrome reports it on Windows/Linux (deltaMode 0,
+# 100px); a trackpad sends many small deltas instead, which already look smooth.
+WHEEL_NOTCH_PX = 100
+
+
+def wheel_notches(page, count, direction, interval_ms=80):
+    page.mouse.move(640, 450)
+    for _ in range(count):
+        page.mouse.wheel(0, direction * WHEEL_NOTCH_PX)
+        page.wait_for_timeout(interval_ms)
 
 
 def run_suite(page):
@@ -140,6 +161,21 @@ def run_suite(page):
         current = next_id
         page.wait_for_timeout(100)
 
+    # Camera zoom (the colleague's "zoom is a bit choppy" report): a burst of
+    # wheel notches in then out, and the +/- buttons, on a flat projection.
+    page.click('.recenter-btn[data-preset-id="world"]')
+    page.click('.proj-btn[data-proj-id="robinson"]')
+    page.wait_for_timeout(WAIT_AFTER_CLICK_MS)
+    # The 100ms pauses let the previous recording's rAF loop see
+    # __recording = false and stop, or two loops would double-count frames.
+    results["zoom: wheel in"] = measure_transition(page, lambda: wheel_notches(page, 8, -1), wait_ms=600)
+    page.wait_for_timeout(100)
+    results["zoom: wheel out"] = measure_transition(page, lambda: wheel_notches(page, 8, 1), wait_ms=600)
+    page.wait_for_timeout(100)
+    results["zoom: buttons in"] = measure_transition(
+        page, lambda: [page.click("#zoom-in-btn") or page.wait_for_timeout(250) for _ in range(4)], wait_ms=400
+    )
+
     return results
 
 
@@ -168,7 +204,8 @@ def compare_to_baseline(results, baseline):
 def print_report(results):
     for label, m in results.items():
         print(f"  {label:55s} avg={m['avg_frame_ms']:>6.2f}ms  max={m['max_frame_ms']:>7.2f}ms  "
-              f"dropped={m['dropped_frames']:>2d}  frames={m['frame_count']:>3d}")
+              f"dropped={m['dropped_frames']:>2d}  frames={m['frame_count']:>3d}"
+              + (f"  max zoom step={m['max_zoom_step_pct']}%" if "max_zoom_step_pct" in m else ""))
 
 
 def main():
