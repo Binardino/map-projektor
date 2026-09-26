@@ -126,8 +126,8 @@ def run_suite(page):
     projection, is recenter-compatible — see RECENTER_INCOMPATIBLE)."""
     results = {}
 
-    proj_ids = page.evaluate("() => PROJECTIONS.map((p) => p.id)")
-    current = page.evaluate("() => currentProjectionId")
+    proj_ids = page.evaluate("() => __app.PROJECTIONS.map((p) => p.id)")
+    current = page.evaluate("() => __app.currentProjectionId")
     chain = [pid for pid in proj_ids if pid != current] + [proj_ids[0]]
     for next_id in chain:
         label = f"projection: {current} -> {next_id}"
@@ -137,7 +137,7 @@ def run_suite(page):
         current = next_id
         page.wait_for_timeout(100)  # settle before the next recording starts
 
-    preset_ids = page.evaluate("() => RECENTER_PRESETS.map((p) => p.id)")
+    preset_ids = page.evaluate("() => __app.RECENTER_PRESETS.map((p) => p.id)")
     for preset_id in [p for p in preset_ids if p != "world"]:
         results[f"recenter: world -> {preset_id}"] = measure_transition(
             page, lambda pid=preset_id: page.click(f'.recenter-btn[data-preset-id="{pid}"]')
@@ -153,7 +153,7 @@ def run_suite(page):
     # projection pair, unlike every transition above.
     page.click('.recenter-btn[data-preset-id="china"]')
     page.wait_for_timeout(1200)
-    current = page.evaluate("() => currentProjectionId")
+    current = page.evaluate("() => __app.currentProjectionId")
     for next_id in ["robinson", "orthographic", "mercator"]:
         results[f"view china: {current} -> {next_id}"] = measure_transition(
             page, lambda nid=next_id: page.click(f'.proj-btn[data-proj-id="{nid}"]')

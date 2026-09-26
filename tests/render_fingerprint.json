@@ -1,0 +1,516 @@
+{
+  "paths": {
+    "world / mercator": {
+      "view shown": "world",
+      "paths": "04873703c0f31e80af8af6fda3f01223090d77613ae1d93fa0aff9c277375e74"
+    },
+    "world / equirectangular": {
+      "view shown": "world",
+      "paths": "575724fa59ddc8d2d194af777e98e6ca138470ec99b253980e499df91e9aa90d"
+    },
+    "world / gallPeters": {
+      "view shown": "world",
+      "paths": "be5825b9ecbf9ec5b739e14d52e558fc1bc6003044e3b911b4dcea39323b110d"
+    },
+    "world / robinson": {
+      "view shown": "world",
+      "paths": "ef61cde75225d4a41f439dced5108351d132ea61694d0c9600ef0fcc91e99a6d"
+    },
+    "world / mollweide": {
+      "view shown": "world",
+      "paths": "3b886f77d19c9b10becbac7da62a02f93889bd5795b14e936db83727b4c1efc3"
+    },
+    "world / naturalEarth": {
+      "view shown": "world",
+      "paths": "399df55dbbe25d4a2f223d16c8944ca6838b0b050a7b473e216797fe3a717baf"
+    },
+    "world / equalEarth": {
+      "view shown": "world",
+      "paths": "96905ac01a0e3a323edb394f0194e002648b49db46f60e8c2ed785a23884bf5f"
+    },
+    "world / eckert4": {
+      "view shown": "world",
+      "paths": "b6d92eb6ca0c962cca4eeb4e1b71592b31218682f25d205e51d49c1f62440ca0"
+    },
+    "world / sinusoidal": {
+      "view shown": "world",
+      "paths": "c64062a24f3700204183f67ead94d63c2d1921d68b38ede0c977b2587ab73503"
+    },
+    "world / orthographic": {
+      "view shown": "world",
+      "paths": "7b03b90a8fffc308a3f30320fd0edffb90a951499f6a7102203a3b6fbadc7a27"
+    },
+    "world / azimuthalEqualArea": {
+      "view shown": "world",
+      "paths": "cda26456f9f71cc212143846176f5c72bc10f9365307969554d48d9fcdfc4714"
+    },
+    "world / polarNorth": {
+      "view shown": "world",
+      "paths": "e2079bd6fd2bfb6cf5f32abef6f1156d85f229bf9347989bc8e8c779a325f5d5"
+    },
+    "world / polarSouth": {
+      "view shown": "world",
+      "paths": "902f5afe09adbb58a264adb0912bcc1bc563f757c05c30b80e5dbac4470b6429"
+    },
+    "world / winkelTripel": {
+      "view shown": "world",
+      "paths": "138213dd9a297fe775d1e9ed4b3cbb1280e140b26d120623de8765b23a5e08e9"
+    },
+    "world / aitoff": {
+      "view shown": "world",
+      "paths": "2bdf03b04d7f558d998f0c2ceef98f8fc1564902f26f780fb74a9db2b668bef5"
+    },
+    "world / hammer": {
+      "view shown": "world",
+      "paths": "2fbce80d984277c8918608f9f391ce3ac131e1f8f3261e91d8dc2afc78ca90ea"
+    },
+    "world / albers": {
+      "view shown": "world",
+      "paths": "754cac028157e189e2628eb1c599624c762913a7b2a627b0ee904c1d16d3ba65"
+    },
+    "china / mercator": {
+      "view shown": "china",
+      "paths": "afc6b5c825f11eeb7401591d9ee2d2b6aaa9c8a7c91f564bbf6219b9960b94fc"
+    },
+    "china / equirectangular": {
+      "view shown": "china",
+      "paths": "76ef61b565ef8c89f2395eadba5c6e117e51d7c3d3f443820a5de0d64e6c2d30"
+    },
+    "china / gallPeters": {
+      "view shown": "china",
+      "paths": "50fb9252c4cf0cef522d24533aba9c3c1b3cbadc83051ed0a204b8d50ad295d5"
+    },
+    "china / robinson": {
+      "view shown": "china",
+      "paths": "a4495018e5271ede4ae8924e28f6a8904c095031af2f70b054ccf21c514bb8a3"
+    },
+    "china / mollweide": {
+      "view shown": "china",
+      "paths": "6c52dd64838e91da5ac79767661c6622c23eec21b7dd8171191704d583f268d3"
+    },
+    "china / naturalEarth": {
+      "view shown": "china",
+      "paths": "8431f0e464e7e4d4aa5fb493c51b47e8caaa20116940bbf45d2ea98fe64ceeb9"
+    },
+    "china / equalEarth": {
+      "view shown": "china",
+      "paths": "403f8c5d970d37e6413e4b65cbc4105426dcffde5f799864ea73802cb7e41a15"
+    },
+    "china / eckert4": {
+      "view shown": "china",
+      "paths": "3e7883412a7489399e666afc470086023c282f6e32e383b508f2b1611e68be68"
+    },
+    "china / sinusoidal": {
+      "view shown": "china",
+      "paths": "7f08d2b9ad11151868ba724039b4b40521175347d180a74561ff383e1bbe88cb"
+    },
+    "china / orthographic": {
+      "view shown": "china",
+      "paths": "856d6b9baf8320d123a62dba0d8b606626a73a773b196b2f1c31be5e9689f730"
+    },
+    "china / azimuthalEqualArea": {
+      "view shown": "china",
+      "paths": "dbd408b415db5632dd31c612ad92fd73d3bbe0224a559079379a1e0e81a96a48"
+    },
+    "china / polarNorth": {
+      "view shown": "world",
+      "paths": "e2079bd6fd2bfb6cf5f32abef6f1156d85f229bf9347989bc8e8c779a325f5d5"
+    },
+    "china / polarSouth": {
+      "view shown": "world",
+      "paths": "902f5afe09adbb58a264adb0912bcc1bc563f757c05c30b80e5dbac4470b6429"
+    },
+    "china / winkelTripel": {
+      "view shown": "china",
+      "paths": "cd6508f0266c2721130163e38d862f8a3aeb81a000b19c4c4b30f75682ea92b0"
+    },
+    "china / aitoff": {
+      "view shown": "china",
+      "paths": "c4b59f8c722b22e38c7bfffe878eae2377ea3f5052b4952041cd3f928745be1d"
+    },
+    "china / hammer": {
+      "view shown": "china",
+      "paths": "13016ba455eae09e343bc8dd898ba195c9e4326083f75a23eb6dbbf91e891095"
+    },
+    "china / albers": {
+      "view shown": "world",
+      "paths": "754cac028157e189e2628eb1c599624c762913a7b2a627b0ee904c1d16d3ba65"
+    }
+  },
+  "control points": {
+    "mercator": [
+      [
+        520,
+        450
+      ],
+      [
+        526.788889,
+        287.818516
+      ],
+      [
+        317.777778,
+        551.08832
+      ],
+      [
+        923.577778,
+        339.462385
+      ],
+      [
+        2.888889,
+        46.749774
+      ]
+    ],
+    "equirectangular": [
+      [
+        520,
+        450
+      ],
+      [
+        526.788889,
+        308.877778
+      ],
+      [
+        317.777778,
+        545.333333
+      ],
+      [
+        923.577778,
+        346.866667
+      ],
+      [
+        2.888889,
+        218.888889
+      ]
+    ],
+    "gallPeters": [
+      [
+        520,
+        450
+      ],
+      [
+        526.788889,
+        200.728659
+      ],
+      [
+        317.777778,
+        630.298549
+      ],
+      [
+        923.577778,
+        256.823186
+      ],
+      [
+        2.888889,
+        123.986994
+      ]
+    ],
+    "robinson": [
+      [
+        520,
+        450
+      ],
+      [
+        525.938009,
+        290.76302
+      ],
+      [
+        327.861387,
+        557.924045
+      ],
+      [
+        899.352925,
+        333.250015
+      ],
+      [
+        198.718867,
+        202.238886
+      ]
+    ],
+    "mollweide": [
+      [
+        520,
+        450
+      ],
+      [
+        525.229109,
+        284.185552
+      ],
+      [
+        338.670865,
+        565.095287
+      ],
+      [
+        874.687229,
+        325.957912
+      ],
+      [
+        351.455944,
+        204.197937
+      ]
+    ],
+    "naturalEarth": [
+      [
+        520,
+        450
+      ],
+      [
+        525.988565,
+        286.629246
+      ],
+      [
+        328.295302,
+        560.687449
+      ],
+      [
+        898.878605,
+        330.238385
+      ],
+      [
+        170.269188,
+        195.827932
+      ]
+    ],
+    "equalEarth": [
+      [
+        520,
+        450
+      ],
+      [
+        525.651874,
+        272.623411
+      ],
+      [
+        333.547287,
+        574.632392
+      ],
+      [
+        886.848214,
+        315.892983
+      ],
+      [
+        200.887711,
+        202.507795
+      ]
+    ],
+    "eckert4": [
+      [
+        520,
+        450
+      ],
+      [
+        525.805398,
+        266.976949
+      ],
+      [
+        331.140134,
+        579.17719
+      ],
+      [
+        892.367397,
+        311.097054
+      ],
+      [
+        205.490734,
+        196.161265
+      ]
+    ],
+    "sinusoidal": [
+      [
+        520,
+        450
+      ],
+      [
+        524.46731,
+        308.877778
+      ],
+      [
+        350.402174,
+        545.333333
+      ],
+      [
+        847.738865,
+        346.866667
+      ],
+      [
+        430.204598,
+        218.888889
+      ]
+    ],
+    "orthographic": [
+      [
+        520,
+        450
+      ],
+      [
+        532.141809,
+        111.154753
+      ],
+      [
+        165.358355,
+        695.087566
+      ],
+      [
+        756.361296,
+        187.406455
+      ],
+      [
+        518.63624,
+        6.836511
+      ]
+    ],
+    "azimuthalEqualArea": [
+      [
+        520,
+        450
+      ],
+      [
+        526.668749,
+        263.893144
+      ],
+      [
+        298.939016,
+        602.771958
+      ],
+      [
+        790.893563,
+        149.04167
+      ],
+      [
+        518.9392,
+        105.285504
+      ]
+    ],
+    "polarNorth": [
+      [
+        520,
+        676.291449
+      ],
+      [
+        524.242471,
+        553.378464
+      ],
+      [
+        229.385981,
+        555.774853
+      ],
+      [
+        608.305674,
+        345.873523
+      ],
+      [
+        519.561186,
+        424.860335
+      ]
+    ],
+    "polarSouth": [
+      [
+        520,
+        223.708551
+      ],
+      [
+        534.315119,
+        101.176192
+      ],
+      [
+        385.325211,
+        400.982385
+      ],
+      [
+        724.420318,
+        691.044165
+      ],
+      [
+        512.540154,
+        877.374302
+      ]
+    ],
+    "winkelTripel": [
+      [
+        520,
+        450
+      ],
+      [
+        525.731387,
+        277.53954
+      ],
+      [
+        332.416466,
+        569.911422
+      ],
+      [
+        883.747434,
+        307.853951
+      ],
+      [
+        263.734143,
+        152.487763
+      ]
+    ],
+    "aitoff": [
+      [
+        520,
+        450
+      ],
+      [
+        525.05816,
+        308.870024
+      ],
+      [
+        341.735745,
+        550.916071
+      ],
+      [
+        858.390649,
+        320.494299
+      ],
+      [
+        429.793389,
+        194.196702
+      ]
+    ],
+    "hammer": [
+      [
+        520,
+        450
+      ],
+      [
+        525.449506,
+        297.950911
+      ],
+      [
+        327.412244,
+        559.024659
+      ],
+      [
+        870.439049,
+        315.883248
+      ],
+      [
+        429.774721,
+        194.143766
+      ]
+    ],
+    "albers": [
+      [
+        520,
+        613.558435
+      ],
+      [
+        525.024614,
+        454.754482
+      ],
+      [
+        230.703691,
+        593.715651
+      ],
+      [
+        778.886192,
+        291.551327
+      ],
+      [
+        382.044237,
+        211.401161
+      ]
+    ]
+  }
+}

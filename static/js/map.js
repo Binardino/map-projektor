@@ -2321,3 +2321,24 @@ themeToggleBtn.addEventListener("click", () => {
   applyTheme(theme);
   localStorage.setItem(THEME_STORAGE_KEY, theme);
 });
+
+// ============================================================
+// DEBUG HOOK
+// Test scripts (perf harness, e2e smoke, render fingerprint) read app
+// state through this single object instead of bare globals, so the
+// upcoming ES-module split — which removes those globals — only has to
+// keep this hook alive. Getters only: tests observe, they never steer.
+// ============================================================
+window.__app = {
+  PROJECTIONS,
+  RECENTER_PRESETS,
+  mapGroup,
+  terrainGroup,
+  // Pure function of a projection definition, so exposing it lets the render
+  // fingerprint pin fitProjection's numbers without steering the app.
+  makeProjection,
+  get currentProjectionId() { return currentProjectionId; },
+  get currentRecenterRotate() { return currentRecenterRotate; },
+  get currentRecenterFlip() { return currentRecenterFlip; },
+  get isAnimating() { return isAnimating; },
+};

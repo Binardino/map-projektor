@@ -14,6 +14,14 @@ Interactive world map web app displaying 17 cartographic projections with animat
 
 **Perf regression check (transitions):** `poetry run python scripts/perf_transitions.py` — drives every projection switch and recenter preset in headless Chromium and compares frame-drop/avg-frame-time against `tests/perf_baseline.json`. Re-run with `--write-baseline` after a deliberate, verified perf improvement to update the reference numbers. Requires `poetry run playwright install chromium` once (not run automatically, not part of `pytest`).
 
+**Refactor safety net** (Playwright scripts, same Chromium requirement, not part of `pytest`):
+- `poetry run python scripts/ui_text_snapshot.py --check` — every user-visible string in 9 UI states vs `tests/ui_text_snapshot.json`
+- `poetry run python scripts/render_fingerprint.py --check` — hashes of the drawn paths for 17 projections × 2 views, plus 5 projected control points, vs `tests/render_fingerprint.json`
+- `poetry run python scripts/e2e_smoke.py` — walks the main user paths, fails on any page error or missing i18n key (~30 s)
+- `node --test 'tests/js/*.test.mjs'` — JS unit tests (Node's built-in runner, no npm). Keep the quoted glob: Node 24 does not accept `node --test tests/js/`
+
+The golden files take `--write` after a deliberate change. **Before a PR:** `scripts/check_all.sh` runs pytest, the JS tests, the three scripts above and the perf harness, stopping at the first failure.
+
 ---
 
 ## Key Files
@@ -26,6 +34,11 @@ Interactive world map web app displaying 17 cartographic projections with animat
 | `static/css/style.css` | CSS variables (theme) + layout |
 | `templates/index.html` | HTML structure: sidebar + SVG |
 | `scripts/fetch_geodata.py` | One-shot data fetch + Douglas-Peucker simplification |
+| `scripts/check_all.sh` | Runs every check below in order, stops at the first failure |
+| `scripts/perf_transitions.py`, `ui_text_snapshot.py`, `render_fingerprint.py`, `e2e_smoke.py` | Playwright checks; read app state through the read-only `window.__app` hook in `map.js` |
+| `tests/*.py` | pytest: FastAPI routes, i18n key coverage |
+| `tests/*.json` | Golden files and perf baseline for the scripts above |
+| `tests/js/` | node:test unit tests; `harness.mjs` loads `map.js`/`i18n.js` functions in a `vm` context |
 
 ---
 

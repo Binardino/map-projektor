@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-26 — Refactor safety net (on `test/refactor-safety-net`)
+
+No change to what the app shows or does; these checks give the upcoming modularization of `map.js` an objective yardstick.
+
+### Added
+- Read-only `window.__app` debug hook in `map.js` (projections, views, current state, `makeProjection`); the perf harness reads app state through it instead of bare globals
+- `scripts/ui_text_snapshot.py`: golden snapshot of every user-visible string across 9 UI states (`tests/ui_text_snapshot.json`)
+- `scripts/render_fingerprint.py`: SHA-256 of every drawn country and terrain path for the 17 projections under the Europe- and China-centered views, plus 5 projected control points per projection (`tests/render_fingerprint.json`)
+- `scripts/e2e_smoke.py`: 7 scenarios through the main user paths (welcome modal, view kept across projection switches, polar route, camera, distortion grid, cards, mobile drawer), failing on any page error or missing i18n key
+- `tests/js/`: Node built-in test runner unit tests for `t()` and the light geometry used by transitions, no npm dependency
+- `scripts/check_all.sh`: runs all of the above plus pytest and the perf harness, stopping at the first failure
+
 ## 2026-09-26 — Colleague test feedback (on `feature/colleague-feedback`)
 
 ### Fixed
