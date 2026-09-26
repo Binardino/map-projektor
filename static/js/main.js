@@ -6,5 +6,6 @@ import "./core/state.js";
 import "./core/render.js";
 import "./core/projection.js";
 import "./core/geometry.js";
+import "./core/animation.js";
 import "./map.js";
 import "./data/views.js";
