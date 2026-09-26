@@ -1,9 +1,10 @@
 import { HEIGHT, WIDTH, globeSphere, mapGroup, referenceGroup, terrainGroup, tissotGroup, worldGroup } from "./scene.js";
 import { PROJECTIONS } from "../data/projections.js";
 import { RECENTER_INCOMPATIBLE, RECENTER_PRESETS, TILTED_PROJECTIONS } from "../data/views.js";
-import { clearSelection, flightPathMode, hideCompareHighlight, referenceVisible, refreshCompareHighlight, refreshReferenceLines, refreshTissot, setFlightPathMode, tissotVisible, updateReferencePaths, updateTissotPaths } from "../map.js";
+import { clearSelection } from "./selection.js";
 import { state } from "./state.js";
 import { fitProjection, makeProjection } from "./projection.js";
+import { flightPathMode, hideCompareHighlight, referenceVisible, refreshCompareHighlight, refreshReferenceLines, refreshTissot, setFlightPathMode, tissotVisible, updateReferencePaths, updateTissotPaths } from "../map.js";
 import { lightOf } from "./geometry.js";
 import { renderGlobeSphere, renderMap, updateTerrainPaths } from "./render.js";
 import { t } from "../i18n.js";

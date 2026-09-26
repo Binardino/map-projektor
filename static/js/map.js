@@ -1,10 +1,11 @@
-import { HEIGHT, WIDTH, compareHighlightGroup, flightPathGroup, globeSphere, mapGroup, oceanRect, referenceGroup, svg, terrainGroup, tissotGroup, truesizeGroup, zoomLayer } from "./core/scene.js";
-import { LIGHT_ZOOM_MAX_SCALE, MAIN_ZOOM_SCALE_EXTENT, currentZoomTransform, resetCamera, zoom } from "./core/camera.js";
+import { LIGHT_ZOOM_MAX_SCALE, MAIN_ZOOM_SCALE_EXTENT, currentZoomTransform, resetCamera } from "./core/camera.js";
 import { POLAR_ROTATION, animateTransition, polarTransition } from "./core/animation.js";
 import { PROJECTIONS, projectionName } from "./data/projections.js";
 import { RECENTER_INCOMPATIBLE, RECENTER_PRESETS } from "./data/views.js";
 import { applyRecenter, refreshRecenterAvailability, resetRecenter, rotationFor } from "./core/recenter.js";
 import { buildLightGeometry } from "./core/geometry.js";
+import { clearSelection, selectedCountryName } from "./core/selection.js";
+import { compareHighlightGroup, flightPathGroup, globeSphere, mapGroup, oceanRect, referenceGroup, svg, terrainGroup, tissotGroup, truesizeGroup, zoomLayer } from "./core/scene.js";
 import { state } from "./core/state.js";
 import { fitProjection, makeProjection } from "./core/projection.js";
 import { loadLanguage, t } from "./i18n.js";
@@ -454,75 +455,6 @@ async function switchProjection(newProjId) {
 }
 
 // ============================================================
-// COUNTRY SELECTION
-//
-// Selecting a country (via a click on the map) highlights it and
-// gently centers/zooms the camera on it — the user can then
-// pan/zoom away freely, the selection doesn't lock the camera.
-// ============================================================
-let selectedCountryName = null;
-
-// Bounding-box fit for `feature` under `projDef`, capped to a gentle zoom
-// level rather than tightly filling the viewport — recomputed fresh since
-// it depends on whichever projection is currently on screen.
-function computeCountryFit(feature, projDef) {
-  const pathFn = d3.geoPath().projection(makeProjection(projDef, rotationFor(projDef)));
-  const [[x0, y0], [x1, y1]] = pathFn.bounds(feature);
-  const PADDING = 60;
-  const scale = Math.min(
-    (WIDTH - PADDING) / Math.max(x1 - x0, 1),
-    (HEIGHT - PADDING) / Math.max(y1 - y0, 1),
-    LIGHT_ZOOM_MAX_SCALE
-  );
-  return { scale, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
-}
-
-function selectCountry(feature) {
-  if (!feature) return;
-
-  if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
-
-  // Mutually exclusive with recenter presets (see RECENTER PRESETS note):
-  // the map must be re-rendered unrotated before we compute the bounds to
-  // center on, since computeCountryFit's bbox math assumes the default
-  // orientation.
-  if (state.currentRecenterRotate) {
-    resetRecenter();
-    const projDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
-    renderMap(makeProjection(projDef, rotationFor(projDef)));
-    refreshTissot();
-    refreshReferenceLines();
-  }
-
-  selectedCountryName = feature.properties.name;
-
-  mapGroup
-    .selectAll("path.country")
-    .classed("selected", (d) => d.properties.name === selectedCountryName);
-
-  const projDef = PROJECTIONS.find((p) => p.id === state.currentProjectionId);
-  const fit     = computeCountryFit(feature, projDef);
-  const transform = d3.zoomIdentity
-    .translate(WIDTH / 2, HEIGHT / 2)
-    .scale(fit.scale)
-    .translate(-fit.cx, -fit.cy);
-  svg.transition().duration(600).call(zoom.transform, transform);
-
-  if (compareMode) comparePanels.forEach(applySelectionToPanel);
-}
-
-// Clears the highlight only — the camera stays exactly where the user left
-// it, since pan/zoom is no longer tied to a selection.
-export function clearSelection() {
-  if (!selectedCountryName) return;
-  selectedCountryName = null;
-
-  mapGroup.selectAll("path.country").classed("selected", false);
-
-  if (compareMode) comparePanels.forEach(applySelectionToPanel);
-}
-
-// ============================================================
 // SIDE-BY-SIDE COMPARISON MODE
 //
 // Two independent panels, each with its own projection dropdown
@@ -538,8 +470,8 @@ const mapContainerEl   = document.getElementById("map-container");
 const compareContainer = document.getElementById("compare-container");
 const projectionListEl = document.getElementById("projection-list");
 
-let compareMode = false;
-let comparePanels = null; // built lazily on first toggle-on, once panel sizes are known
+export let compareMode = false;
+export let comparePanels = null; // built lazily on first toggle-on, once panel sizes are known
 
 function buildComparePanel(panelEl, initialProjId) {
   const select = panelEl.querySelector(".compare-select");
@@ -620,7 +552,7 @@ function buildComparePanel(panelEl, initialProjId) {
 // Mirrors the shared search selection (highlight + gentle centering zoom)
 // onto one panel. The panel's own camera stays free afterward, same as the
 // main view — clearing the selection only removes the highlight.
-function applySelectionToPanel(panel) {
+export function applySelectionToPanel(panel) {
   panel.mapGroup
     .selectAll("path.country")
     .classed("selected", (d) => d.properties.name === selectedCountryName);
