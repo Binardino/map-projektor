@@ -10,6 +10,7 @@ import { fitProjection, makeProjection } from "./core/projection.js";
 import { flightPathGroup, globeSphere, mapGroup, oceanRect, referenceGroup, svg, terrainGroup, tissotGroup, truesizeGroup, zoomLayer } from "./core/scene.js";
 import { infoVisible, setInfoVisible, updateInfo } from "./ui/info-card.js";
 import { loadLanguage } from "./i18n.js";
+import { openHelpModal } from "./ui/welcome-modal.js";
 import { refreshRecenterAvailability, resetRecenter, rotationFor } from "./core/recenter.js";
 import { renderGlobeSphere, renderMap, updateGlobeBackground } from "./core/render.js";
 
@@ -634,36 +635,6 @@ if (trueSizeInput) {
     if (event.key === "Escape") hideTrueSizeResults();
   });
 }
-
-// ============================================================
-// WELCOME MODAL
-//
-// One modal, two parts: a short pitch (why flat maps lie), then a
-// "how it works" pointer to each control. Opens on every launch —
-// there is no "seen" flag and no manual re-open trigger.
-// ============================================================
-
-const helpModalBackdrop = document.getElementById("help-modal-backdrop");
-const helpModalCloseBtn = document.getElementById("help-modal-close");
-
-function openHelpModal() {
-  helpModalBackdrop.hidden = false;
-}
-
-function closeHelpModal() {
-  helpModalBackdrop.hidden = true;
-}
-
-helpModalCloseBtn.addEventListener("click", closeHelpModal);
-
-helpModalBackdrop.addEventListener("click", (event) => {
-  if (event.target === helpModalBackdrop) closeHelpModal();
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !helpModalBackdrop.hidden) closeHelpModal();
-});
-
 
 // ============================================================
 // INIT — fetch GeoJSON then render
