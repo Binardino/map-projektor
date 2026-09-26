@@ -553,7 +553,7 @@ function clipAngleOf(projDef) {
 // same blend; only this synthetic outline breaks. Sidestepped entirely by
 // crossfading between the two endpoints' own (always well-behaved) static
 // sphere shapes instead of animating one continuously-blended shape.
-function animateBlend(projection, duration, clipFrom = null, clipTo = null, fromSphereProj = null, toSphereProj = null) {
+function animateBlend(projection, duration, clipFrom = null, clipTo = null, fromSphereProj = null, toSphereProj = null, rotationAt = null) {
   const pathFn    = d3.geoPath().projection(projection);
   const countries = mapGroup.selectAll("path.country");
 
@@ -568,6 +568,7 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
     const timer = d3.timer((elapsed) => {
       const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
       projection.alpha(t);
+      if (rotationAt) projection.rotate(rotationAt(t));
       if (clipFrom !== null) {
         // A near-180° clip circle only punches a tiny hole at the antipode;
         // it never cuts along the back meridian, so a country straddling it
@@ -602,21 +603,32 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
   });
 }
 
-// `rotation` is the active recenter view (null = Europe-centered): endpoints are
-// built unrotated and the blend wrapper carries it, so clip circles stay
-// centred on the view (see blendProjection) and the morph keeps the user's
-// framing instead of snapping back to Europe.
-function animateTransition(fromDef, toDef, duration, rotation = null) {
-  const projection = blendProjection(makeProjection(fromDef), makeProjection(toDef), rotation);
+function lerpRotation(from, to, t) {
+  const a = from || [0, 0, 0];
+  const b = to || [0, 0, 0];
+  return [0, 1, 2].map((i) => (a[i] || 0) + ((b[i] || 0) - (a[i] || 0)) * t);
+}
+
+// Both endpoints take the active recenter view (see rotationFor): they're
+// built unrotated and the blend wrapper carries the rotation, so clip
+// circles stay centred on the view (see blendProjection) and the morph keeps
+// the user's framing instead of snapping back to Europe. Between the tilted
+// globe and a flat map the two rotations differ, so the wrapper eases from
+// one to the other along with the shape.
+function animateTransition(fromDef, toDef, duration) {
+  const rotFrom    = rotationFor(fromDef);
+  const rotTo      = rotationFor(toDef);
+  const projection = blendProjection(makeProjection(fromDef), makeProjection(toDef), rotFrom);
+  const rotationAt = rotFrom === rotTo ? null : (t) => lerpRotation(rotFrom, rotTo, t);
   // The crossfade outlines are static endpoint shapes, so they carry the rotation themselves
-  const fromProjection = makeProjection(fromDef, rotation);
-  const toProjection   = makeProjection(toDef, rotation);
+  const fromProjection = makeProjection(fromDef, rotFrom);
+  const toProjection   = makeProjection(toDef, rotTo);
   const clipFrom = clipAngleOf(fromDef);
   const clipTo   = clipAngleOf(toDef);
   // Only azimuthal-hemisphere transitions need the circle clip; other
   // pairs keep D3's default antimeridian clipping untouched.
-  if (clipFrom !== clipTo) return animateBlend(projection, duration, clipFrom, clipTo, fromProjection, toProjection);
-  return animateBlend(projection, duration);
+  if (clipFrom !== clipTo) return animateBlend(projection, duration, clipFrom, clipTo, fromProjection, toProjection, rotationAt);
+  return animateBlend(projection, duration, null, null, null, null, rotationAt);
 }
 
 // ============================================================
@@ -696,8 +708,10 @@ async function polarTransition(fromDef, toDef) {
     await animateTransition(fromDef, orthoDef, 800);
   }
 
-  // Spin between orientations (north↔south rolls through the equator)
-  await animateRotation(fromRot || [0, 0], toRot || [0, 0], 700);
+  // Spin between orientations (north↔south rolls through the equator); a
+  // non-polar end sits on the globe at the active view's tilt.
+  const globeRot = rotationFor(orthoDef) || [0, 0];
+  await animateRotation(fromRot || globeRot, toRot || globeRot, 700);
 
   // Unfold: from the globe to the target
   if (toRot) {
@@ -725,11 +739,11 @@ async function transitionTo(newProjId) {
   if (POLAR_ROTATION[fromDef.id] || POLAR_ROTATION[toDef.id]) {
     await polarTransition(fromDef, toDef);
   } else {
-    await animateTransition(fromDef, toDef, 1400, currentRecenterRotate);
+    await animateTransition(fromDef, toDef, 1400);
   }
 
   // Final render with the true target projection (native clipping rules)
-  renderMap(makeProjection(toDef, currentRecenterRotate));
+  renderMap(makeProjection(toDef, rotationFor(toDef)));
 
   currentProjectionId = newProjId;
   updateInfo(toDef);
@@ -996,18 +1010,35 @@ function setActiveButton(projId) {
 // ============================================================
 // Labels live in static/i18n/<lang>.json under view.<id>.name / .description.
 // id stays "world" (state checks and the perf harness key on it) although it is shown as Europe-centered.
+// `rotate` is the longitude-only rotation flat maps use; `tilt` (optional)
+// is the globe's full rotation, which also tips the view's region to the
+// middle of the disc — on the globe a longitude turn alone left Europe
+// near the top edge and barely told Europe- and Africa-centered apart.
 const RECENTER_PRESETS = [
-  { id: "world", rotate: null },
+  { id: "world", rotate: null, tilt: [-15, -50, 0] },
   { id: "africa", rotate: [-20, 0, 0] },
-  { id: "china", rotate: [-105, 0, 0] },
+  { id: "china", rotate: [-105, 0, 0], tilt: [-100, -35, 0] },
   { id: "usaPacific", rotate: [98, 0, 0] },
   { id: "southAmericaFlipped", rotate: [60, 0, 0], flipVertical: true },
 ];
 
 const RECENTER_INCOMPATIBLE = new Set(["albers", "polarNorth", "polarSouth"]);
 
+// Only these take the tilt: tipping a flat projection turns it oblique
+// (the equator becomes a curve and continents warp), which reads as a
+// broken map rather than a recentred one.
+const TILTED_PROJECTIONS = new Set(["orthographic", "azimuthalEqualArea"]);
+
 let currentRecenterRotate = null;
+let currentRecenterTilt = RECENTER_PRESETS[0].tilt;
 let currentRecenterFlip = false;
+
+// The rotation the active view gives projDef — every render of the main
+// map goes through this so the globe and the flat maps agree on the view.
+function rotationFor(projDef) {
+  if (TILTED_PROJECTIONS.has(projDef.id)) return currentRecenterTilt || currentRecenterRotate;
+  return currentRecenterRotate;
+}
 
 function buildRecenterPanel() {
   const nav = document.getElementById("recenter-list");
@@ -1118,7 +1149,8 @@ async function applyRecenter(presetId) {
   if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
 
   const preset = RECENTER_PRESETS.find((p) => p.id === presetId);
-  const fromRot = currentRecenterRotate;
+  const currentDefForRot = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const fromRot = rotationFor(currentDefForRot);
 
   document.querySelectorAll(".recenter-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.presetId === presetId);
@@ -1138,13 +1170,16 @@ async function applyRecenter(presetId) {
     // rotation instantly at the edge-on midpoint, where it's invisible.
     await animateRecenterFlip(wantsFlip, () => {
       currentRecenterRotate = preset.rotate;
-      renderMap(makeProjection(currentDef, currentRecenterRotate));
+      currentRecenterTilt = preset.tilt || null;
+      renderMap(makeProjection(currentDef, rotationFor(currentDef)));
       refreshReferenceLines();
     });
   } else {
-    await animateRecenterRotation(currentDef, fromRot, preset.rotate, 900);
+    const toRot = TILTED_PROJECTIONS.has(currentDef.id) ? preset.tilt || preset.rotate : preset.rotate;
+    await animateRecenterRotation(currentDef, fromRot, toRot, 900);
     currentRecenterRotate = preset.rotate;
-    renderMap(makeProjection(currentDef, currentRecenterRotate)); // final render with native clipping
+    currentRecenterTilt = preset.tilt || null;
+    renderMap(makeProjection(currentDef, rotationFor(currentDef))); // final render with native clipping
   }
   currentRecenterFlip = wantsFlip;
 
@@ -1155,6 +1190,7 @@ async function applyRecenter(presetId) {
 
 function resetRecenter() {
   currentRecenterRotate = null;
+  currentRecenterTilt = RECENTER_PRESETS[0].tilt;
   currentRecenterFlip = false;
   // Cleared synchronously (no transition): if a projection switch is about
   // to run, the morph must not inherit a leftover flip transform on the
@@ -1307,14 +1343,13 @@ const globeDrag = d3.drag()
     document.querySelectorAll(".recenter-btn").forEach((b) => b.classList.remove("active"));
   })
   .on("drag", (event) => {
-    const [lambda, phi] = currentRecenterRotate || [0, 0, 0];
-    currentRecenterRotate = [
-      lambda + event.dx * GLOBE_DRAG_SENSITIVITY,
-      Math.max(-90, Math.min(90, phi - event.dy * GLOBE_DRAG_SENSITIVITY)),
-      0,
-    ];
     const projDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-    renderMap(makeProjection(projDef, currentRecenterRotate));
+    const [lambda, phi] = rotationFor(projDef) || [0, 0, 0];
+    const newLambda = lambda + event.dx * GLOBE_DRAG_SENSITIVITY;
+    currentRecenterTilt = [newLambda, Math.max(-90, Math.min(90, phi - event.dy * GLOBE_DRAG_SENSITIVITY)), 0];
+    // Flat maps keep the dragged longitude but never the tilt (see TILTED_PROJECTIONS)
+    currentRecenterRotate = [newLambda, 0, 0];
+    renderMap(makeProjection(projDef, rotationFor(projDef)));
     refreshTissot();
     refreshReferenceLines();
     refreshFlightPath();
@@ -1335,7 +1370,7 @@ let selectedCountryName = null;
 // level rather than tightly filling the viewport — recomputed fresh since
 // it depends on whichever projection is currently on screen.
 function computeCountryFit(feature, projDef) {
-  const pathFn = d3.geoPath().projection(makeProjection(projDef));
+  const pathFn = d3.geoPath().projection(makeProjection(projDef, rotationFor(projDef)));
   const [[x0, y0], [x1, y1]] = pathFn.bounds(feature);
   const PADDING = 60;
   const scale = Math.min(
@@ -1357,7 +1392,8 @@ function selectCountry(feature) {
   // orientation.
   if (currentRecenterRotate) {
     resetRecenter();
-    renderMap(makeProjection(PROJECTIONS.find((p) => p.id === currentProjectionId)));
+    const projDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+    renderMap(makeProjection(projDef, rotationFor(projDef)));
     refreshTissot();
     refreshReferenceLines();
   }
@@ -1639,7 +1675,7 @@ function refreshTissot() {
   }
 
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  renderTissot(tissotGroup, makeProjection(currentDef, currentRecenterRotate));
+  renderTissot(tissotGroup, makeProjection(currentDef, rotationFor(currentDef)));
 
   if (compareMode && comparePanels) {
     comparePanels.forEach((panel) => {
@@ -1723,7 +1759,7 @@ function refreshReferenceLines() {
     return;
   }
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  renderReferenceLines(referenceGroup, makeProjection(currentDef, currentRecenterRotate));
+  renderReferenceLines(referenceGroup, makeProjection(currentDef, rotationFor(currentDef)));
 }
 
 referenceToggleBtn.addEventListener("click", () => {
@@ -1806,7 +1842,7 @@ function updateFlightPathDistanceLabel() {
 // comparison panels — called after any projection change.
 function refreshFlightPath() {
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  renderFlightPath(flightPathGroup, makeProjection(currentDef, currentRecenterRotate));
+  renderFlightPath(flightPathGroup, makeProjection(currentDef, rotationFor(currentDef)));
 
   if (compareMode && comparePanels) {
     comparePanels.forEach((panel) => {
@@ -1843,7 +1879,7 @@ if (flightPathToggleBtn) {
 // each passing its own svg node / zoom transform / projection to invert the click.
 function handleFlightPathClick(event, svgNode = svg.node(), zoomTransform = currentZoomTransform, projection = makeProjection(
   PROJECTIONS.find((p) => p.id === currentProjectionId),
-  currentRecenterRotate
+  rotationFor(PROJECTIONS.find((p) => p.id === currentProjectionId))
 )) {
   if (!flightPathMode || isAnimating) return;
 
@@ -1965,7 +2001,7 @@ const trueSizeDrag = d3.drag().on("drag", function (event, feature) {
 // offsets, see resetTrueSizeOnProjectionSwitch).
 function renderTrueSizeShapes() {
   const projDef    = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  const projection = makeProjection(projDef, currentRecenterRotate);
+  const projection = makeProjection(projDef, rotationFor(projDef));
   const pathFn     = d3.geoPath().projection(projection);
 
   const features = trueSizeOrder
@@ -2088,7 +2124,7 @@ async function init() {
   buildSidebar();
   buildRecenterPanel();
   buildCompareProjectionOptions();
-  renderMap(makeProjection(initialProj));
+  renderMap(makeProjection(initialProj, rotationFor(initialProj)));
   updateInfo(initialProj);
   updateGlobeBackground();
   refreshTissot();
