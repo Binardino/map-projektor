@@ -440,6 +440,7 @@ function renderMap(projection) {
   paths.attr("d", path);
 
   renderTerrain(terrainGroup, projection);
+  updatePanExtent(projection);
 }
 
 // Draws the terrain patches (mountains, deserts, forest-basin proxies —
@@ -552,7 +553,7 @@ function clipAngleOf(projDef) {
 // same blend; only this synthetic outline breaks. Sidestepped entirely by
 // crossfading between the two endpoints' own (always well-behaved) static
 // sphere shapes instead of animating one continuously-blended shape.
-function animateBlend(projection, duration, clipFrom = null, clipTo = null, fromSphereProj = null, toSphereProj = null) {
+function animateBlend(projection, duration, clipFrom = null, clipTo = null, fromSphereProj = null, toSphereProj = null, rotationAt = null) {
   const pathFn    = d3.geoPath().projection(projection);
   const countries = mapGroup.selectAll("path.country");
 
@@ -567,6 +568,7 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
     const timer = d3.timer((elapsed) => {
       const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
       projection.alpha(t);
+      if (rotationAt) projection.rotate(rotationAt(t));
       if (clipFrom !== null) {
         // A near-180° clip circle only punches a tiny hole at the antipode;
         // it never cuts along the back meridian, so a country straddling it
@@ -601,21 +603,32 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
   });
 }
 
-// `rotation` is the active recenter view (null = Europe-centered): endpoints are
-// built unrotated and the blend wrapper carries it, so clip circles stay
-// centred on the view (see blendProjection) and the morph keeps the user's
-// framing instead of snapping back to Europe.
-function animateTransition(fromDef, toDef, duration, rotation = null) {
-  const projection = blendProjection(makeProjection(fromDef), makeProjection(toDef), rotation);
+function lerpRotation(from, to, t) {
+  const a = from || [0, 0, 0];
+  const b = to || [0, 0, 0];
+  return [0, 1, 2].map((i) => (a[i] || 0) + ((b[i] || 0) - (a[i] || 0)) * t);
+}
+
+// Both endpoints take the active recenter view (see rotationFor): they're
+// built unrotated and the blend wrapper carries the rotation, so clip
+// circles stay centred on the view (see blendProjection) and the morph keeps
+// the user's framing instead of snapping back to Europe. Between the tilted
+// globe and a flat map the two rotations differ, so the wrapper eases from
+// one to the other along with the shape.
+function animateTransition(fromDef, toDef, duration) {
+  const rotFrom    = rotationFor(fromDef);
+  const rotTo      = rotationFor(toDef);
+  const projection = blendProjection(makeProjection(fromDef), makeProjection(toDef), rotFrom);
+  const rotationAt = rotFrom === rotTo ? null : (t) => lerpRotation(rotFrom, rotTo, t);
   // The crossfade outlines are static endpoint shapes, so they carry the rotation themselves
-  const fromProjection = makeProjection(fromDef, rotation);
-  const toProjection   = makeProjection(toDef, rotation);
+  const fromProjection = makeProjection(fromDef, rotFrom);
+  const toProjection   = makeProjection(toDef, rotTo);
   const clipFrom = clipAngleOf(fromDef);
   const clipTo   = clipAngleOf(toDef);
   // Only azimuthal-hemisphere transitions need the circle clip; other
   // pairs keep D3's default antimeridian clipping untouched.
-  if (clipFrom !== clipTo) return animateBlend(projection, duration, clipFrom, clipTo, fromProjection, toProjection);
-  return animateBlend(projection, duration);
+  if (clipFrom !== clipTo) return animateBlend(projection, duration, clipFrom, clipTo, fromProjection, toProjection, rotationAt);
+  return animateBlend(projection, duration, null, null, null, null, rotationAt);
 }
 
 // ============================================================
@@ -695,8 +708,10 @@ async function polarTransition(fromDef, toDef) {
     await animateTransition(fromDef, orthoDef, 800);
   }
 
-  // Spin between orientations (north↔south rolls through the equator)
-  await animateRotation(fromRot || [0, 0], toRot || [0, 0], 700);
+  // Spin between orientations (north↔south rolls through the equator); a
+  // non-polar end sits on the globe at the active view's tilt.
+  const globeRot = rotationFor(orthoDef) || [0, 0];
+  await animateRotation(fromRot || globeRot, toRot || globeRot, 700);
 
   // Unfold: from the globe to the target
   if (toRot) {
@@ -711,6 +726,7 @@ async function polarTransition(fromDef, toDef) {
 // ============================================================
 async function transitionTo(newProjId) {
   isAnimating = true;
+  hideCompareHighlight();
 
   // Reset the free camera (pan/zoom on zoomLayer, see CAMERA PAN & ZOOM)
   // to the default centered view before starting the morph, so every
@@ -724,11 +740,11 @@ async function transitionTo(newProjId) {
   if (POLAR_ROTATION[fromDef.id] || POLAR_ROTATION[toDef.id]) {
     await polarTransition(fromDef, toDef);
   } else {
-    await animateTransition(fromDef, toDef, 1400, currentRecenterRotate);
+    await animateTransition(fromDef, toDef, 1400);
   }
 
   // Final render with the true target projection (native clipping rules)
-  renderMap(makeProjection(toDef, currentRecenterRotate));
+  renderMap(makeProjection(toDef, rotationFor(toDef)));
 
   currentProjectionId = newProjId;
   updateInfo(toDef);
@@ -738,6 +754,7 @@ async function transitionTo(newProjId) {
   refreshRecenterAvailability();
   refreshFlightPath();
   resetTrueSizeOnProjectionSwitch();
+  refreshCompareHighlight();
 
   isAnimating = false;
 }
@@ -802,6 +819,7 @@ const compareCardEl           = document.getElementById("compare-card");
 const compareProjectionSelect = document.getElementById("compare-projection-select");
 const compareCountryInput     = document.getElementById("compare-country-input");
 const compareCountryResults   = document.getElementById("compare-country-results");
+const compareCountryList      = document.getElementById("compare-country-list");
 
 // Called from init() once the language is loaded (names come from t()); it
 // keeps the HTML placeholder option (empty value) and replaces the rest, so a
@@ -818,23 +836,167 @@ function buildCompareProjectionOptions() {
 
 let compareCardVisible     = false;
 let compareCountryNames    = null; // populated lazily once worldData is ready — full alphabetical list
-let compareSelectedCountry = null;
 let compareProjectionId    = null; // null until a country is picked, then defaults to currentProjectionId
 
-// Redraws (or clears) the highlighted country under compareProjectionId.
-// Shares the main map's zoomLayer, so it pans/zooms together with it —
-// the point is comparing two projections' shapes side by side on the
-// same canvas, not tracking a separate camera.
+// Countries being compared, in pick order. Each entry:
+// { name, color, visible, shift: pins its anchor on the map's copy of the
+//   country, offset: how far the user has dragged it from there }.
+const compareCountries = [];
+const COMPARE_MAX = 5;
+// Saturated hues that stay apart from each other and from the map's own
+// colours in both themes: land (pink / navy), ocean (light / mid blue),
+// terrain (tan, sage), the reference lines (atlas red).
+const COMPARE_COLORS = ["#fa6048", "#8e44ad", "#1fa35c", "#f2b705", "#00a6a6"];
+
+// Overseas territories that Natural Earth keeps as separate features but
+// that belong in the country's comparison. France's overseas departments
+// (Guiana, Réunion, the Antilles, Mayotte) are already part of "France";
+// these are its collectivities and TAAF. Other countries' territories
+// (Greenland, Puerto Rico, the Falklands) stay separate, pickable on their own.
+const COMPARE_TERRITORIES = {
+  France: [
+    "Fr. Polynesia", "New Caledonia", "Fr. S. Antarctic Lands", "Wallis and Futuna Is.",
+    "St. Pierre and Miquelon", "St-Martin", "St-Barthélemy",
+  ],
+};
+
+// The shape drawn for a compared country: the feature plus its territories.
+function compareShape(feature) {
+  const territories = (COMPARE_TERRITORIES[feature.properties.name] || [])
+    .map((name) => worldData.features.find((f) => f.properties.name === name))
+    .filter(Boolean);
+  if (!territories.length) return feature;
+  return { type: "FeatureCollection", features: [feature, ...territories] };
+}
+
+// The point of the country the overlay is pinned on: the centre of its
+// largest polygon, not of the whole feature — overseas parts (French
+// Guiana for France, Alaska for the USA) would otherwise drag the anchor
+// off the mainland people are actually comparing.
+function compareAnchor(feature) {
+  if (feature.geometry.type !== "MultiPolygon") return d3.geoCentroid(feature);
+  const largest = d3.greatest(feature.geometry.coordinates, (rings) => d3.geoArea({ type: "Polygon", coordinates: rings }));
+  return d3.geoCentroid({ type: "Polygon", coordinates: largest });
+}
+
+// Redraws (or clears) every visible compared country under compareProjectionId,
+// each shifted so its anchor sits on the same country in the map on screen:
+// each projection places a country at its own screen position, so drawn
+// as-is, France under Equirectangular landed on Chad in a Gall-Peters map.
+// Uses the active view's rotation so both shapes share an orientation.
+// Shares the main map's zoomLayer, so it pans/zooms together with it.
 function refreshCompareHighlight() {
   compareHighlightGroup.selectAll("*").remove();
-  if (!compareSelectedCountry || !worldData) return;
+  compareHighlightGroup.style("display", null);
+  if (!worldData) return;
 
-  const feature = worldData.features.find((f) => f.properties.name === compareSelectedCountry);
-  if (!feature) return;
+  const mapDef      = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const compareDef  = PROJECTIONS.find((p) => p.id === compareProjectionId) || mapDef;
+  const mapProj     = makeProjection(mapDef, rotationFor(mapDef));
+  const compareProj = makeProjection(compareDef, rotationFor(compareDef));
+  const comparePath = d3.geoPath().projection(compareProj);
+  const [rl, rp]    = mapProj.rotate();
 
-  const projDef = PROJECTIONS.find((p) => p.id === compareProjectionId) || PROJECTIONS.find((p) => p.id === currentProjectionId);
-  const pathFn  = d3.geoPath().projection(makeProjection(projDef));
-  compareHighlightGroup.append("path").attr("class", "compare-highlight").attr("d", pathFn(feature));
+  compareCountries.filter((entry) => entry.visible).forEach((entry) => {
+    const feature = worldData.features.find((f) => f.properties.name === entry.name);
+    if (!feature) return;
+    const anchor = compareAnchor(feature);
+    // A projection returns a point even for the globe's far side, which
+    // would pin the overlay on a country the user can't see.
+    if (currentProjectionId === "orthographic" && d3.geoDistance(anchor, [-rl, -rp]) > Math.PI / 2) return;
+    const [mx, my] = mapProj(anchor);
+    const [cx, cy] = compareProj(anchor);
+    entry.shift = [mx - cx, my - cy];
+
+    const d = comparePath(compareShape(feature));
+    const overlay = compareHighlightGroup.append("g")
+      .datum(entry)
+      .attr("class", "compare-overlay")
+      .attr("transform", compareOverlayTransform(entry))
+      .call(compareDrag);
+    overlay.append("path").attr("class", "compare-hit").attr("d", d);
+    overlay.append("path").attr("class", "compare-highlight").attr("d", d)
+      .style("fill", entry.color)
+      .style("stroke", entry.color);
+  });
+}
+
+function compareOverlayTransform(entry) {
+  return `translate(${entry.shift[0] + entry.offset[0]},${entry.shift[1] + entry.offset[1]})`;
+}
+
+function resetCompareOffsets() {
+  compareCountries.forEach((entry) => { entry.offset = [0, 0]; });
+}
+
+// Grabbing the overlay moves it; d3.drag stops the pointer-down from
+// reaching d3.zoom and globeDrag, so a drag anywhere else still pans the
+// map (or turns the globe), and the wheel still zooms over it. dx/dy come
+// in the overlay's parent coordinates, which already undo the camera zoom
+// and the upside-down flip, so the shape stays under the cursor.
+// Each country moves on its own; the one being dragged is raised so it
+// passes over the others.
+const compareDrag = d3.drag()
+  .on("start", function () { d3.select(this).classed("dragging", true).raise(); })
+  .on("drag", function (event, entry) {
+    entry.offset = [entry.offset[0] + event.dx, entry.offset[1] + event.dy];
+    d3.select(this).attr("transform", compareOverlayTransform(entry));
+  })
+  .on("end", function () { d3.select(this).classed("dragging", false); });
+
+// The overlay is pinned to the map's projection, so it's stale for the
+// whole morph or spin — hidden until the matching refresh at the end.
+// A drag only holds until the next projection or view change, which puts
+// the overlay back on the country (the anchor is what's being compared).
+function hideCompareHighlight() {
+  compareHighlightGroup.style("display", "none");
+  resetCompareOffsets();
+}
+
+// Rebuilds the picked-country rows and locks the search field once the
+// list is full, saying why in its placeholder.
+function renderCompareList() {
+  compareCountryList.innerHTML = "";
+  compareCountries.forEach((entry) => {
+    const li = document.createElement("li");
+    li.classList.toggle("hidden-country", !entry.visible);
+
+    const label = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = entry.visible;
+    checkbox.setAttribute("aria-label", t("compare.showCountry", { name: entry.name }));
+    checkbox.addEventListener("change", () => {
+      entry.visible = checkbox.checked;
+      renderCompareList();
+      refreshCompareHighlight();
+    });
+    const swatch = document.createElement("span");
+    swatch.className = "compare-swatch";
+    swatch.style.background = entry.color;
+    const name = document.createElement("span");
+    name.className = "compare-country-name";
+    name.textContent = entry.name;
+    label.append(checkbox, swatch, name);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "floating-card-close";
+    removeBtn.textContent = "✕";
+    removeBtn.setAttribute("aria-label", t("compare.removeCountry", { name: entry.name }));
+    removeBtn.addEventListener("click", () => {
+      compareCountries.splice(compareCountries.indexOf(entry), 1);
+      renderCompareList();
+      refreshCompareHighlight();
+    });
+
+    li.append(label, removeBtn);
+    compareCountryList.appendChild(li);
+  });
+  compareCountryList.hidden = compareCountries.length === 0;
+
+  const full = compareCountries.length >= COMPARE_MAX;
+  compareCountryInput.disabled = full;
+  compareCountryInput.placeholder = t(full ? "compare.limitReached" : "compare.countryPlaceholder");
 }
 
 function hideCompareCountryResults() {
@@ -854,9 +1016,13 @@ function showCompareCountryResults(names) {
 }
 
 function selectCompareCountry(name) {
-  compareSelectedCountry = name;
-  compareCountryInput.value = name;
+  compareCountryInput.value = "";
   hideCompareCountryResults();
+  if (compareCountries.length >= COMPARE_MAX || compareCountries.some((entry) => entry.name === name)) return;
+  // First colour no listed country is using, so removing one frees its colour
+  const color = COMPARE_COLORS.find((c) => !compareCountries.some((entry) => entry.color === c));
+  compareCountries.push({ name, color, visible: true, shift: [0, 0], offset: [0, 0] });
+  renderCompareList();
 
   // First pick since the card opened (or since it was last cleared):
   // default the projection to whatever the main map is currently showing.
@@ -886,14 +1052,16 @@ compareCountryInput.addEventListener("keydown", (event) => {
 
 compareProjectionSelect.addEventListener("change", () => {
   compareProjectionId = compareProjectionSelect.value;
+  resetCompareOffsets();
   refreshCompareHighlight();
 });
 
 function resetCompareSelection() {
-  compareSelectedCountry = null;
+  compareCountries.length = 0;
   compareProjectionId = null;
   compareCountryInput.value = "";
   compareProjectionSelect.value = "";
+  renderCompareList();
   hideCompareCountryResults();
   refreshCompareHighlight();
 }
@@ -995,18 +1163,36 @@ function setActiveButton(projId) {
 // ============================================================
 // Labels live in static/i18n/<lang>.json under view.<id>.name / .description.
 // id stays "world" (state checks and the perf harness key on it) although it is shown as Europe-centered.
+// `rotate` is the longitude-only rotation flat maps use; `tilt` (optional)
+// is the globe's full rotation, which also tips the view's region to the
+// middle of the disc — on the globe a longitude turn alone left Europe
+// near the top edge and barely told Europe- and Africa-centered apart.
 const RECENTER_PRESETS = [
-  { id: "world", rotate: null },
+  { id: "world", rotate: null, tilt: [-15, -50, 0] },
   { id: "africa", rotate: [-20, 0, 0] },
-  { id: "china", rotate: [-105, 0, 0] },
-  { id: "usaPacific", rotate: [98, 0, 0] },
+  { id: "china", rotate: [-105, 0, 0], tilt: [-100, -35, 0] },
+  { id: "america", rotate: [90, 0, 0], tilt: [90, -20, 0] },
+  { id: "oceania", rotate: [-150, 0, 0], tilt: [-150, -10, 0] },
   { id: "southAmericaFlipped", rotate: [60, 0, 0], flipVertical: true },
 ];
 
 const RECENTER_INCOMPATIBLE = new Set(["albers", "polarNorth", "polarSouth"]);
 
+// Only these take the tilt: tipping a flat projection turns it oblique
+// (the equator becomes a curve and continents warp), which reads as a
+// broken map rather than a recentred one.
+const TILTED_PROJECTIONS = new Set(["orthographic", "azimuthalEqualArea"]);
+
 let currentRecenterRotate = null;
+let currentRecenterTilt = RECENTER_PRESETS[0].tilt;
 let currentRecenterFlip = false;
+
+// The rotation the active view gives projDef — every render of the main
+// map goes through this so the globe and the flat maps agree on the view.
+function rotationFor(projDef) {
+  if (TILTED_PROJECTIONS.has(projDef.id)) return currentRecenterTilt || currentRecenterRotate;
+  return currentRecenterRotate;
+}
 
 function buildRecenterPanel() {
   const nav = document.getElementById("recenter-list");
@@ -1117,7 +1303,8 @@ async function applyRecenter(presetId) {
   if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
 
   const preset = RECENTER_PRESETS.find((p) => p.id === presetId);
-  const fromRot = currentRecenterRotate;
+  const currentDefForRot = PROJECTIONS.find((p) => p.id === currentProjectionId);
+  const fromRot = rotationFor(currentDefForRot);
 
   document.querySelectorAll(".recenter-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.presetId === presetId);
@@ -1126,6 +1313,7 @@ async function applyRecenter(presetId) {
   clearSelection(); // mutually exclusive with the country-zoom selection, see note above
 
   isAnimating = true;
+  hideCompareHighlight();
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
   const wantsFlip = !!preset.flipVertical;
 
@@ -1137,23 +1325,28 @@ async function applyRecenter(presetId) {
     // rotation instantly at the edge-on midpoint, where it's invisible.
     await animateRecenterFlip(wantsFlip, () => {
       currentRecenterRotate = preset.rotate;
-      renderMap(makeProjection(currentDef, currentRecenterRotate));
+      currentRecenterTilt = preset.tilt || null;
+      renderMap(makeProjection(currentDef, rotationFor(currentDef)));
       refreshReferenceLines();
     });
   } else {
-    await animateRecenterRotation(currentDef, fromRot, preset.rotate, 900);
+    const toRot = TILTED_PROJECTIONS.has(currentDef.id) ? preset.tilt || preset.rotate : preset.rotate;
+    await animateRecenterRotation(currentDef, fromRot, toRot, 900);
     currentRecenterRotate = preset.rotate;
-    renderMap(makeProjection(currentDef, currentRecenterRotate)); // final render with native clipping
+    currentRecenterTilt = preset.tilt || null;
+    renderMap(makeProjection(currentDef, rotationFor(currentDef))); // final render with native clipping
   }
   currentRecenterFlip = wantsFlip;
 
   isAnimating = false;
   refreshTissot();
   refreshReferenceLines();
+  refreshCompareHighlight();
 }
 
 function resetRecenter() {
   currentRecenterRotate = null;
+  currentRecenterTilt = RECENTER_PRESETS[0].tilt;
   currentRecenterFlip = false;
   // Cleared synchronously (no transition): if a projection switch is about
   // to run, the morph must not inherit a leftover flip transform on the
@@ -1202,10 +1395,12 @@ let currentZoomTransform = d3.zoomIdentity;
 const zoom = d3.zoom()
   .scaleExtent(MAIN_ZOOM_SCALE_EXTENT)
   // On the orthographic globe, drag/touch-pan is handed off to globeDrag
-  // below instead (see GLOBE ROTATION) — wheel/pinch still zoom as usual.
+  // below instead (see GLOBE ROTATION). The wheel is handled by the smooth
+  // wheel zoom further down, not by d3.zoom.
   .filter((event) => {
-    if (currentProjectionId === "orthographic" && event.type !== "wheel") return false;
-    return (!event.ctrlKey || event.type === "wheel") && !event.button;
+    if (event.type === "wheel") return false;
+    if (currentProjectionId === "orthographic") return false;
+    return !event.ctrlKey && !event.button;
   })
   .on("zoom", (event) => {
     currentZoomTransform = event.transform;
@@ -1213,6 +1408,18 @@ const zoom = d3.zoom()
   });
 
 svg.call(zoom);
+
+// Panning stops once the map's edge reaches the window's edge, so the map
+// can never be dragged off-screen. The limit is the projected sphere itself:
+// on an axis where the zoomed map is smaller than the window, d3.zoom keeps
+// it centred instead, and on Mercator the poles (which overflow the initial
+// frame on purpose, see fitProjection) stay reachable. Set on every
+// renderMap since the outline depends on the projection; the recenter
+// rotation and the upside-down flip (a mirror about the viewport's centre)
+// don't change its bounding box.
+function updatePanExtent(projection) {
+  zoom.translateExtent(d3.geoPath().projection(projection).bounds({ type: "Sphere" }));
+}
 
 const CAMERA_IDENTITY_EPSILON = 0.001;
 
@@ -1231,6 +1438,35 @@ function resetCamera(duration = 500) {
   if (isCameraAtIdentity()) return Promise.resolve();
   return svg.transition().duration(duration).call(zoom.transform, d3.zoomIdentity).end();
 }
+
+// d3.zoom applies each wheel notch in a single frame: a mouse wheel's
+// notch is a ~15% scale jump, which read as a choppy zoom (measured in
+// scripts/perf_transitions.py). Each notch instead eases towards a target
+// scale; notches that arrive mid-ease add to that target, so spinning the
+// wheel fast still zooms as far as before, and the point under the cursor
+// stays put. Trackpad pinches arrive as ctrl+wheel and take the same path.
+// Ignored during morphs: interrupting resetCamera's transition would
+// reject the promise transitionTo awaits.
+const WHEEL_ZOOM_MS = 150;
+let wheelTargetScale = null;
+let wheelZoomId = 0;
+
+svg.on("wheel.smooth", (event) => {
+  event.preventDefault();
+  if (isAnimating) return;
+  // Same notch-to-scale rate as d3.zoom's default wheelDelta.
+  const delta = -event.deltaY * (event.deltaMode === 1 ? 0.05 : event.deltaMode ? 1 : 0.002) * (event.ctrlKey ? 10 : 1);
+  const [kMin, kMax] = MAIN_ZOOM_SCALE_EXTENT;
+  wheelTargetScale = Math.max(kMin, Math.min(kMax, (wheelTargetScale ?? currentZoomTransform.k) * 2 ** delta));
+  const id = ++wheelZoomId;
+  svg.transition()
+    .duration(WHEEL_ZOOM_MS)
+    .ease(d3.easeCubicOut)
+    .call(zoom.scaleTo, wheelTargetScale, d3.pointer(event, svg.node()))
+    // A newer notch interrupting this one keeps the target it built on;
+    // anything else (end, zoom buttons, camera reset) starts afresh.
+    .on("end interrupt", () => { if (id === wheelZoomId) wheelTargetScale = null; });
+}, { passive: false });
 
 const zoomInBtn  = document.getElementById("zoom-in-btn");
 const zoomOutBtn = document.getElementById("zoom-out-btn");
@@ -1263,17 +1499,17 @@ const globeDrag = d3.drag()
     document.querySelectorAll(".recenter-btn").forEach((b) => b.classList.remove("active"));
   })
   .on("drag", (event) => {
-    const [lambda, phi] = currentRecenterRotate || [0, 0, 0];
-    currentRecenterRotate = [
-      lambda + event.dx * GLOBE_DRAG_SENSITIVITY,
-      Math.max(-90, Math.min(90, phi - event.dy * GLOBE_DRAG_SENSITIVITY)),
-      0,
-    ];
     const projDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-    renderMap(makeProjection(projDef, currentRecenterRotate));
+    const [lambda, phi] = rotationFor(projDef) || [0, 0, 0];
+    const newLambda = lambda + event.dx * GLOBE_DRAG_SENSITIVITY;
+    currentRecenterTilt = [newLambda, Math.max(-90, Math.min(90, phi - event.dy * GLOBE_DRAG_SENSITIVITY)), 0];
+    // Flat maps keep the dragged longitude but never the tilt (see TILTED_PROJECTIONS)
+    currentRecenterRotate = [newLambda, 0, 0];
+    renderMap(makeProjection(projDef, rotationFor(projDef)));
     refreshTissot();
     refreshReferenceLines();
     refreshFlightPath();
+    refreshCompareHighlight();
   });
 
 svg.call(globeDrag);
@@ -1291,7 +1527,7 @@ let selectedCountryName = null;
 // level rather than tightly filling the viewport — recomputed fresh since
 // it depends on whichever projection is currently on screen.
 function computeCountryFit(feature, projDef) {
-  const pathFn = d3.geoPath().projection(makeProjection(projDef));
+  const pathFn = d3.geoPath().projection(makeProjection(projDef, rotationFor(projDef)));
   const [[x0, y0], [x1, y1]] = pathFn.bounds(feature);
   const PADDING = 60;
   const scale = Math.min(
@@ -1313,7 +1549,8 @@ function selectCountry(feature) {
   // orientation.
   if (currentRecenterRotate) {
     resetRecenter();
-    renderMap(makeProjection(PROJECTIONS.find((p) => p.id === currentProjectionId)));
+    const projDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
+    renderMap(makeProjection(projDef, rotationFor(projDef)));
     refreshTissot();
     refreshReferenceLines();
   }
@@ -1595,7 +1832,7 @@ function refreshTissot() {
   }
 
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  renderTissot(tissotGroup, makeProjection(currentDef, currentRecenterRotate));
+  renderTissot(tissotGroup, makeProjection(currentDef, rotationFor(currentDef)));
 
   if (compareMode && comparePanels) {
     comparePanels.forEach((panel) => {
@@ -1679,7 +1916,7 @@ function refreshReferenceLines() {
     return;
   }
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  renderReferenceLines(referenceGroup, makeProjection(currentDef, currentRecenterRotate));
+  renderReferenceLines(referenceGroup, makeProjection(currentDef, rotationFor(currentDef)));
 }
 
 referenceToggleBtn.addEventListener("click", () => {
@@ -1762,7 +1999,7 @@ function updateFlightPathDistanceLabel() {
 // comparison panels — called after any projection change.
 function refreshFlightPath() {
   const currentDef = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  renderFlightPath(flightPathGroup, makeProjection(currentDef, currentRecenterRotate));
+  renderFlightPath(flightPathGroup, makeProjection(currentDef, rotationFor(currentDef)));
 
   if (compareMode && comparePanels) {
     comparePanels.forEach((panel) => {
@@ -1799,7 +2036,7 @@ if (flightPathToggleBtn) {
 // each passing its own svg node / zoom transform / projection to invert the click.
 function handleFlightPathClick(event, svgNode = svg.node(), zoomTransform = currentZoomTransform, projection = makeProjection(
   PROJECTIONS.find((p) => p.id === currentProjectionId),
-  currentRecenterRotate
+  rotationFor(PROJECTIONS.find((p) => p.id === currentProjectionId))
 )) {
   if (!flightPathMode || isAnimating) return;
 
@@ -1921,7 +2158,7 @@ const trueSizeDrag = d3.drag().on("drag", function (event, feature) {
 // offsets, see resetTrueSizeOnProjectionSwitch).
 function renderTrueSizeShapes() {
   const projDef    = PROJECTIONS.find((p) => p.id === currentProjectionId);
-  const projection = makeProjection(projDef, currentRecenterRotate);
+  const projection = makeProjection(projDef, rotationFor(projDef));
   const pathFn     = d3.geoPath().projection(projection);
 
   const features = trueSizeOrder
@@ -2044,7 +2281,7 @@ async function init() {
   buildSidebar();
   buildRecenterPanel();
   buildCompareProjectionOptions();
-  renderMap(makeProjection(initialProj));
+  renderMap(makeProjection(initialProj, rotationFor(initialProj)));
   updateInfo(initialProj);
   updateGlobeBackground();
   refreshTissot();
