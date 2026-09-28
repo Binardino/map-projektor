@@ -6,7 +6,7 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 
 ### Changed
 - The welcome modal keeps only the short pitch: the "How it works" list goes (a progressive onboarding is planned for V2), and a **Got it** button closes it and starts
-- Views are listed Europe, China, Africa, America, Oceania, then the upside-down view, renamed "Brazil (upside-down)" so it fits on one line in the sidebar
+- Views are listed Europe, China, Africa, America, Oceania, then the upside-down view, renamed "Brasil-centered" so it fits on one line in the sidebar
 
 ### Fixed
 - The info and compare cards follow the light/dark theme instead of staying dark; dark mode looks exactly as before
