@@ -24,6 +24,11 @@ def test_static_js_served():
     # Browsers refuse to run an ES module served with a non-JavaScript type
     assert "javascript" in response.headers["content-type"]
 
+def test_static_files_are_revalidated():
+    # Without it a browser can keep an old style.css or en.json next to a new index.html
+    response = client.get("/static/i18n/en.json")
+    assert response.headers["cache-control"] == "no-cache"
+
 def test_geojson_endpoint_returns_200():
     if not pathlib.Path("app/data/world.geojson").exists():
         pytest.skip("file not generated yet")
