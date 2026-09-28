@@ -1,12 +1,11 @@
 import { HEIGHT, WIDTH, mapGroup, svg } from "./scene.js";
 import { zoom } from "./camera.js";
 import { getProjection } from "../data/projections.js";
-import { applySelectionToPanel, compareMode, comparePanels, flightPathMode, refreshReferenceLines, refreshTissot, setFlightPathMode } from "../tools/index.js";
-import { state } from "./state.js";
 import { makeProjection } from "./projection.js";
 import { renderMap } from "./render.js";
 import { resetRecenter, rotationFor } from "./recenter.js";
 import { LIGHT_ZOOM_MAX_SCALE, TIMING } from "../config.js";
+import { emit, getState } from "../state.js";
 
 // ============================================================
 // COUNTRY SELECTION
@@ -35,18 +34,17 @@ function computeCountryFit(feature, projDef) {
 function selectCountry(feature) {
   if (!feature) return;
 
-  if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
+  emit("pointer:reset"); // a selection ends any pointer mode (flight path)
 
   // Mutually exclusive with recenter presets (see RECENTER PRESETS note):
   // the map must be re-rendered unrotated before we compute the bounds to
   // center on, since computeCountryFit's bbox math assumes the default
   // orientation.
-  if (state.currentRecenterRotate) {
+  if (getState().recenter.rotate) {
     resetRecenter();
-    const projDef = getProjection(state.currentProjectionId);
+    const projDef = getProjection(getState().projectionId);
     renderMap(makeProjection(projDef, rotationFor(projDef)));
-    refreshTissot();
-    refreshReferenceLines();
+    emit("view:changed");
   }
 
   selectedCountryName = feature.properties.name;
@@ -55,7 +53,7 @@ function selectCountry(feature) {
     .selectAll("path.country")
     .classed("selected", (d) => d.properties.name === selectedCountryName);
 
-  const projDef = getProjection(state.currentProjectionId);
+  const projDef = getProjection(getState().projectionId);
   const fit     = computeCountryFit(feature, projDef);
   const transform = d3.zoomIdentity
     .translate(WIDTH / 2, HEIGHT / 2)
@@ -63,7 +61,7 @@ function selectCountry(feature) {
     .translate(-fit.cx, -fit.cy);
   svg.transition().duration(TIMING.countryFocus).call(zoom.transform, transform);
 
-  if (compareMode) comparePanels.forEach(applySelectionToPanel);
+  emit("selection:changed");
 }
 
 // Clears the highlight only — the camera stays exactly where the user left
@@ -74,5 +72,5 @@ export function clearSelection() {
 
   mapGroup.selectAll("path.country").classed("selected", false);
 
-  if (compareMode) comparePanels.forEach(applySelectionToPanel);
+  emit("selection:changed");
 }

@@ -15,6 +15,7 @@
        this list in step with the code) -->
   <link rel="modulepreload" href="/static/js/config.js" />
   <link rel="modulepreload" href="/static/js/core/animation.js" />
+  <link rel="modulepreload" href="/static/js/core/busy.js" />
   <link rel="modulepreload" href="/static/js/core/camera.js" />
   <link rel="modulepreload" href="/static/js/core/geometry.js" />
   <link rel="modulepreload" href="/static/js/core/palette.js" />
@@ -23,13 +24,14 @@
   <link rel="modulepreload" href="/static/js/core/render.js" />
   <link rel="modulepreload" href="/static/js/core/scene.js" />
   <link rel="modulepreload" href="/static/js/core/selection.js" />
-  <link rel="modulepreload" href="/static/js/core/state.js" />
   <link rel="modulepreload" href="/static/js/core/transition.js" />
+  <link rel="modulepreload" href="/static/js/data/geodata.js" />
   <link rel="modulepreload" href="/static/js/data/projections.js" />
   <link rel="modulepreload" href="/static/js/data/views.js" />
   <link rel="modulepreload" href="/static/js/debug.js" />
   <link rel="modulepreload" href="/static/js/i18n.js" />
   <link rel="modulepreload" href="/static/js/main.js" />
+  <link rel="modulepreload" href="/static/js/state.js" />
   <link rel="modulepreload" href="/static/js/tools/index.js" />
   <link rel="modulepreload" href="/static/js/tools/reference-lines.js" />
   <link rel="modulepreload" href="/static/js/tools/tissot.js" />
@@ -53,12 +55,12 @@
       </div>
       <nav id="projection-list">
         <p class="section-title" data-i18n="sidebar.selectProjection"></p>
-        <!-- Family headers + buttons populated by map.js from the PROJECTIONS array -->
+        <!-- Family headers + buttons built by ui/sidebar.js from the PROJECTIONS array -->
       </nav>
       <div id="recenter-panel">
         <p class="section-title" data-i18n="sidebar.selectView"></p>
         <nav id="recenter-list">
-          <!-- Populated by map.js from the RECENTER_PRESETS array -->
+          <!-- Built by ui/sidebar.js from the RECENTER_PRESETS array -->
         </nav>
       </div>
     </aside>
@@ -145,7 +147,7 @@
 
   </div>
 
-  <!-- CDN libraries — order matters: d3-geo-projection extends d3, map.js uses both -->
+  <!-- CDN libraries — order matters: d3-geo-projection extends d3, the modules use both -->
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4/dist/d3-geo-projection.min.js"></script>
   <script type="module" src="/static/js/main.js"></script>

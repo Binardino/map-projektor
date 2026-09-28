@@ -1,9 +1,10 @@
 import { getProjection } from "../data/projections.js";
-import { state } from "../core/state.js";
 import { makeProjection } from "../core/projection.js";
 import { rotationFor } from "../core/recenter.js";
 import { truesizeGroup } from "../core/scene.js";
 import { readPalette } from "../core/palette.js";
+import { worldData } from "../data/geodata.js";
+import { getState, subscribe } from "../state.js";
 
 // ============================================================
 // TRUE SIZE COMPARE
@@ -103,12 +104,12 @@ const trueSizeDrag = d3.drag().on("drag", function (event, feature) {
 // other refresh call sites use this — only a projection switch clears
 // offsets, see resetTrueSizeOnProjectionSwitch).
 function renderTrueSizeShapes() {
-  const projDef    = getProjection(state.currentProjectionId);
+  const projDef    = getProjection(getState().projectionId);
   const projection = makeProjection(projDef, rotationFor(projDef));
   const pathFn     = d3.geoPath().projection(projection);
 
   const features = trueSizeOrder
-    .map((name) => state.worldData.features.find((f) => f.properties.name === name))
+    .map((name) => worldData.features.find((f) => f.properties.name === name))
     .filter(Boolean);
 
   const shapes = truesizeGroup
@@ -142,11 +143,11 @@ export function resetTrueSizeOnProjectionSwitch() {
 if (trueSizeInput) {
   trueSizeInput.addEventListener("input", () => {
     const query = trueSizeInput.value.trim().toLowerCase();
-    if (!query || !state.worldData) {
+    if (!query || !worldData) {
       hideTrueSizeResults();
       return;
     }
-    const matches = state.worldData.features
+    const matches = worldData.features
       .filter((f) => !trueSizeOrder.includes(f.properties.name))
       .filter((f) => f.properties.name.toLowerCase().includes(query))
       .sort((a, b) => {
@@ -174,3 +175,5 @@ if (trueSizeInput) {
     if (event.key === "Escape") hideTrueSizeResults();
   });
 }
+
+subscribe(["projectionId"], resetTrueSizeOnProjectionSwitch);

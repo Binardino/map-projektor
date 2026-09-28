@@ -1,10 +1,11 @@
 import { I18N_BASE_URL } from "./config.js";
+import { emit, setState } from "./state.js";
 
 // ============================================================
 // I18N — every user-visible string lives in static/i18n/<lang>.json
 //
 // Flat key → string dictionaries (e.g. "projection.mercator.name"), English
-// being the source of truth. init() awaits loadLanguage() before the first
+// being the source of truth. init() awaits setLanguage() before the first
 // render, so every t() call already has its strings.
 // ============================================================
 let messages = {};
@@ -41,9 +42,14 @@ function applyStaticTranslations() {
   document.title = t("app.title");
 }
 
-export async function loadLanguage(lang) {
+// Loads a language and re-renders every text: the static markup here, the
+// built UI through its "language:changed" subscribers. Also how the app
+// starts (init), so the first build and a later switch take the same path.
+export async function setLanguage(lang) {
   const response = await fetch(`${I18N_BASE_URL}${lang}.json`);
   messages = await response.json();
   document.documentElement.lang = lang;
   applyStaticTranslations();
+  setState({ language: lang });
+  emit("language:changed");
 }

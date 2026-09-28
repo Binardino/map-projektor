@@ -1,21 +1,38 @@
-import { HEIGHT, WIDTH, globeSphere, mapGroup, referenceGroup, terrainGroup, tissotGroup, worldGroup } from "./scene.js";
+import { HEIGHT, WIDTH, globeSphere, mapGroup, terrainGroup, worldGroup } from "./scene.js";
 import { getProjection } from "../data/projections.js";
 import { RECENTER_PRESETS } from "../data/views.js";
 import { clearSelection } from "./selection.js";
-import { state } from "./state.js";
 import { fitProjection, makeProjection } from "./projection.js";
-import { flightPathMode, referenceVisible, refreshReferenceLines, refreshTissot, setFlightPathMode, tissotVisible, updateReferencePaths, updateTissotPaths } from "../tools/index.js";
-import { hideCompareHighlight, refreshCompareHighlight } from "../ui/compare-card.js";
 import { lightOf } from "./geometry.js";
 import { renderGlobeSphere, renderMap, updateTerrainPaths } from "./render.js";
 import { t } from "../i18n.js";
 import { TIMING } from "../config.js";
+import { emit, getState, setState } from "../state.js";
+import { runExclusive } from "./busy.js";
+
+// The active view, `recenter: { preset, rotate, tilt, flip }` in the store:
+// preset is the chosen view's id (null once the globe is dragged), rotate
+// the longitude-only rotation flat maps take, tilt the globe's full
+// rotation, flip the upside-down mirror. This module is its only writer;
+// the globe drag goes through setViewRotation.
+const DEFAULT_VIEW = { preset: "world", rotate: null, tilt: RECENTER_PRESETS[0].tilt, flip: false };
+setState({ recenter: DEFAULT_VIEW });
+
+function patchView(patch) {
+  setState({ recenter: { ...getState().recenter, ...patch } });
+}
+
+// A dragged globe no longer matches any preset.
+export function setViewRotation(rotate, tilt) {
+  patchView({ preset: null, rotate, tilt });
+}
 
 // The rotation the active view gives projDef — every render of the main
 // map goes through this so the globe and the flat maps agree on the view.
 export function rotationFor(projDef) {
-  if (projDef.tilted) return state.currentRecenterTilt || state.currentRecenterRotate;
-  return state.currentRecenterRotate;
+  const { rotate, tilt } = getState().recenter;
+  if (projDef.tilted) return tilt || rotate;
+  return rotate;
 }
 
 // Turns the map over like a coin about the equator: scaleY follows
@@ -98,8 +115,7 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
       // rotation while countries alone animated.
       renderGlobeSphere(globeSphere, projection);
       updateTerrainPaths(terrainGroup, projection);
-      if (tissotVisible) updateTissotPaths(tissotGroup, projection);
-      if (referenceVisible) updateReferencePaths(referenceGroup, projection);
+      emit("frame", projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -109,65 +125,51 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
 }
 
 export async function applyRecenter(presetId) {
-  if (state.isAnimating || !getProjection(state.currentProjectionId).recenterable) return;
+  if (getState().busy || !getProjection(getState().projectionId).recenterable) return;
 
-  if (flightPathMode) setFlightPathMode(false); // mutually exclusive, see FLIGHT PATH note
+  emit("pointer:reset"); // a view change ends any pointer mode (flight path)
 
   const preset = RECENTER_PRESETS.find((p) => p.id === presetId);
-  const currentDefForRot = getProjection(state.currentProjectionId);
+  const currentDefForRot = getProjection(getState().projectionId);
   const fromRot = rotationFor(currentDefForRot);
 
-  document.querySelectorAll(".recenter-btn").forEach((b) => {
-    b.classList.toggle("active", b.dataset.presetId === presetId);
-  });
+  patchView({ preset: presetId }); // the button lights up before the animation
 
   clearSelection(); // mutually exclusive with the country-zoom selection, see note above
 
-  state.isAnimating = true;
-  hideCompareHighlight();
-  const currentDef = getProjection(state.currentProjectionId);
-  const wantsFlip = !!preset.flipVertical;
+  const ran = await runExclusive(async () => {
+    emit("view:changing");
+    const currentDef = getProjection(getState().projectionId);
+    const wantsFlip = !!preset.flipVertical;
 
-  if (wantsFlip !== state.currentRecenterFlip) {
-    // Entering or leaving the South America (upside-down) mirror: doing the
-    // usual longitude rotation sweep here would spin the sphere WHILE also
-    // flipping it, reading as a distorted diagonal spin rather than a clean
-    // mirror. Instead turn the map over about the equator and swap the
-    // rotation instantly at the edge-on midpoint, where it's invisible.
-    await animateRecenterFlip(wantsFlip, () => {
-      state.currentRecenterRotate = preset.rotate;
-      state.currentRecenterTilt = preset.tilt || null;
-      renderMap(makeProjection(currentDef, rotationFor(currentDef)));
-      refreshReferenceLines();
-    });
-  } else {
-    const toRot = currentDef.tilted ? preset.tilt || preset.rotate : preset.rotate;
-    await animateRecenterRotation(currentDef, fromRot, toRot, TIMING.recenterRotation);
-    state.currentRecenterRotate = preset.rotate;
-    state.currentRecenterTilt = preset.tilt || null;
-    renderMap(makeProjection(currentDef, rotationFor(currentDef))); // final render with native clipping
-  }
-  state.currentRecenterFlip = wantsFlip;
-
-  state.isAnimating = false;
-  refreshTissot();
-  refreshReferenceLines();
-  refreshCompareHighlight();
+    if (wantsFlip !== getState().recenter.flip) {
+      // Entering or leaving the South America (upside-down) mirror: doing the
+      // usual longitude rotation sweep here would spin the sphere WHILE also
+      // flipping it, reading as a distorted diagonal spin rather than a clean
+      // mirror. Instead turn the map over about the equator and swap the
+      // rotation instantly at the edge-on midpoint, where it's invisible.
+      await animateRecenterFlip(wantsFlip, () => {
+        patchView({ rotate: preset.rotate, tilt: preset.tilt || null });
+        const projection = makeProjection(currentDef, rotationFor(currentDef));
+        renderMap(projection);
+        emit("frame", projection); // overlays follow the swapped rotation
+      });
+    } else {
+      const toRot = currentDef.tilted ? preset.tilt || preset.rotate : preset.rotate;
+      await animateRecenterRotation(currentDef, fromRot, toRot, TIMING.recenterRotation);
+      patchView({ rotate: preset.rotate, tilt: preset.tilt || null });
+      renderMap(makeProjection(currentDef, rotationFor(currentDef))); // final render with native clipping
+    }
+    patchView({ flip: wantsFlip });
+  });
+  if (!ran) return;
+  emit("view:changed");
 }
 
 export function resetRecenter() {
-  state.currentRecenterRotate = null;
-  state.currentRecenterTilt = RECENTER_PRESETS[0].tilt;
-  state.currentRecenterFlip = false;
+  setState({ recenter: DEFAULT_VIEW });
   // Cleared synchronously (no transition): if a projection switch is about
   // to run, the morph must not inherit a leftover flip transform on the
   // group it repaints into.
   worldGroup.style("transform", null);
-  document.querySelectorAll(".recenter-btn").forEach((b) => {
-    b.classList.toggle("active", b.dataset.presetId === "world");
-  });
-}
-
-export function refreshRecenterAvailability() {
-  document.getElementById("recenter-list").classList.toggle("disabled-list", !getProjection(state.currentProjectionId).recenterable);
 }
