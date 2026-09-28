@@ -192,8 +192,7 @@ body {
 }
 
 /* ============================================================
-   HELP MODAL — onboarding / "how it works", reused for both the
-   first-visit intro and the on-demand "?" trigger
+   HELP MODAL — the welcome pitch shown on every launch
    ============================================================ */
 #help-modal-backdrop {
   position: fixed;
@@ -260,24 +259,6 @@ body {
 }
 
 #help-modal-body p:last-child {
-  margin-bottom: 0;
-}
-
-#help-modal-body h3 {
-  margin: 18px 0 8px;
-  font-size: 13px;
-  color: var(--text-primary);
-}
-
-#help-modal-body ul {
-  padding-left: 18px;
-}
-
-#help-modal-body li {
-  margin-bottom: 8px;
-}
-
-#help-modal-body li:last-child {
   margin-bottom: 0;
 }
 
