@@ -1,12 +1,12 @@
 import { DEGREES, blendProjection, makeProjection } from "./projection.js";
-import { HEIGHT, WIDTH, globeSphere, globeSphereFade, mapGroup, referenceGroup, terrainGroup, tissotGroup } from "./scene.js";
+import { HEIGHT, WIDTH, globeSphere, globeSphereFade, mapGroup, terrainGroup } from "./scene.js";
 import { GLOBE } from "../data/projections.js";
 import { lightOf } from "./geometry.js";
-import { referenceVisible, tissotVisible, updateReferencePaths, updateTissotPaths } from "../tools/index.js";
 import { renderGlobeSphere, updateTerrainPaths } from "./render.js";
 import { rotationFor } from "./recenter.js";
 import { t } from "../i18n.js";
 import { TIMING } from "../config.js";
+import { emit } from "../state.js";
 
 // Drives one blend from alpha 0 → 1, optionally morphing the clip circle.
 //
@@ -60,8 +60,7 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
         renderGlobeSphere(globeSphere, projection);
       }
       updateTerrainPaths(terrainGroup, projection);
-      if (tissotVisible) updateTissotPaths(tissotGroup, projection);
-      if (referenceVisible) updateReferencePaths(referenceGroup, projection);
+      emit("frame", projection);
       if (elapsed >= duration) {
         timer.stop();
         if (crossfade) globeSphere.style("opacity", null);
@@ -130,8 +129,7 @@ function animateRotation(fromRot, toRot, duration) {
       countries.attr("d", (d) => pathFn(lightOf(d)) || "");
       renderGlobeSphere(globeSphere, projection);
       updateTerrainPaths(terrainGroup, projection);
-      if (tissotVisible) updateTissotPaths(tissotGroup, projection);
-      if (referenceVisible) updateReferencePaths(referenceGroup, projection);
+      emit("frame", projection);
       if (elapsed >= duration) {
         timer.stop();
         resolve();

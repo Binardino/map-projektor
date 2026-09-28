@@ -1,11 +1,11 @@
 import { getProjection } from "../data/projections.js";
 import { clearSelection } from "../core/selection.js";
 import { compareMode, comparePanels } from "./side-by-side.js";
-import { state } from "../core/state.js";
 import { currentZoomTransform } from "../core/camera.js";
 import { fitProjection, makeProjection } from "../core/projection.js";
 import { flightPathGroup, svg } from "../core/scene.js";
 import { resetRecenter, rotationFor } from "../core/recenter.js";
+import { getState, on, setState } from "../state.js";
 
 // ============================================================
 // FLIGHT PATH / GREAT CIRCLE
@@ -32,7 +32,8 @@ const flightPathDistanceEl = document.getElementById("flightpath-distance");
 
 const EARTH_RADIUS_KM = 6371;
 
-export let flightPathMode = false;
+// flightPathMode is a store slice (the camera reads it) written only here
+setState({ flightPathMode: false });
 let flightPathA = null; // [lon, lat] or null
 let flightPathB = null; // [lon, lat] or null
 
@@ -79,7 +80,7 @@ function updateFlightPathDistanceLabel() {
 // Re-renders the route on the single map and, if active, on both
 // comparison panels — called after any projection change.
 export function refreshFlightPath() {
-  const currentDef = getProjection(state.currentProjectionId);
+  const currentDef = getProjection(getState().projectionId);
   renderFlightPath(flightPathGroup, makeProjection(currentDef, rotationFor(currentDef)));
 
   if (compareMode && comparePanels) {
@@ -93,8 +94,8 @@ export function refreshFlightPath() {
 }
 
 export function setFlightPathMode(active) {
-  flightPathMode = active;
-  flightPathToggleBtn.classList.toggle("active", flightPathMode);
+  setState({ flightPathMode: active });
+  flightPathToggleBtn.classList.toggle("active", active);
   flightPathA = null;
   flightPathB = null;
   refreshFlightPath();
@@ -103,12 +104,12 @@ export function setFlightPathMode(active) {
 // See the compareToggleBtn note above — same guard, same reason.
 if (flightPathToggleBtn) {
   flightPathToggleBtn.addEventListener("click", () => {
-    if (state.isAnimating) return;
-    if (!flightPathMode) {
+    if (getState().busy) return;
+    if (!getState().flightPathMode) {
       clearSelection();
       resetRecenter();
     }
-    setFlightPathMode(!flightPathMode);
+    setFlightPathMode(!getState().flightPathMode);
   });
 }
 
@@ -116,10 +117,10 @@ if (flightPathToggleBtn) {
 // Shared by the main view and each compare-mode panel (see buildComparePanel),
 // each passing its own svg node / zoom transform / projection to invert the click.
 export function handleFlightPathClick(event, svgNode = svg.node(), zoomTransform = currentZoomTransform, projection = makeProjection(
-  getProjection(state.currentProjectionId),
-  rotationFor(getProjection(state.currentProjectionId))
+  getProjection(getState().projectionId),
+  rotationFor(getProjection(getState().projectionId))
 )) {
-  if (!flightPathMode || state.isAnimating) return;
+  if (!getState().flightPathMode || getState().busy) return;
 
   // Undo the free camera pan/zoom (see CAMERA PAN & ZOOM) to get back to the
   // coordinate space the projection itself draws in before inverting.
@@ -139,3 +140,9 @@ export function handleFlightPathClick(event, svgNode = svg.node(), zoomTransform
   refreshFlightPath();
 }
 svg.node().addEventListener("click", (event) => handleFlightPathClick(event));
+
+on("view:changed", refreshFlightPath);
+// A recenter or a country selection takes the pointer back
+on("pointer:reset", () => {
+  if (getState().flightPathMode) setFlightPathMode(false);
+});

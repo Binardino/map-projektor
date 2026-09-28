@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-26 — Store and events (on `refactor/state-events`)
+
+No change to what the app shows (UI text snapshot, render fingerprint and e2e unchanged after every step).
+
+### Changed
+- One observable store (`static/js/state.js`) replaces the temporary state object: `projectionId`, `busy`, the active view (`recenter`, now with the chosen `preset`), `language` and the flight path mode, each with a single writer. The GeoJSON moves to `data/geodata.js`, loaded once
+- The core no longer calls the UI or the tools: animation frames, settled views, projection clicks and language changes are events the distortion grid, reference lines, compare overlay, sidebar, info card and drawer subscribe to
+- The UI builders are idempotent and re-render on `language:changed`; `setLanguage()` loads a language and re-renders everything (the picker is Feature 31). The app itself starts through it
+
+### Fixed
+- An exception in the middle of a projection morph or view change no longer leaves the whole UI locked: `runExclusive` clears the busy flag in `finally`
+
 ## 2026-09-26 — Projection capabilities, config and colour tokens (on `refactor/registry-config`)
 
 No change to what the app shows or does (render fingerprint, UI text snapshot and e2e unchanged; 15 of 17 screenshots byte-identical, the other two within anti-aliasing noise).
