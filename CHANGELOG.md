@@ -10,6 +10,7 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 
 ### Fixed
 - The info and compare cards follow the light/dark theme instead of staying dark; dark mode looks exactly as before
+- After an update the browser could mix a new page with an old cached stylesheet or text file (a raw `welcome.cta` key on the button): static files are now served with `Cache-Control: no-cache`, so they are revalidated (a cheap 304 when unchanged)
 
 ## 2026-09-26 — Store and events (on `refactor/state-events`)
 
