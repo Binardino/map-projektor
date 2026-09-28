@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-28 — UX feedback before deploy (on `fix/ux-feedback`)
+
+### Changed
+- The welcome modal keeps only the short pitch: the "How it works" list goes (a progressive onboarding is planned for V2), and a **Got it!** button closes it and starts
+- Views are listed Europe, China, Africa, America, Oceania, then the upside-down view, renamed "Brasil-centered" so it fits on one line in the sidebar
+
+### Fixed
+- The info and compare cards follow the light/dark theme instead of staying dark; dark mode looks exactly as before
+- After an update the browser could mix a new page with an old cached stylesheet or text file (a raw `welcome.cta` key on the button): static files are now served with `Cache-Control: no-cache`, so they are revalidated (a cheap 304 when unchanged)
+
 ## 2026-09-26 — Store and events (on `refactor/state-events`)
 
 No change to what the app shows (UI text snapshot, render fingerprint and e2e unchanged after every step).

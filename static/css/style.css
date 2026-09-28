@@ -25,11 +25,16 @@
   --font-size-base: 14px;
   --sidebar-width:  240px;
 
-  /* Fixed colours, the same in both themes: the Figma popovers (tooltips,
-     cards) stay dark and their inputs white whatever the theme. */
+  /* The floating cards (info, compare) follow the theme; dark mode keeps
+     the Figma dark card. */
+  --card-bg:         #ffffff;
+  --card-text:       #292929;
+  --card-text-muted: #6f6f6f;
+  --card-shadow:     rgba(0, 0, 0, 0.15);
+
+  /* Fixed colours, the same in both themes: the tool tooltips stay dark
+     and the card inputs white whatever the theme. */
   --popover-bg:         #292929;
-  --popover-text:       #ffffff;
-  --popover-text-muted: #d9d9d9;
   --field-bg:           #ffffff;
   --field-text:         #292929;
   --field-border:       #d1cdcd;
@@ -192,8 +197,7 @@ body {
 }
 
 /* ============================================================
-   HELP MODAL — onboarding / "how it works", reused for both the
-   first-visit intro and the on-demand "?" trigger
+   HELP MODAL — the welcome pitch shown on every launch
    ============================================================ */
 #help-modal-backdrop {
   position: fixed;
@@ -263,22 +267,23 @@ body {
   margin-bottom: 0;
 }
 
-#help-modal-body h3 {
-  margin: 18px 0 8px;
-  font-size: 13px;
+/* The ✕ alone read as "dismiss"; a clear call to action says "start". */
+#help-modal-cta {
+  display: block;
+  margin: 20px 0 0 auto;
+  padding: 10px 24px;
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--active-bg);
+  border: 1px solid var(--active-border);
+  border-radius: 999px; /* pill, echoing the round ✕ it sits under */
   color: var(--text-primary);
+  cursor: pointer;
 }
 
-#help-modal-body ul {
-  padding-left: 18px;
-}
-
-#help-modal-body li {
-  margin-bottom: 8px;
-}
-
-#help-modal-body li:last-child {
-  margin-bottom: 0;
+#help-modal-cta:hover {
+  background: color-mix(in srgb, var(--accent) 80%, var(--text-primary));
 }
 
 /* Compare mode dims the projection list while active (see map.js) — kept
@@ -684,9 +689,8 @@ body {
    they covered the toolbar and cut the compare card's country list off at
    the bottom of the screen. z-index sits one below the toolbar's so its
    hover tooltips, which pop out to the left, still paint over an open card.
-   Figma hardcodes a dark card regardless of the light/dark toggle (like the
-   tool tooltips), so this uses fixed colors instead of the
-   --bg-sidebar/--text-* tokens. */
+   Figma drew only a dark card; it follows the theme instead (--card-*),
+   the shadow lifting the light one off a light map. */
 .floating-card {
   position: absolute;
   top: 84px;
@@ -696,8 +700,9 @@ body {
   max-width: calc(100% - 80px);
   padding: 20px;
   border-radius: 12px;
-  background: var(--popover-bg);
-  color: var(--popover-text);
+  background: var(--card-bg);
+  color: var(--card-text);
+  box-shadow: 0 4px 16px var(--card-shadow);
 }
 
 .floating-card-header {
@@ -718,7 +723,7 @@ body {
   font-size: 14px;
   background: none;
   border: none;
-  color: var(--popover-text);
+  color: var(--card-text);
   cursor: pointer;
   opacity: 0.7;
 }
@@ -729,7 +734,7 @@ body {
 
 .floating-card-description {
   font-size: 16px;
-  color: var(--popover-text-muted);
+  color: var(--card-text-muted);
   line-height: 1.5;
 }
 
@@ -748,12 +753,12 @@ body {
   margin-top: 16px;
   font-size: 16px;
   line-height: 1.5;
-  color: var(--popover-text-muted);
+  color: var(--card-text-muted);
 }
 
 #info-tradeoffs-content dt {
   font-weight: bold;
-  color: var(--popover-text);
+  color: var(--card-text);
   margin-top: 12px;
 }
 
@@ -781,9 +786,8 @@ body {
   display: none;
 }
 
-/* Always-white input fields per Figma, regardless of theme — the card
-   itself is a fixed dark color (see .floating-card), so these need their
-   own fixed light styling rather than the theme's --bg-app/--border. */
+/* Always-white input fields per Figma, regardless of theme — they keep
+   their own fixed light styling rather than the theme's --bg-app/--border. */
 #compare-card select {
   width: 100%;
   padding: 12px 16px;
@@ -980,4 +984,9 @@ body[data-theme="dark"] {
   --active-border: #34835f;
 
   --reference-line: #ff8a7a;
+
+  --card-bg:         #292929;
+  --card-text:       #ffffff;
+  --card-text-muted: #d9d9d9;
+  --card-shadow:     rgba(0, 0, 0, 0.4);
 }
