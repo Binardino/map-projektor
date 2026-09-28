@@ -69,6 +69,9 @@ def welcome_modal(page):
     page.click("#help-modal-close")
     assert not modal_open(page), "✕ should close the modal"
     open_app(page)
+    page.click("#help-modal-cta")
+    assert not modal_open(page), "Got it should close the modal"
+    open_app(page)
     page.keyboard.press("Escape")
     assert not modal_open(page), "Esc should close the modal"
     open_app(page)

@@ -8,6 +8,7 @@
 
 const helpModalBackdrop = document.getElementById("help-modal-backdrop");
 const helpModalCloseBtn = document.getElementById("help-modal-close");
+const helpModalCtaBtn = document.getElementById("help-modal-cta");
 
 export function openHelpModal() {
   helpModalBackdrop.hidden = false;
@@ -18,6 +19,7 @@ function closeHelpModal() {
 }
 
 helpModalCloseBtn.addEventListener("click", closeHelpModal);
+helpModalCtaBtn.addEventListener("click", closeHelpModal);
 
 helpModalBackdrop.addEventListener("click", (event) => {
   if (event.target === helpModalBackdrop) closeHelpModal();
