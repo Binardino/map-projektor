@@ -5,7 +5,7 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 ## 2026-09-28 — UX feedback before deploy (on `fix/ux-feedback`)
 
 ### Changed
-- The welcome modal keeps only the short pitch: the "How it works" list goes (a progressive onboarding is planned for V2), and a **Got it** button closes it and starts
+- The welcome modal keeps only the short pitch: the "How it works" list goes (a progressive onboarding is planned for V2), and a **Got it!** button closes it and starts
 - Views are listed Europe, China, Africa, America, Oceania, then the upside-down view, renamed "Brasil-centered" so it fits on one line in the sidebar
 
 ### Fixed
