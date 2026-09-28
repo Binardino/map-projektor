@@ -262,6 +262,25 @@ body {
   margin-bottom: 0;
 }
 
+/* The ✕ alone read as "dismiss"; a clear call to action says "start". */
+#help-modal-cta {
+  display: block;
+  margin: 20px 0 0 auto;
+  padding: 10px 24px;
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--active-bg);
+  border: 1px solid var(--active-border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+#help-modal-cta:hover {
+  background: color-mix(in srgb, var(--accent) 80%, var(--text-primary));
+}
+
 /* Compare mode dims the projection list while active (see map.js) — kept
    even though its sidebar toggle is gone for now, since it's cheap to
    leave wired for whenever compare mode gets a new trigger. */
