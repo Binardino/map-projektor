@@ -13,7 +13,22 @@ app = FastAPI(title="Map Projektor Universal Converter")
 
 templates = Jinja2Templates(directory= ROOT_DIR / "templates")
 
-app.mount("/static", StaticFiles(directory= ROOT_DIR / "static"), name="static")
+class RevalidatedStaticFiles(StaticFiles):
+    """
+    Static files the browser must re-check before each use.
+
+    Without a Cache-Control header the browser guesses how long to keep a
+    file, and after a deploy could pair a new index.html with an old
+    style.css or en.json. "no-cache" still caches: the browser asks with
+    the ETag and gets a tiny 304 when nothing changed.
+    """
+
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+
+app.mount("/static", RevalidatedStaticFiles(directory= ROOT_DIR / "static"), name="static")
 
 @app.get('/')
 async def return_index(request : Request): 
