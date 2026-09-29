@@ -91,27 +91,29 @@
           </button>
           <button id="info-toggle-btn" class="tool-btn" aria-pressed="false" data-i18n-attr="aria-label:tool.info;data-tooltip:tool.info">i</button>
         </div>
-        <div id="projection-info" class="floating-card" hidden>
-          <div class="floating-card-header">
-            <p id="info-name" class="floating-card-title"></p>
-            <button id="info-close-btn" class="floating-card-close" data-i18n-attr="aria-label:common.close">✕</button>
+        <div id="floating-cards">
+          <div id="compare-card" class="floating-card" hidden>
+            <div class="floating-card-header">
+              <p class="floating-card-title" data-i18n="compare.title"></p>
+              <button id="compare-card-close" class="floating-card-close" data-i18n-attr="aria-label:common.close">✕</button>
+            </div>
+            <p class="floating-card-description" data-i18n="compare.description"></p>
+            <div id="compare-country-picker">
+              <input type="text" id="compare-country-input" data-i18n-attr="placeholder:compare.countryPlaceholder" autocomplete="off" />
+              <ul id="compare-country-results" hidden></ul>
+            </div>
+            <ul id="compare-country-list" hidden></ul>
+            <select id="compare-projection-select">
+              <option value="" disabled selected data-i18n="compare.chooseProjection"></option>
+            </select>
           </div>
-          <dl id="info-tradeoffs-content"></dl>
-        </div>
-        <div id="compare-card" class="floating-card" hidden>
-          <div class="floating-card-header">
-            <p class="floating-card-title" data-i18n="compare.title"></p>
-            <button id="compare-card-close" class="floating-card-close" data-i18n-attr="aria-label:common.close">✕</button>
+          <div id="projection-info" class="floating-card" hidden>
+            <div class="floating-card-header">
+              <p id="info-name" class="floating-card-title"></p>
+              <button id="info-close-btn" class="floating-card-close" data-i18n-attr="aria-label:common.close">✕</button>
+            </div>
+            <dl id="info-tradeoffs-content"></dl>
           </div>
-          <p class="floating-card-description" data-i18n="compare.description"></p>
-          <div id="compare-country-picker">
-            <input type="text" id="compare-country-input" data-i18n-attr="placeholder:compare.countryPlaceholder" autocomplete="off" />
-            <ul id="compare-country-results" hidden></ul>
-          </div>
-          <ul id="compare-country-list" hidden></ul>
-          <select id="compare-projection-select">
-            <option value="" disabled selected data-i18n="compare.chooseProjection"></option>
-          </select>
         </div>
       </div>
 
