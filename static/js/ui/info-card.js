@@ -1,4 +1,3 @@
-import { closeCompareCard } from "./compare-card.js";
 import { getProjection, projectionName } from "../data/projections.js";
 import { t } from "../i18n.js";
 import { getState, on, subscribe } from "../state.js";
@@ -31,20 +30,16 @@ export function updateInfo(projDef) {
 const infoToggleBtn = document.getElementById("info-toggle-btn");
 const infoCloseBtn  = document.getElementById("info-close-btn");
 const infoPanelEl   = document.getElementById("projection-info");
-export let infoVisible = false;
+let infoVisible = false;
 
-export function setInfoVisible(visible) {
+function setInfoVisible(visible) {
   infoVisible = visible;
   infoPanelEl.hidden = !infoVisible;
   infoToggleBtn.classList.toggle("active", infoVisible);
   infoToggleBtn.setAttribute("aria-pressed", String(infoVisible));
 }
 
-infoToggleBtn.addEventListener("click", () => {
-  setInfoVisible(!infoVisible);
-  // Only one toolbar popover at a time — see closeCompareCard below.
-  if (infoVisible) closeCompareCard();
-});
+infoToggleBtn.addEventListener("click", () => setInfoVisible(!infoVisible));
 
 infoCloseBtn.addEventListener("click", () => setInfoVisible(false));
 
