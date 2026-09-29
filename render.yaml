@@ -1,0 +1,14 @@
+# Render Blueprint: New → Blueprint in the dashboard reads this file, so the
+# service settings live in git instead of being clicked by hand.
+services:
+  - type: web
+    name: map-projektor
+    # The Dockerfile already binds to the $PORT Render injects and needs no
+    # network at build time (the geodata is committed).
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # Free sleeps after ~15 min idle (30-60 s cold start); "starter" stays warm.
+    plan: free
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /
