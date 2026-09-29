@@ -80,7 +80,7 @@ def capture_states(page):
         wait_until_settled(page)
         states[f"info card ({proj_id})"] = page.evaluate(COLLECT_JS)
 
-    # Opening the compare card closes the info card (one popover at a time).
+    # The info card stays open below the compare card: both are captured.
     page.click("#compare-toggle-btn")
     states["compare card"] = page.evaluate(COLLECT_JS)
 

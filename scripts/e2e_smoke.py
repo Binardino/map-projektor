@@ -157,12 +157,19 @@ def tools_and_cards(page):
     page.click("#grid-toggle-btn")
     assert page.locator("path.tissot").count() == 0, "grid toggle should clear Tissot circles"
 
-    page.click("#info-toggle-btn")
-    assert page.is_visible("#projection-info")
     page.click("#compare-toggle-btn")
-    assert page.is_visible("#compare-card") and not page.is_visible("#projection-info"), "one card at a time"
+    page.fill("#compare-country-input", "fra")
+    page.click("#compare-country-results li")
+    page.click("#info-toggle-btn")
+    assert page.is_visible("#compare-card") and page.is_visible("#projection-info"), "both cards open together"
+    assert page.locator("#compare-country-list li").count() == 1, "opening info must keep the compared countries"
+    compare_box = page.locator("#compare-card").bounding_box()
+    info_box = page.locator("#projection-info").bounding_box()
+    assert info_box["y"] >= compare_box["y"] + compare_box["height"], "info card should sit below the compare card"
     page.click("#compare-card-close")
-    assert not page.is_visible("#compare-card")
+    assert not page.is_visible("#compare-card") and page.is_visible("#projection-info")
+    page.click("#info-close-btn")
+    assert not page.is_visible("#projection-info")
 
 
 def ui_rebuild(page):
