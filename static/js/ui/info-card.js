@@ -1,4 +1,3 @@
-import { closeCompareCard } from "./compare-card.js";
 import { getProjection, projectionName } from "../data/projections.js";
 import { t } from "../i18n.js";
 import { getState, on, subscribe } from "../state.js";
@@ -40,11 +39,7 @@ export function setInfoVisible(visible) {
   infoToggleBtn.setAttribute("aria-pressed", String(infoVisible));
 }
 
-infoToggleBtn.addEventListener("click", () => {
-  setInfoVisible(!infoVisible);
-  // Only one toolbar popover at a time — see closeCompareCard below.
-  if (infoVisible) closeCompareCard();
-});
+infoToggleBtn.addEventListener("click", () => setInfoVisible(!infoVisible));
 
 infoCloseBtn.addEventListener("click", () => setInfoVisible(false));
 
