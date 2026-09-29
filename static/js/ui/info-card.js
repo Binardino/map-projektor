@@ -30,9 +30,9 @@ export function updateInfo(projDef) {
 const infoToggleBtn = document.getElementById("info-toggle-btn");
 const infoCloseBtn  = document.getElementById("info-close-btn");
 const infoPanelEl   = document.getElementById("projection-info");
-let infoVisible = false;
+export let infoVisible = false;
 
-function setInfoVisible(visible) {
+export function setInfoVisible(visible) {
   infoVisible = visible;
   infoPanelEl.hidden = !infoVisible;
   infoToggleBtn.classList.toggle("active", infoVisible);
