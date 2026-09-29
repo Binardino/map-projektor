@@ -10,7 +10,9 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry install --no-root --without dev --no-interaction
 
 COPY . .
-RUN python scripts/fetch_geodata.py
+# Skipped when the data was generated on the host: some networks (corporate TLS proxy)
+# break the download from inside the build, while a CI/git build still needs it.
+RUN [ -s app/data/world.geojson ] && [ -s app/data/terrain.geojson ] || python scripts/fetch_geodata.py
 
 # --- runtime stage: slim image with only what's needed to run ---
 FROM python:3.12-slim
