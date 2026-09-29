@@ -11,6 +11,9 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 ### Changed
 - `tests/perf_baseline.json` regenerated: an A/B run showed the old baseline's own commit flagging 30–44 transitions on this machine, so the drift was environmental, not a code regression
 
+### Added
+- `render.yaml`: a Render Blueprint deploying the Docker image (free plan, auto-deploy from `main`); `docs/deployment.md` rewritten around it
+
 ## 2026-09-28 — UX feedback before deploy (on `fix/ux-feedback`)
 
 ### Changed
