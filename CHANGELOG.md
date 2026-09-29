@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-09-29 — Cards together, offline Docker build, perf baseline
+
+### Fixed
+- The info and compare cards can stay open together, stacked top-right (compare first, info below it): opening info no longer closes the compare card and wipes the picked countries. Only the info card shrinks and scrolls on a short window
+- The Docker build no longer needs network access: the generated `world.geojson` and `terrain.geojson` are committed, and the build only downloads them when they are missing
+
+### Changed
+- `tests/perf_baseline.json` regenerated: an A/B run showed the old baseline's own commit flagging 30–44 transitions on this machine, so the drift was environmental, not a code regression
+
 ## 2026-09-28 — UX feedback before deploy (on `fix/ux-feedback`)
 
 ### Changed
