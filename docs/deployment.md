@@ -10,98 +10,30 @@ The app is a stateful Python process (Uvicorn serving FastAPI + Jinja2 + a gener
 
 ---
 
-## 1. Prepare the repository
+## 1. What the repository already provides
 
-### 1.1 Generate the GeoJSON at build time, not commit time
+- **`Dockerfile`** — two-stage image (Poetry install in a builder, slim runtime, non-root user). It starts Uvicorn without `--reload` (the file watcher is for local dev only) and binds to the `$PORT` the platform injects, defaulting to 8000.
+- **`app/data/world.geojson` and `terrain.geojson` are committed**, so the build needs no network access. The Dockerfile only runs `scripts/fetch_geodata.py` if they are missing.
+- **`poetry.lock`** pins the exact versions you tested with.
+- **`render.yaml`** — a Render Blueprint describing the service (Docker runtime, free plan, auto-deploy from `main`, health check on `/`), so the settings live in git instead of the dashboard.
 
-`app/data/world.geojson` is gitignored — it's generated locally by `scripts/fetch_geodata.py`. The deploy build must run that script, so add a build command that does both dependency install and data generation (step 3 below wires this in).
-
-### 1.2 Pin dependencies
-
-`poetry.lock` is already committed — good, this guarantees Render installs the exact versions you tested with. Verify it's up to date:
+Test the exact deploy image locally first:
 
 ```bash
-poetry lock --check
-```
-
-### 1.3 Turn off reload in production
-
-`--reload` (used in local dev) watches the filesystem and is not meant for production — it adds overhead and is a minor attack surface (arbitrary file-change-triggered restarts). The production start command (step 3) omits it.
-
-### 1.4 Add a `.python-version` or confirm `requires-python`
-
-`pyproject.toml` already pins `requires-python = ">=3.10"` — Render's Python buildpack reads this, no extra file needed.
-
----
-
-## 2. Choose a deployment shape
-
-Two options; pick one.
-
-| | Native buildpack | Docker |
-|---|---|---|
-| Setup effort | Lowest — Render detects Poetry automatically | You write a `Dockerfile` |
-| Reproducibility | Good | Best — identical environment locally and in prod |
-| Recommended when | You want the fastest path | You want to test the exact deploy image locally first |
-
-Both are described below; the native buildpack is enough for this app's size.
-
-### Option A — Native buildpack (recommended)
-
-No extra files needed. Render's Python environment detects `pyproject.toml` and Poetry automatically.
-
-### Option B — Docker
-
-Add this `Dockerfile` at the repo root:
-
-```dockerfile
-FROM python:3.12-slim
-
-WORKDIR /app
-
-RUN pip install poetry==1.8.3 && poetry config virtualenvs.create false
-
-COPY pyproject.toml poetry.lock ./
-RUN poetry install --no-root --only main
-
-COPY . .
-RUN python scripts/fetch_geodata.py
-
-EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+docker compose up --build
 ```
 
 ---
 
-## 3. Configure the Render service
+## 2. Create the service on Render
 
-1. Push the repo to GitHub (Render deploys from a git remote).
-2. On [render.com](https://render.com), **New → Web Service**, connect the GitHub repo.
-3. Fill in:
-   - **Environment:** Python 3 (or Docker, if you went with Option B)
-   - **Build command:**
-     ```bash
-     poetry install --only main && python scripts/fetch_geodata.py
-     ```
-   - **Start command:**
-     ```bash
-     uvicorn app.main:app --host 0.0.0.0 --port $PORT
-     ```
-     (Render injects `$PORT`; the app must bind to it, not a hardcoded `8000`.)
-   - **Instance type:** Free (to try it out) or Starter ($7/mo, no sleep).
-4. Click **Create Web Service**. First deploy takes a few minutes (installs deps, fetches/simplifies geodata).
+1. Push to GitHub (Render deploys from the git remote).
+2. On [render.com](https://render.com), **New → Blueprint**, connect the GitHub repo. Render reads `render.yaml` and shows the `map-projektor` web service.
+3. Click **Apply**. The first deploy builds the Docker image (a few minutes).
 
-You can also commit a `render.yaml` at the repo root so this configuration is versioned instead of set by hand in the dashboard:
+Every merge to `main` then redeploys automatically (`autoDeploy: true`).
 
-```yaml
-services:
-  - type: web
-    name: map-projektor
-    env: python
-    plan: free
-    buildCommand: poetry install --only main && python scripts/fetch_geodata.py
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-```
+**Plan:** `plan: free` in `render.yaml`. Switch it to `starter` (~$7/month) to avoid the cold start after ~15 minutes idle.
 
 ---
 
@@ -109,7 +41,7 @@ services:
 
 Render gives you a URL like `https://map-projektor.onrender.com` — HTTPS is automatic and free (Render provisions a certificate). Open it and check:
 
-- The world map renders (confirms `world.geojson` was generated during build).
+- The world map renders (confirms the committed `world.geojson` made it into the image).
 - Switching projections and themes works (confirms static assets are served).
 - Browser console has no errors, no mixed-content (`http://`) warnings.
 
@@ -127,7 +59,7 @@ The app is read-only (no login, no user data, no database), so the attack surfac
 
 - **HTTPS only** — Render enforces this by default; nothing to configure.
 - **No secrets in the repo or logs** — the app currently has none; if you later add an API key, use Render's **Environment** tab (encrypted at rest), never commit it.
-- **`--reload` off in production** — already covered in step 1.3.
+- **`--reload` off in production** — the Dockerfile's start command omits it.
 - **Dependencies patched** — `poetry lock --check` periodically, `poetry update` when CVEs show up (e.g. via `pip-audit` or GitHub Dependabot alerts, which work fine on a Poetry repo).
 - **Restrict access (optional)** — if this should stay private-ish (e.g. shared with a few people, not indexed publicly), the simplest option is HTTP Basic Auth via FastAPI middleware:
 
@@ -152,8 +84,8 @@ The app is read-only (no login, no user data, no database), so the attack surfac
 
 ## Summary
 
-1. Commit `poetry.lock`, keep `--reload` out of the prod start command.
+1. The repo ships a `Dockerfile`, the committed geodata and a `render.yaml` Blueprint.
 2. Push to GitHub.
-3. Create a Render Web Service, build command runs `poetry install` + `fetch_geodata.py`, start command binds to `$PORT`.
+3. Render → **New → Blueprint** → connect the repo → **Apply**.
 4. Verify the live URL.
 5. (Optional) custom domain, Basic Auth if you want to restrict access.
