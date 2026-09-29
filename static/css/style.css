@@ -683,21 +683,29 @@ body {
   min-height: 0;
 }
 
-/* Shared shell for the map's floating popovers (info, compare) — only one
-   shown at a time. Docked top-right, level with the zoom pill and just left
-   of the toolbar column (12px + 40px + 12px gap): anchored to the bottom,
-   they covered the toolbar and cut the compare card's country list off at
-   the bottom of the screen. z-index sits one below the toolbar's so its
-   hover tooltips, which pop out to the left, still paint over an open card.
-   Figma drew only a dark card; it follows the theme instead (--card-*),
-   the shadow lifting the light one off a light map. */
-.floating-card {
+/* Stack for the map's floating popovers (info, compare), which can be open
+   together: compare on top, info below it. Docked top-right, level with the
+   zoom pill and just left of the toolbar column (12px + 40px + 12px gap):
+   anchored to the bottom, they covered the toolbar and cut the compare
+   card's country list off at the bottom of the screen. z-index sits one
+   below the toolbar's so its hover tooltips, which pop out to the left,
+   still paint over an open card. */
+#floating-cards {
   position: absolute;
   top: 84px;
   right: 64px;
   z-index: 9;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   width: 339px;
   max-width: calc(100% - 80px);
+  max-height: calc(100% - 100px);
+}
+
+/* Figma drew only a dark card; it follows the theme instead (--card-*),
+   the shadow lifting the light one off a light map. */
+.floating-card {
   padding: 20px;
   border-radius: 12px;
   background: var(--card-bg);
@@ -742,10 +750,11 @@ body {
    #info-tradeoffs-content lays the three terms out inline (Figma flattens
    them into one running paragraph — this keeps them as distinguishable
    label/value pairs instead, at the same 16px size). */
-/* Only the info card scrolls: its text can outgrow a short window, while
-   the compare card must not clip its absolutely-positioned country list. */
+/* Only the info card shrinks and scrolls when the stack outgrows a short
+   window: the compare card must not clip its absolutely-positioned country
+   list, which also paints over the info card below it. */
 #projection-info {
-  max-height: calc(100% - 100px);
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -778,6 +787,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  flex-shrink: 0;
 }
 
 /* Same [hidden]-vs-display:flex precedence issue as #compare-container
