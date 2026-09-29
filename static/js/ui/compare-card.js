@@ -1,6 +1,5 @@
 import { PROJECTIONS, getProjection, projectionName } from "../data/projections.js";
 import { compareHighlightGroup } from "../core/scene.js";
-import { infoVisible, setInfoVisible } from "./info-card.js";
 import { makeProjection } from "../core/projection.js";
 import { rotationFor } from "../core/recenter.js";
 import { t } from "../i18n.js";
@@ -270,7 +269,7 @@ function resetCompareSelection() {
   refreshCompareHighlight();
 }
 
-export function closeCompareCard() {
+function closeCompareCard() {
   compareCardVisible = false;
   compareCardEl.hidden = true;
   compareCardToggleBtn.classList.remove("active");
@@ -289,9 +288,6 @@ function openCompareCard() {
   if (worldData && !compareCountryNames) {
     compareCountryNames = [...new Set(worldData.features.map((f) => f.properties.name))].sort();
   }
-
-  // Only one toolbar popover at a time — mirrors the info-card guard above.
-  if (infoVisible) setInfoVisible(false);
 }
 
 compareCardToggleBtn.addEventListener("click", () => {
