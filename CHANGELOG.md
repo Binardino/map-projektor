@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-10-03 — Onboarding tour (on `feat/onboarding-tour`)
+
+### Added
+- A four-step guided tour starts when the welcome modal closes: each step highlights a control (projection list, view list, toolbar, zoom buttons) and explains it in a small bubble beside it, with **Next** and **Skip tutorial** (Esc skips too). It shows once per browser; the new **?** button at the bottom of the toolbar replays it. On mobile the drawer opens for the two sidebar steps
+- `e2e_smoke.py` walks the tour (desktop, skip/Esc, mobile); the UI text snapshot records its four steps
+
 ## 2026-09-29 — Cards together, offline Docker build, perf baseline
 
 ### Fixed
