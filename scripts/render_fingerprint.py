@@ -19,7 +19,7 @@ import sys
 
 from playwright.sync_api import sync_playwright
 
-from perf_transitions import BASE_URL, start_server, stop_server
+from perf_transitions import BASE_URL, skip_tour, start_server, stop_server
 
 ROOT_DIR = pathlib.Path(__file__).parent.parent
 FINGERPRINT_PATH = ROOT_DIR / "tests" / "render_fingerprint.json"
@@ -71,6 +71,7 @@ def apply_view(page, view_id):
 
 
 def capture(page):
+    skip_tour(page)
     page.goto(BASE_URL)
     page.wait_for_selector("path.country")
     page.keyboard.press("Escape")  # welcome modal
