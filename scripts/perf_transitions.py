@@ -57,6 +57,14 @@ def dropped_frame_margin(baseline_dropped):
     return max(8, round(baseline_dropped * 0.3))
 
 
+def skip_tour(page):
+    """Marks the onboarding tour as already seen, before the page loads: a
+    fresh browser profile would start it as soon as the welcome modal closes,
+    and its overlay intercepts every click. The key is TOUR_STORAGE_KEY in
+    static/js/config.js."""
+    page.add_init_script("localStorage.setItem('mapProjektorTourSeen', '1')")
+
+
 def start_server():
     proc = subprocess.Popen(
         ["poetry", "run", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", str(PORT)],
@@ -252,6 +260,7 @@ def main():
             all_results = []
             for run in range(runs):
                 page = browser.new_page(viewport={"width": 1280, "height": 900})
+                skip_tour(page)
                 page.goto(BASE_URL)
                 page.wait_for_selector("path.country")
                 # The welcome modal opens on every launch and overlays the whole page,

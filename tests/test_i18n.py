@@ -12,6 +12,7 @@ ALL_JS = "\n".join(p.read_text(encoding="utf-8") for p in sorted(JS_DIR.rglob("*
 PROJECTIONS_JS = (JS_DIR / "data" / "projections.js").read_text(encoding="utf-8")
 VIEWS_JS = (JS_DIR / "data" / "views.js").read_text(encoding="utf-8")
 INDEX_HTML = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
+ONBOARDING_JS = (JS_DIR / "ui" / "onboarding.js").read_text(encoding="utf-8")
 
 
 def test_html_keys_exist():
@@ -39,4 +40,12 @@ def test_every_projection_and_view_has_its_texts():
     expected = [f"projection.{i}.{f}" for i in projection_ids for f in ("name", "preserves", "distorts", "bestFor")]
     expected += [f"family.{f.lower()}" for f in families]
     expected += [f"view.{i}.{f}" for i in view_ids for f in ("name", "description")]
+    assert [k for k in expected if k not in EN] == []
+
+
+def test_every_tour_step_has_its_texts():
+    # Built dynamically as tour.step.<id>.<field>, like the projection texts.
+    step_ids = re.findall(r'^  \{ id: "(\w+)"', ONBOARDING_JS, re.M)
+    assert step_ids
+    expected = [f"tour.step.{i}.{f}" for i in step_ids for f in ("title", "text")]
     assert [k for k in expected if k not in EN] == []

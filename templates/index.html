@@ -38,6 +38,7 @@
   <link rel="modulepreload" href="/static/js/ui/compare-card.js" />
   <link rel="modulepreload" href="/static/js/ui/info-card.js" />
   <link rel="modulepreload" href="/static/js/ui/mobile-sidebar.js" />
+  <link rel="modulepreload" href="/static/js/ui/onboarding.js" />
   <link rel="modulepreload" href="/static/js/ui/sidebar.js" />
   <link rel="modulepreload" href="/static/js/ui/theme.js" />
   <link rel="modulepreload" href="/static/js/ui/welcome-modal.js" />
@@ -90,6 +91,7 @@
             <svg width="16" height="23" viewBox="0 0 16 23" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.0498 0C8.46402 1.81059e-08 8.7998 0.335786 8.7998 0.75V3H15C15.5523 3 16 3.44772 16 4V18C16 18.5523 15.5523 19 15 19H8.7998V22.25C8.7998 22.6642 8.46402 23 8.0498 23C7.63576 22.9998 7.2998 22.6641 7.2998 22.25V19H1L0.897461 18.9951C0.393331 18.9438 0 18.5177 0 18V4C0 3.48232 0.393331 3.05621 0.897461 3.00488L1 3H7.2998V0.75C7.2998 0.335909 7.63576 0.000197827 8.0498 0ZM8.7998 17.5H14.5V4.5H8.7998V17.5ZM1.5 17.5H7.2998V4.5H1.5V17.5Z" fill="currentColor"/></svg>
           </button>
           <button id="info-toggle-btn" class="tool-btn" aria-pressed="false" data-i18n-attr="aria-label:tool.info;data-tooltip:tool.info">i</button>
+          <button id="tour-replay-btn" class="tool-btn" data-i18n-attr="aria-label:tool.tour;data-tooltip:tool.tour">?</button>
         </div>
         <div id="floating-cards">
           <div id="compare-card" class="floating-card" hidden>
@@ -139,6 +141,20 @@
           <p data-i18n="welcome.intro3"></p>
         </div>
         <button id="help-modal-cta" data-i18n="welcome.cta"></button>
+      </div>
+    </div>
+
+    <!-- Onboarding tour: steps and positions are set by ui/onboarding.js -->
+    <div id="tour" hidden>
+      <div id="tour-spotlight"></div>
+      <div id="tour-bubble" role="dialog" aria-labelledby="tour-title" aria-describedby="tour-text">
+        <p id="tour-progress"></p>
+        <h2 id="tour-title"></h2>
+        <p id="tour-text"></p>
+        <div id="tour-actions">
+          <button id="tour-skip" data-i18n="tour.skip"></button>
+          <button id="tour-next"></button>
+        </div>
       </div>
     </div>
 
