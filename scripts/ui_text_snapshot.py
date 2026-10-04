@@ -19,7 +19,7 @@ import sys
 from playwright.sync_api import sync_playwright
 
 # Same server lifecycle as the perf harness — one place to fix if it changes.
-from perf_transitions import BASE_URL, start_server, stop_server
+from perf_transitions import BASE_URL, skip_tour, start_server, stop_server
 
 ROOT_DIR = pathlib.Path(__file__).parent.parent
 SNAPSHOT_PATH = ROOT_DIR / "tests" / "ui_text_snapshot.json"
@@ -65,6 +65,9 @@ def wait_until_settled(page):
 
 def capture_states(page):
     states = {}
+    # The tour is replayed from its toolbar button at the end instead of
+    # starting by itself, so the states before it stay free of its overlay.
+    skip_tour(page)
     page.goto(BASE_URL)
     page.wait_for_selector("path.country")
     states["launch (welcome modal open)"] = page.evaluate(COLLECT_JS)
@@ -91,6 +94,13 @@ def capture_states(page):
     # their own interpolated labels.
     page.click("#compare-country-results li")
     states["compare card, one country picked"] = page.evaluate(COLLECT_JS)
+
+    page.click("#tour-replay-btn")
+    step = 1
+    while page.is_visible("#tour"):
+        states[f"onboarding tour, step {step}"] = page.evaluate(COLLECT_JS)
+        page.click("#tour-next")
+        step += 1
     return states
 
 

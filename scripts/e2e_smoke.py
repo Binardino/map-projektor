@@ -16,7 +16,7 @@ import time
 
 from playwright.sync_api import sync_playwright
 
-from perf_transitions import BASE_URL, start_server, stop_server
+from perf_transitions import BASE_URL, skip_tour, start_server, stop_server
 
 VIEWPORT = {"width": 1280, "height": 900}
 MOBILE_VIEWPORT = {"width": 390, "height": 844}
@@ -61,8 +61,34 @@ def active_view(page):
     return page.evaluate("() => document.querySelector('.recenter-btn.active')?.dataset.presetId")
 
 
+def tour_open(page):
+    return page.is_visible("#tour")
+
+
+def tour_seen(page):
+    return page.evaluate("() => localStorage.getItem('mapProjektorTourSeen')") == "1"
+
+
+def spotlight_covers(page, selector):
+    """The spotlight frames the step's control: same box, give or take its padding."""
+    target = page.locator(selector).bounding_box()
+    spot = page.locator("#tour-spotlight").bounding_box()
+    return all(abs(spot[k] - target[k]) <= 12 for k in ("x", "y", "width", "height"))
+
+
+def bubble_on_screen(page):
+    box = page.locator("#tour-bubble").bounding_box()
+    size = page.viewport_size
+    return box["x"] >= 0 and box["y"] >= 0 and box["x"] + box["width"] <= size["width"] and box["y"] + box["height"] <= size["height"]
+
+
+TOUR_TARGETS = ["#projection-list", "#recenter-panel", "#map-tools", "#zoom-controls"]
+
+
 # ---------------------------------------------------------------- scenarios
 # Each takes a page on a freshly loaded app (welcome modal open) and asserts.
+# Every scenario but the onboarding ones starts with the tour marked as seen
+# (see main), so closing the modal leaves the app free to click.
 
 def welcome_modal(page):
     assert modal_open(page), "welcome modal should open on launch"
@@ -77,6 +103,60 @@ def welcome_modal(page):
     open_app(page)
     page.mouse.click(5, 5)  # the backdrop, outside the dialog
     assert not modal_open(page), "a backdrop click should close the modal"
+
+
+def onboarding_tour(page):
+    assert not tour_open(page), "the tour should wait for the welcome modal to close"
+    page.click("#help-modal-cta")
+    for index, selector in enumerate(TOUR_TARGETS):
+        assert tour_open(page), f"step {index + 1} should be showing"
+        assert page.inner_text("#tour-progress") == f"{index + 1} / {len(TOUR_TARGETS)}"
+        assert spotlight_covers(page, selector), f"step {index + 1} should highlight {selector}"
+        assert bubble_on_screen(page), f"step {index + 1}: the bubble should fit in the window"
+        last = index == len(TOUR_TARGETS) - 1
+        assert page.is_visible("#tour-skip") != last, "Skip shows on every step but the last"
+        page.click("#tour-next")
+    assert not tour_open(page), "Done should close the tour"
+    assert tour_seen(page), "a finished tour should be remembered"
+
+    open_app(page)
+    page.click("#help-modal-cta")
+    assert not tour_open(page), "a seen tour should not start again by itself"
+    page.click("#tour-replay-btn")
+    assert tour_open(page), "the ? button should replay the tour"
+    page.click("#tour-skip")
+    assert not tour_open(page), "Skip tutorial should close the tour"
+    switch(page, "robinson")  # the app is clickable again
+
+
+def onboarding_skip_and_escape(page):
+    # The Escape that closes the modal must not also skip the tour it starts
+    page.keyboard.press("Escape")
+    assert not modal_open(page) and tour_open(page), "Esc on the modal should leave the tour open"
+    assert not tour_seen(page)
+    page.keyboard.press("Escape")
+    assert not tour_open(page), "Esc should skip the tour"
+    assert tour_seen(page), "a skipped tour should be remembered"
+
+    page.evaluate("() => localStorage.clear()")
+    open_app(page)
+    page.click("#help-modal-close")
+    page.click("#tour-skip")
+    assert not tour_open(page) and tour_seen(page), "Skip tutorial on the first step should end the tour"
+
+
+def onboarding_mobile(page):
+    page.set_viewport_size(MOBILE_VIEWPORT)
+    open_app(page)
+    page.click("#help-modal-cta")
+    drawer_open = "() => document.getElementById('sidebar').classList.contains('open')"
+    for index, selector in enumerate(TOUR_TARGETS):
+        page.wait_for_timeout(350)  # the drawer's slide, after which the bubble is placed again
+        assert page.evaluate(drawer_open) == (index < 2), f"step {index + 1}: drawer open only for the sidebar steps"
+        assert spotlight_covers(page, selector), f"step {index + 1} should highlight {selector}"
+        assert bubble_on_screen(page), f"step {index + 1}: the bubble should fit in the window"
+        page.click("#tour-next")
+    assert not tour_open(page) and not page.evaluate(drawer_open)
 
 
 def view_survives_switch(page):
@@ -206,7 +286,8 @@ def mobile_drawer(page):
     assert not page.evaluate("() => document.getElementById('sidebar').classList.contains('open')"), "drawer should close"
 
 
-SCENARIOS = [welcome_modal, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, ui_rebuild, mobile_drawer]
+ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, ui_rebuild, mobile_drawer]
 
 
 def main():
@@ -223,6 +304,8 @@ def main():
                 page.on("console", lambda msg, problems=problems: problems.append(f"console: {msg.text}")
                         if msg.type in ("error", "warning") or "[i18n] missing key" in msg.text else None)
                 try:
+                    if scenario not in ONBOARDING_SCENARIOS:
+                        skip_tour(page)
                     open_app(page)
                     scenario(page)
                 except AssertionError as err:
