@@ -15,7 +15,7 @@ Interactive world map web app displaying 17 cartographic projections with animat
 **Perf regression check (transitions):** `poetry run python scripts/perf_transitions.py` — drives every projection switch and recenter preset in headless Chromium and compares frame-drop/avg-frame-time against `tests/perf_baseline.json`. Re-run with `--write-baseline` (median of 3 runs) after a deliberate, verified perf improvement to update the reference numbers. Requires `poetry run playwright install chromium` once (not run automatically, not part of `pytest`).
 
 **Refactor safety net** (Playwright scripts, same Chromium requirement, not part of `pytest`):
-- `poetry run python scripts/ui_text_snapshot.py --check` — every user-visible string in 9 UI states vs `tests/ui_text_snapshot.json`
+- `poetry run python scripts/ui_text_snapshot.py --check` — every user-visible string in 13 UI states vs `tests/ui_text_snapshot.json`
 - `poetry run python scripts/render_fingerprint.py --check` — hashes of the drawn paths for 17 projections × 2 views, plus 5 projected control points, vs `tests/render_fingerprint.json`
 - `poetry run python scripts/e2e_smoke.py` — walks the main user paths, fails on any page error or missing i18n key (~30 s)
 - `node --test 'tests/js/*.test.mjs'` — JS unit tests (Node's built-in runner, no npm). Keep the quoted glob: Node 24 does not accept `node --test tests/js/`
@@ -33,7 +33,7 @@ The golden files take `--write` after a deliberate change. **Before a PR:** `scr
 | `static/js/main.js` | ES module entry: imports every module, then `init()` |
 | `static/js/data/` | `projections.js` (PROJECTIONS registry), `views.js` (recenter presets) |
 | `static/js/core/` | Scene, state, projection factory, rendering, animation, recenter, camera, selection, transitions |
-| `static/js/ui/` | Info card, compare card, sidebar, mobile drawer, welcome modal, theme |
+| `static/js/ui/` | Info card, compare card, sidebar, mobile drawer, welcome modal, onboarding tour, theme |
 | `static/js/tools/` | Distortion grid, reference lines; `index.js` is core's only way in (side-by-side, flight path, true size are kept but not loaded) |
 | `static/js/debug.js` | Read-only `window.__app` hook for the test scripts |
 | `static/css/style.css` | CSS variables (theme) + layout |
@@ -101,7 +101,9 @@ Transitions morph a blended projection frame by frame, reprojecting a thinned co
 | `language` | `i18n.js` (`setLanguage`) |
 | `flightPathMode` | `tools/flight-path.js` |
 
-Events: `frame` (every animation frame, payload = live projection), `view:changing` / `view:changed` (a morph or view change starts / settles), `projection:requested` (a projection button was clicked), `pointer:reset` (a recenter or selection ends pointer modes), `selection:changed`, `language:changed` (every UI builder re-renders). The GeoJSON is not state: `data/geodata.js` loads it once. Module-local values only their module writes (camera transform, selected country) stay plain exports.
+Events: `frame` (every animation frame, payload = live projection), `view:changing` / `view:changed` (a morph or view change starts / settles), `projection:requested` (a projection button was clicked), `pointer:reset` (a recenter or selection ends pointer modes), `selection:changed`, `language:changed` (every UI builder re-renders), `welcome:closed` (the welcome modal was dismissed: the onboarding tour starts if it was never seen). The GeoJSON is not state: `data/geodata.js` loads it once. Module-local values only their module writes (camera transform, selected country) stay plain exports.
+
+**Onboarding tour** (`static/js/ui/onboarding.js`): starts once after the welcome modal closes (localStorage flag `TOUR_STORAGE_KEY`), replayable from the toolbar's `?` button. A step is one entry in its `STEPS` array (target selector, bubble side) plus `tour.step.<id>.title` / `.text` in `en.json`. The Playwright scripts call `skip_tour(page)` (`scripts/perf_transitions.py`) before loading the page so its overlay doesn't intercept their clicks.
 
 ---
 
