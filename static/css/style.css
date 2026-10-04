@@ -286,6 +286,135 @@ body {
   background: color-mix(in srgb, var(--accent) 80%, var(--text-primary));
 }
 
+/* ============================================================
+   ONBOARDING TOUR — a spotlight on one control and a bubble
+   beside it (placed by ui/onboarding.js)
+   ============================================================ */
+/* Covers the page so the app can't be clicked mid-tour; above the mobile
+   drawer (100) and its toggle (110). */
+#tour {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+
+#tour[hidden] {
+  display: none;
+}
+
+/* The dimming is the spotlight's own shadow, so the highlighted control
+   stays at full brightness without a cut-out mask. */
+#tour-spotlight {
+  position: fixed;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 0 0 200vmax var(--modal-backdrop);
+  pointer-events: none;
+}
+
+#tour-bubble {
+  position: fixed;
+  width: min(280px, calc(100vw - 32px));
+  padding: 16px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+}
+
+/* The arrow: a square turned 45°, showing only the two borders that face
+   the target. --tour-arrow-top is set per step to aim at its middle. */
+#tour-bubble::before {
+  content: "";
+  position: absolute;
+  top: var(--tour-arrow-top, 50%);
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+
+#tour-bubble[data-side="right"]::before {
+  left: -7px;
+  border-top: none;
+  border-right: none;
+}
+
+#tour-bubble[data-side="left"]::before {
+  right: -7px;
+  border-bottom: none;
+  border-left: none;
+}
+
+#tour-bubble[data-side="none"]::before {
+  display: none;
+}
+
+#tour-progress {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+#tour-title {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+#tour-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+#tour-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+#tour-skip {
+  padding: 0;
+  font-family: var(--font-family);
+  font-size: 12px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+#tour-skip[hidden] {
+  display: none;
+}
+
+#tour-skip:hover {
+  color: var(--text-primary);
+}
+
+/* Same pill as the welcome modal's call to action */
+#tour-next {
+  margin-left: auto;
+  padding: 8px 20px;
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--active-bg);
+  border: 1px solid var(--active-border);
+  border-radius: 999px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+#tour-next:hover {
+  background: color-mix(in srgb, var(--accent) 80%, var(--text-primary));
+}
+
 /* Compare mode dims the projection list while active (see map.js) — kept
    even though its sidebar toggle is gone for now, since it's cheap to
    leave wired for whenever compare mode gets a new trigger. */

@@ -11,6 +11,14 @@ const sidebarToggleBtn = document.getElementById("sidebar-toggle");
 const sidebarBackdrop  = document.getElementById("sidebar-backdrop");
 const sidebarEl        = document.getElementById("sidebar");
 
+// The drawer only exists where the toggle button shows (under the mobile
+// breakpoint); on desktop this would only dim the page with the backdrop.
+export function openSidebar() {
+  if (getComputedStyle(sidebarToggleBtn).display === "none") return;
+  sidebarEl.classList.add("open");
+  sidebarBackdrop.hidden = false;
+}
+
 export function closeSidebar() {
   sidebarEl.classList.remove("open");
   sidebarBackdrop.hidden = true;

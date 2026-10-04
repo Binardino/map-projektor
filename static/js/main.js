@@ -17,6 +17,7 @@ import "./core/selection.js";
 import "./ui/mobile-sidebar.js";
 import "./tools/index.js";
 import "./ui/welcome-modal.js";
+import "./ui/onboarding.js";
 import "./ui/theme.js";
 import "./debug.js";
 import { getProjection } from "./data/projections.js";

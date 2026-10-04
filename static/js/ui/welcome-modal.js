@@ -1,8 +1,11 @@
+import { emit } from "../state.js";
+
 // ============================================================
 // WELCOME MODAL
 //
-// A short pitch (why flat maps lie); the controls are left to a
-// progressive onboarding later. Opens on every launch —
+// A short pitch (why flat maps lie); the controls are left to the
+// onboarding tour (ui/onboarding.js), which listens for the
+// "welcome:closed" event. Opens on every launch —
 // there is no "seen" flag and no manual re-open trigger.
 // ============================================================
 
@@ -16,6 +19,7 @@ export function openHelpModal() {
 
 function closeHelpModal() {
   helpModalBackdrop.hidden = true;
+  emit("welcome:closed");
 }
 
 helpModalCloseBtn.addEventListener("click", closeHelpModal);
