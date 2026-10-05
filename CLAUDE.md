@@ -41,6 +41,7 @@ The golden files take `--write` after a deliberate change. **Before a PR:** `scr
 | `scripts/fetch_geodata.py` | One-shot data fetch + Douglas-Peucker simplification |
 | `scripts/check_all.sh` | Runs every check below in order, stops at the first failure |
 | `scripts/perf_transitions.py`, `ui_text_snapshot.py`, `render_fingerprint.py`, `e2e_smoke.py` | Playwright checks; read app state through the read-only `window.__app` hook (`debug.js`) |
+| `scripts/capture_readme_assets.py` | Regenerates the README's screenshots and transition GIF in `docs/assets/` from the running app (Playwright; the GIF needs `ffmpeg`). Re-run after a visible UI change |
 | `tests/*.py` | pytest: FastAPI routes, i18n key coverage |
 | `tests/*.json` | Golden files and perf baseline for the scripts above |
 | `tests/js/` | node:test unit tests importing the modules directly, plus the layering and modulepreload guards |
