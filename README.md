@@ -83,7 +83,7 @@ Open [http://localhost:8000](http://localhost:8000). For deploying this image to
 ## Project Structure
 
 ```
-map_projektor_universal_converter/
+map-projektor/
 ├── app/
 │   ├── main.py              # FastAPI app: index, GeoJSON, and static routes
 │   └── data/

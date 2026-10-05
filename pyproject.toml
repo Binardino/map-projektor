@@ -1,7 +1,7 @@
 [project]
-name = "map-projektor-universal-converter"
+name = "map-projektor"
 version = "0.1.0"
-description = ""
+description = "The Universal Map Projection Converter: an interactive world map with animated transitions between 17 cartographic projections."
 authors = [
     {name = "Binardino",email = "46687351+Binardino@users.noreply.github.com"}
 ]
