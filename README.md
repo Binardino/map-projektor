@@ -93,6 +93,8 @@ Open [http://localhost:8000](http://localhost:8000). The container listens on `$
 | Checks | pytest, Node's built-in test runner, Playwright |
 | Packaging | Poetry, Docker |
 
-<!-- SEC_CONTRIBUTING -->
+## Contributing
+
+Adding a projection takes one object in the registry and four strings. [CONTRIBUTING.md](CONTRIBUTING.md) explains how, where the code lives and which checks to run. The history of changes is in [CHANGELOG.md](CHANGELOG.md).
 
 <!-- SEC_CREDITS_LICENSE -->
