@@ -36,7 +36,7 @@ map_projektor_universal_converter/
 ├── scripts/
 │   └── fetch_geodata.py     # one-shot data fetch and simplification script
 ├── docs/
-│   └── superpowers/specs/
+│   └── design/specs/
 │       └── 2026-06-07-map-projektor-design.md
 ├── .gitignore
 └── pyproject.toml

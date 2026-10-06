@@ -134,7 +134,7 @@ def fetch_terrain():
     TERRAIN_OUTPUT_PATH.write_text(json.dumps(dict_feature, separators=(",", ":")))
 
 def main():
-    """Fetch Natural Earth 110m countries, simplify geometries, save to app/data/world.geojson."""
+    """Fetch Natural Earth 1:50m countries, simplify geometries, save to app/data/world.geojson."""
     print(f"Fetching {SOURCE_URL} ...")
     response = requests.get(SOURCE_URL, timeout=30)
     response.raise_for_status()
