@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-10-06 — Continuous integration (on `ci/tests`)
+
+### Added
+- A GitHub Actions workflow runs pytest and the JS unit tests on every pull request and on each push to `main`; the README shows its status badge. The Playwright scripts and the perf harness stay local (`scripts/check_all.sh`)
+
 ## 2026-10-06 — Repository polish before publication (on `docs/repo-polish`)
 
 ### Changed
