@@ -47,7 +47,7 @@ name = "map-projektor-universal-converter"
 version = "0.1.0"
 description = "Interactive world map with animated projection transitions"
 authors = [
-    {name = "Binardino", email = "langlois.robin@gmail.com"}
+    {name = "Binardino", email = "46687351+Binardino@users.noreply.github.com"}
 ]
 requires-python = ">=3.10"
 dependencies = [
