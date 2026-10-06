@@ -97,4 +97,12 @@ Open [http://localhost:8000](http://localhost:8000). The container listens on `$
 
 Adding a projection takes one object in the registry and four strings. [CONTRIBUTING.md](CONTRIBUTING.md) explains how, where the code lives and which checks to run. The history of changes is in [CHANGELOG.md](CHANGELOG.md).
 
-<!-- SEC_CREDITS_LICENSE -->
+## Credits
+
+- Map data: [Natural Earth](https://www.naturalearthdata.com/) (public domain), simplified by `scripts/fetch_geodata.py`
+- Projections and rendering: [D3](https://d3js.org/) and [d3-geo-projection](https://github.com/d3/d3-geo-projection) (ISC license)
+- Typeface: [Quicksand](https://fonts.google.com/specimen/Quicksand) (SIL Open Font License)
+
+## License
+
+[MIT](LICENSE)
