@@ -93,6 +93,8 @@ It runs everything below in order and stops at the first failure:
 | Main user paths, no page error | `poetry run python scripts/e2e_smoke.py` |
 | Transition frame times against a baseline | `poetry run python scripts/perf_transitions.py` |
 
+GitHub Actions runs the first two on every pull request (`.github/workflows/tests.yml`); the browser checks and the perf harness only run on your machine.
+
 Keep the quotes around the JS test glob. The perf numbers come from headless Chromium and vary between machines: if it fails on a change that does not touch rendering or animation, run it again on `main` before suspecting your change.
 
 If your change is visible in the UI, regenerate the README images with `poetry run python scripts/capture_readme_assets.py` (the GIF needs `ffmpeg`).

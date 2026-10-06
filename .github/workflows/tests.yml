@@ -1,0 +1,38 @@
+name: Tests
+
+# The fast checks only: the Playwright scripts and the perf harness stay
+# local (scripts/check_all.sh), they are slow and their timings depend on
+# the machine.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Poetry must exist before setup-python can cache its virtualenv
+      - run: pipx install poetry
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: poetry
+      - run: poetry install --no-interaction
+      - run: poetry run pytest -v
+
+  javascript:
+    name: JS unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # No npm install: the tests import the modules directly
+      - run: node --test 'tests/js/*.test.mjs'

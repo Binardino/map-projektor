@@ -3,6 +3,10 @@
 <p align="center"><strong>The Universal Map Projection Converter</strong></p>
 
 <p align="center">
+  <a href="https://github.com/Binardino/map-projektor/actions/workflows/tests.yml"><img src="https://github.com/Binardino/map-projektor/actions/workflows/tests.yml/badge.svg?branch=main" alt="Tests"></a>
+</p>
+
+<p align="center">
   An interactive world map that morphs between 17 cartographic projections,<br>
   so you can see what each one preserves and what it distorts.
 </p>
