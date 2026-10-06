@@ -125,5 +125,5 @@ Edit only the `:root` block in `static/css/style.css`. All colors are CSS variab
 
 ## Design Spec & Implementation Plan
 
-- Spec: `docs/superpowers/specs/2026-06-07-map-projektor-design.md`
-- Plan: `docs/superpowers/plans/2026-06-07-map-projektor.md`
+- Spec: `docs/design/specs/2026-06-07-map-projektor-design.md`
+- Plan: `docs/design/plans/2026-06-07-map-projektor.md`
