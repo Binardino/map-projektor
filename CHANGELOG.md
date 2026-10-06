@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-10-06 — Repository polish before publication (on `docs/repo-polish`)
+
+### Changed
+- The project is renamed **map-projektor** (GitHub repository and `pyproject.toml`); the old repository URL redirects
+- README rewritten: it opens on a screenshot, a GIF of the transitions and a gallery, and its feature list matches what the app shows today (the old one still advertised side-by-side comparison and continent colours)
+- `docs/superpowers/` is now `docs/design/`
+- The author email in `pyproject.toml` is the GitHub noreply address
+
+### Added
+- `scripts/capture_readme_assets.py` regenerates the README screenshots and GIF from the running app
+- `CONTRIBUTING.md`: setup, code layout, adding a projection, the checks to run
+- `LICENSE`: the project is released under the MIT license; the README credits Natural Earth, D3 and the Quicksand typeface
+
+### Removed
+- `docs/sprint-board.html`, a static copy of the live sprint board
+
 ## 2026-10-03 — Onboarding tour (on `feat/onboarding-tour`)
 
 ### Added
