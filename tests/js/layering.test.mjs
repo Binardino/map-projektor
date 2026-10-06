@@ -1,5 +1,5 @@
 // Enforces the layering rule of the modularization plan
-// (docs/superpowers/plans/2026-09-21-modularization/README.md): lower layers
+// (docs/design/plans/2026-09-21-modularization/README.md): lower layers
 // never import higher ones, so a module can be understood and tested with
 // only what sits below it.
 import { test } from "node:test";

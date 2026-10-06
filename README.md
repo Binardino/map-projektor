@@ -1,63 +1,65 @@
-# Map Projektor Universal Converter
+<h1 align="center">Map Projektor</h1>
 
-An interactive world map that renders 17 cartographic projections and animates smooth transitions between them. Built as a hands-on FastAPI + D3.js learning project.
+<p align="center"><strong>The Universal Map Projection Converter</strong></p>
+
+<p align="center">
+  An interactive world map that morphs between 17 cartographic projections,<br>
+  so you can see what each one preserves and what it distorts.
+</p>
+
+<p align="center">
+  <img src="docs/assets/hero.png" alt="Map Projektor showing the orthographic globe centered on Africa, with the projection and view lists in the sidebar" width="830">
+</p>
+
+## See it move
+
+Switching projection never snaps: the map morphs from one to the other, and routes through the globe when a polar view is involved.
+
+<p align="center">
+  <img src="docs/assets/transition.gif" alt="The map morphing from Mercator to the globe, to Robinson, then to the North Polar view" width="640">
+</p>
+
+| | |
+|---|---|
+| <img src="docs/assets/tissot.png" alt="Mercator with the Tissot indicatrix grid: the circles grow towards the poles"><br>**Distortion grid** on Mercator | <img src="docs/assets/south-up.png" alt="Robinson projection with south at the top"><br>**South-up view** on Robinson |
+| <img src="docs/assets/conic.png" alt="Albers conic projection, a fan-shaped world map"><br>**Conic** projection (Albers) | <img src="docs/assets/dark.png" alt="The orthographic globe in the dark theme"><br>**Dark theme** on the globe |
 
 ## Features
 
-- **17 projections** across 6 families: Cylindrical, Pseudocylindrical, Azimuthal, Conic, Pseudoazimuthal, and Polar
-- **Animated transitions** — switching projection morphs the map through an intermediate orthographic globe (fold → spin → unfold) rather than snapping instantly
-- **Country search & click-to-zoom** — search or click a country to pan/zoom and highlight it, useful for comparing its apparent size across projections
-- **Persistent zoom & wheel zoom** — a selected country stays selected and zoomed across projection switches (dezoom → morph → rezoom automatically); mouse wheel zooms further in/out centered on the country while it's selected
-- **Side-by-side comparison mode** — two independently selectable projections rendered at once, for direct visual comparison
-- **Tissot's indicatrix overlay** — a graticule + grid of geographic circles that become ellipses under projection, revealing each projection's local distortion (the standard cartography teaching tool)
-- **Recenter View presets** — China-centered, USA/Pacific-centered, and South America upside-down, curated examples showing that the default Europe-centered map is itself a convention, not a neutral baseline
-- **Multiple color themes** — Blue (default), Forest, Dark Mode, selectable at runtime and persisted across reloads
-- **Responsive layout** — off-canvas sidebar drawer and stacked comparison panels under 768px
-- **Continent-colored countries** rendered from simplified Natural Earth data
-- A short description and metadata (family, year introduced) for each projection
+- **17 projections in 5 families**: cylindrical, pseudocylindrical, azimuthal, pseudoazimuthal and conic, from Mercator to Equal Earth, plus a draggable 3D globe and two polar views
+- **Animated transitions**: the map morphs from one projection to the next instead of snapping; a switch to or from a polar view folds into the globe, spins, then unfolds
+- **Six points of view**: Europe-, China-, Africa-, America- and Oceania-centered, and a south-up map. The Europe-centered default is a convention, not a fact of nature, and the chosen view carries over when you switch projection
+- **Distortion grid**: Tissot's indicatrix, a grid of identical circles on the sphere that the projection stretches into ellipses, so you see where and how much it distorts
+- **Reference lines**: equator, tropics, polar circles and meridians
+- **Country size comparison**: pick up to 5 countries and redraw them under another projection, on top of the current map
+- **Projection facts**: what each projection preserves, what it distorts and what it is best for
+- **Navigation**: zoom with the buttons or the mouse wheel, drag to pan or to spin the globe, click a country to focus on it
+- **Light and dark themes**, remembered between visits
+- **Guided tour** on the first visit, replayable from the toolbar
+- **Mobile layout**: the sidebar becomes a drawer on small screens
 
-## Stack
+## Quickstart
 
-| Layer | Technology |
-|---|---|
-| Server | FastAPI + uvicorn |
-| Templating | Jinja2 |
-| Cartography | D3.js v7 + d3-geo-projection v4 |
-| Data pipeline | Python — `requests` + `shapely` |
-| Package management | Poetry |
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.10+
-- [Poetry](https://python-poetry.org/)
-
-### Install dependencies
+You need Python 3.10+ and [Poetry](https://python-poetry.org/).
 
 ```bash
+git clone https://github.com/Binardino/map-projektor.git
+cd map-projektor
 poetry install
-```
-
-### Generate map data (one-time)
-
-The app needs a simplified world GeoJSON file. It is committed to the repo, so a fresh clone (and `docker build`) works offline. Only re-run this step to refresh the data; it requires internet access.
-
-```bash
-poetry run python scripts/fetch_geodata.py
-```
-
-This downloads Natural Earth 110m country boundaries, simplifies geometries with the Douglas-Peucker algorithm, and saves the result to `app/data/world.geojson`. It also fetches Natural Earth's physical regions dataset, keeps the mountain range/plateau and desert features plus the Amazon/Congo basins (a rough proxy for tropical forest, since Natural Earth has no forest layer), and saves them to `app/data/terrain.geojson` for the decorative terrain overlay.
-
-### Run the server
-
-```bash
 poetry run uvicorn app.main:app --reload
 ```
 
 Open [http://localhost:8000](http://localhost:8000).
 
-### Run tests
+The map data is committed, so there is nothing to download first. The browser loads D3 from a CDN, so it needs internet access.
+
+To refresh the data from Natural Earth (optional, needs internet access):
+
+```bash
+poetry run python scripts/fetch_geodata.py
+```
+
+Run the tests:
 
 ```bash
 poetry run pytest -v
@@ -65,7 +67,7 @@ poetry run pytest -v
 
 ## Run with Docker
 
-The app can also run as a self-contained container — no local Python/Poetry setup needed. The image builds the GeoJSON data at `docker build` time, so the container is fully standalone at runtime.
+No Python or Poetry needed on your machine:
 
 ```bash
 docker build -t map-projektor .
@@ -78,59 +80,29 @@ Or with Docker Compose:
 docker compose up --build
 ```
 
-Open [http://localhost:8000](http://localhost:8000). For deploying this image to a hosting platform (e.g. Render), see [docs/deployment.md](docs/deployment.md).
+Open [http://localhost:8000](http://localhost:8000). The container listens on `$PORT` (8000 by default), which is what most hosting platforms expect; [docs/deployment.md](docs/deployment.md) walks through one of them.
 
-## Project Structure
+## Stack
 
-```
-map_projektor_universal_converter/
-├── app/
-│   ├── main.py              # FastAPI app: index, GeoJSON, and static routes
-│   └── data/
-│       ├── world.geojson    # Generated by fetch_geodata.py (committed)
-│       └── terrain.geojson  # Generated by fetch_geodata.py (committed)
-├── static/
-│   ├── css/style.css        # CSS variables (themes) + layout
-│   └── js/
-│       ├── main.js          # ES module entry point
-│       ├── data/            # PROJECTIONS registry, recenter presets
-│       ├── core/            # D3 scene, rendering, animation, camera
-│       ├── ui/              # Cards, sidebar, welcome modal, theme
-│       └── tools/           # Distortion grid, reference lines
-├── templates/
-│   └── index.html           # Page structure: sidebar + SVG map
-├── scripts/
-│   └── fetch_geodata.py     # One-shot data fetch + simplification script
-├── tests/
-│   └── test_main.py         # FastAPI route tests
-└── docs/superpowers/        # Design spec and implementation plan
-```
+| Layer | Technology |
+|---|---|
+| Server | FastAPI + uvicorn, Jinja2 template |
+| Map | D3.js v7 + d3-geo-projection v4, drawn as SVG |
+| Frontend code | Plain ES modules: no framework, no bundler, no npm |
+| Data pipeline | Python (`requests` + `shapely`) on Natural Earth 1:50m data |
+| Checks | pytest, Node's built-in test runner, Playwright |
+| Packaging | Poetry, Docker |
 
-## Adding a Projection
+## Contributing
 
-Add one object to the `PROJECTIONS` array in `static/js/data/projections.js` — nothing else needs to change:
+Adding a projection takes one object in the registry and four strings. [CONTRIBUTING.md](CONTRIBUTING.md) explains how, where the code lives and which checks to run. The history of changes is in [CHANGELOG.md](CHANGELOG.md).
 
-```js
-{
-  id: "myProjection",
-  name: "My Projection",
-  family: "Family Name",
-  year: 1900,
-  description: "What it does and why it matters.",
-  d3fn: () => d3.geoMyProjection(), // from d3-geo-projection if not in D3 core
-}
-```
+## Credits
 
-Projections requiring `d3-geo-projection` (loaded via CDN in `index.html`): Robinson, Mollweide, Sinusoidal, Winkel Tripel, Aitoff, Hammer, Gall-Peters, Eckert IV.
-
-## Changing the Theme
-
-Edit the `:root` block (and theme override blocks) in `static/css/style.css`. All colors are CSS variables, so a single edit propagates across the whole UI.
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for a sprint-by-sprint history of features and fixes.
+- Map data: [Natural Earth](https://www.naturalearthdata.com/) (public domain), simplified by `scripts/fetch_geodata.py`
+- Projections and rendering: [D3](https://d3js.org/) and [d3-geo-projection](https://github.com/d3/d3-geo-projection) (ISC license)
+- Typeface: [Quicksand](https://fonts.google.com/specimen/Quicksand) (SIL Open Font License)
 
 ## License
 
-Personal learning project — no license specified.
+[MIT](LICENSE)
