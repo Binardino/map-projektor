@@ -252,6 +252,41 @@ def tools_and_cards(page):
     assert not page.is_visible("#projection-info")
 
 
+# Screen box of the first compared country: centre and size.
+COMPARE_BOX_JS = """() => {
+    const box = document.querySelector(".compare-highlight").getBoundingClientRect();
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2, width: box.width, height: box.height };
+}"""
+
+
+def country_drag(page):
+    """A compared country is moved on the sphere, not on the screen: dragged
+    from the Arctic to the equator of a Mercator map it shrinks, and it stays
+    at that place on Earth when the projection changes."""
+    page.keyboard.press("Escape")
+    switch(page, "mercator")
+    page.click("#compare-toggle-btn")
+    page.fill("#compare-country-input", "greenl")
+    page.click("#compare-country-results li")
+    home = page.evaluate(COMPARE_BOX_JS)
+    svg = page.locator("#map-svg").bounding_box()
+    middle = (svg["x"] + svg["width"] / 2, svg["y"] + svg["height"] / 2)
+
+    page.mouse.move(home["x"], home["y"])
+    page.mouse.down()
+    page.mouse.move(*middle, steps=10)
+    page.mouse.up()
+    moved = page.evaluate(COMPARE_BOX_JS)
+    assert abs(moved["x"] - middle[0]) < 60 and abs(moved["y"] - middle[1]) < 60, "the country should follow the pointer"
+    assert moved["height"] < home["height"] / 2, (
+        f"Greenland should shrink towards the equator on Mercator: {home['height']:.0f}px -> {moved['height']:.0f}px")
+    assert page.evaluate(CAMERA_JS) in ("", "translate(0,0) scale(1)"), "dragging a country should not pan the map"
+
+    switch(page, "robinson")
+    kept = page.evaluate(COMPARE_BOX_JS)
+    assert abs(kept["x"] - middle[0]) < 60 and abs(kept["y"] - middle[1]) < 60, "the country should keep its place on Earth across projections"
+
+
 def ui_rebuild(page):
     """The UI builders are idempotent: re-rendering for a language change
     leaves the same text, the same number of nodes and the same active
@@ -262,17 +297,16 @@ def ui_rebuild(page):
     page.fill("#compare-country-input", "fra")
     page.click("#compare-country-results li")
     snapshot = """() => [document.body.innerText, document.body.getElementsByTagName("*").length,
-        [...document.querySelectorAll(".active")].map((el) => el.id || el.dataset.presetId || el.dataset.projId).join(","),
-        document.getElementById("compare-projection-select").value]"""
+        [...document.querySelectorAll(".active")].map((el) => el.id || el.dataset.presetId || el.dataset.projId).join(",")]"""
     before = page.evaluate(snapshot)
     page.evaluate("() => { window.__app.rebuildUI(); window.__app.rebuildUI(); }")
     after = page.evaluate(snapshot)
-    for label, a, b in zip(("text", "node count", "active buttons", "compare projection"), before, after):
+    for label, a, b in zip(("text", "node count", "active buttons"), before, after):
         assert a == b, f"{label} changed after rebuildUI: {a!r} -> {b!r}"
     # Switching to the language already shown is the same no-op re-render
     page.evaluate("() => window.__app.setLanguage('en')")
     after = page.evaluate(snapshot)
-    for label, a, b in zip(("text", "node count", "active buttons", "compare projection"), before, after):
+    for label, a, b in zip(("text", "node count", "active buttons"), before, after):
         assert a == b, f"{label} changed after setLanguage('en'): {a!r} -> {b!r}"
 
 
@@ -287,7 +321,7 @@ def mobile_drawer(page):
 
 
 ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, ui_rebuild, mobile_drawer]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, mobile_drawer]
 
 
 def main():
