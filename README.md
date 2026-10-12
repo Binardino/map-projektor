@@ -35,7 +35,7 @@ Switching projection never snaps: the map morphs from one to the other, and rout
 - **Six points of view**: Europe-, China-, Africa-, America- and Oceania-centered, and a south-up map. The Europe-centered default is a convention, not a fact of nature, and the chosen view carries over when you switch projection
 - **Distortion grid**: Tissot's indicatrix, a grid of identical circles on the sphere that the projection stretches into ellipses, so you see where and how much it distorts
 - **Reference lines**: equator, tropics, polar circles and meridians
-- **Country size comparison**: pick up to 5 countries and redraw them under another projection, on top of the current map
+- **Country size comparison**: pick up to 5 countries and drag them across the map; each one is moved on the sphere and projected again, so it stretches or shrinks exactly as the projection does at that place
 - **Projection facts**: what each projection preserves, what it distorts and what it is best for
 - **Navigation**: zoom with the buttons or the mouse wheel, drag to pan or to spin the globe, click a country to focus on it
 - **Light and dark themes**, remembered between visits

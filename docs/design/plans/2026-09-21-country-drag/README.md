@@ -58,7 +58,17 @@ Keep the country's true shape on the sphere and move it there; the projection th
    During the morph the overlay fades out and back in (cheap); animating it is a later option.
 6. Closing the card removes the overlay and the ghost.
 
-## Decisions still open (need the user)
+## Decisions taken (user, 2026-10-12) and what was built
+
+- D1: the second-projection dropdown is removed.
+- D2: several countries at once (the compare card's 5), each dragged on its own.
+- D3: upright. No spike was needed: `sphereMover` rebuilds each point in the local east/north/up frame of the
+  target, which is a rigid rotation that keeps north pointing north by construction.
+- Built in the compare card (`ui/compare-card.js`) on `core/sphere-move.js`, not as a new `tools/country-drag.js`.
+- Left out of v1: the ghost outline at home, "Back to place", the "Move country" switch, the area readout (D4),
+  animating the overlay through a morph (D5: it is hidden during the morph, as before).
+
+## Decisions that were open before 2026-10-12
 
 | # | Question | Default if not answered |
 |---|----------|-------------------------|

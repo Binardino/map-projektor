@@ -2,7 +2,24 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
-## Unreleased — Map view abstraction (on `refactor/map-view`)
+## Unreleased — Drag a country across the map (on `feature/country-drag`)
+
+Feature 32. In comparison mode a country now behaves as on "The True Size Of…": dragged across the map, it grows, shrinks and bends as the projection does at the place it is over.
+
+### Changed
+- A compared country is **moved on the sphere and projected again** at every pointer move, instead of being projected once and slid on the screen (which kept its size wherever it went). Works in the 17 projections, every view (upside-down included) and at any zoom; up to 5 countries, each dragged on its own
+- The country stays upright while it travels: its north keeps pointing at the local north
+- A dragged country keeps its place on Earth when the projection or the view changes (it used to snap back home)
+- Comparison card description rewritten for the new behaviour
+
+### Added
+- `core/sphere-move.js`: rigid rotation of a GeoJSON shape across the sphere (pure maths, no D3), with unit tests for the anchor, the kept distances, the orientation and the poles/antimeridian
+- e2e scenario `country_drag`: Greenland dragged to the equator of a Mercator map shrinks by more than half and stays there after a projection switch
+
+### Removed
+- The comparison card's second-projection dropdown: the deformation now happens on the map itself
+
+## 2026-10-12 — Map view abstraction (on `refactor/map-view`)
 
 Last step of the frontend modularization. Nothing changes on screen: the UI text snapshot and the render fingerprint (17 projections × 2 views) are identical.
 
