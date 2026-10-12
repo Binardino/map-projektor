@@ -39,7 +39,7 @@ Switching projection never snaps: the map morphs from one to the other, and rout
 - **Projection facts**: what each projection preserves, what it distorts and what it is best for
 - **Navigation**: zoom with the buttons or the mouse wheel, drag to pan or to spin the globe, click a country to focus on it
 - **Light and dark themes**, remembered between visits
-- **Guided tour** on the first visit, replayable from the toolbar
+- **Guided tour** on the first visit, replayable from the toolbar: it opens by unfolding the globe into Mercator, then morphing it into Equal Earth, so you see the idea before touching anything
 - **Mobile layout**: the sidebar becomes a drawer on small screens
 
 ## Quickstart
