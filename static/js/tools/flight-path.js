@@ -1,10 +1,7 @@
-import { getProjection } from "../data/projections.js";
 import { clearSelection } from "../core/selection.js";
-import { compareMode, comparePanels } from "./side-by-side.js";
-import { currentZoomTransform } from "../core/camera.js";
-import { fitProjection, makeProjection } from "../core/projection.js";
-import { flightPathGroup, svg } from "../core/scene.js";
-import { resetRecenter, rotationFor } from "../core/recenter.js";
+import { allViews } from "../core/map-view.js";
+import { mainView } from "../core/scene.js";
+import { resetRecenter } from "../core/recenter.js";
 import { getState, on, setState } from "../state.js";
 
 // ============================================================
@@ -20,9 +17,8 @@ import { getState, on, setState } from "../state.js";
 // Endpoints are stored as [lon, lat] — projection-independent, like
 // the Tissot grid points — so refreshFlightPath() can re-project and
 // redraw them after any projection switch, the same pattern as
-// refreshTissot(). Also mirrored onto both compare-mode panels the same
-// way Tissot is: one shared A/B pair, each panel just reprojects it with
-// its own projection. Mutually exclusive with country selection and
+// refreshTissot(). One shared A/B pair for the whole app: every view with
+// a flight layer reprojects it with its own projection. Mutually exclusive with country selection and
 // recenter presets (same convention those two already use with each
 // other): turning flight-path mode on clears both; selecting a
 // country or a recenter preset turns flight-path mode off.
@@ -77,17 +73,10 @@ function updateFlightPathDistanceLabel() {
   }
 }
 
-// Re-renders the route on the single map and, if active, on both
-// comparison panels — called after any projection change.
+// Re-renders the route in every view — called after any projection change.
 export function refreshFlightPath() {
-  const currentDef = getProjection(getState().projectionId);
-  renderFlightPath(flightPathGroup, makeProjection(currentDef, rotationFor(currentDef)));
-
-  if (compareMode && comparePanels) {
-    comparePanels.forEach((panel) => {
-      const projDef = getProjection(panel.projId);
-      renderFlightPath(panel.flightPathGroup, fitProjection(projDef, projDef.d3fn(), panel.width, panel.height));
-    });
+  for (const view of allViews()) {
+    if (view.layers.flight) renderFlightPath(view.layers.flight, view.projection());
   }
 
   updateFlightPathDistanceLabel();
@@ -114,19 +103,15 @@ if (flightPathToggleBtn) {
 }
 
 // 1st click places A, 2nd places B and draws the route, 3rd starts over.
-// Shared by the main view and each compare-mode panel (see buildComparePanel),
-// each passing its own svg node / zoom transform / projection to invert the click.
-export function handleFlightPathClick(event, svgNode = svg.node(), zoomTransform = currentZoomTransform, projection = makeProjection(
-  getProjection(getState().projectionId),
-  rotationFor(getProjection(getState().projectionId))
-)) {
+// The click is inverted with the clicked view's own pan/zoom and projection.
+function handleFlightPathClick(event, view) {
   if (!getState().flightPathMode || getState().busy) return;
 
   // Undo the free camera pan/zoom (see CAMERA PAN & ZOOM) to get back to the
   // coordinate space the projection itself draws in before inverting.
-  const [sx, sy] = d3.pointer(event, svgNode);
-  const [x, y] = zoomTransform.invert([sx, sy]);
-  const coords = projection.invert([x, y]);
+  const [sx, sy] = d3.pointer(event, view.svg.node());
+  const [x, y] = view.transform.invert([sx, sy]);
+  const coords = view.projection().invert([x, y]);
   if (!coords) return; // click landed outside the rendered sphere
 
   if (!flightPathA) {
@@ -139,7 +124,13 @@ export function handleFlightPathClick(event, svgNode = svg.node(), zoomTransform
   }
   refreshFlightPath();
 }
-svg.node().addEventListener("click", (event) => handleFlightPathClick(event));
+
+// Named listener: attaching again to the same <svg> (a comparison panel
+// rebuilt on re-entry) replaces it instead of stacking a second one.
+export function attachFlightPath(view) {
+  view.svg.on("click.flightpath", (event) => handleFlightPathClick(event, view));
+}
+attachFlightPath(mainView);
 
 on("view:changed", refreshFlightPath);
 // A recenter or a country selection takes the pointer back
