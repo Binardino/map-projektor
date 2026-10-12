@@ -31,6 +31,8 @@ COUNTRY_QUERY = "fra"
 
 # Visibility-filtered on purpose: the snapshot records what the user sees in a
 # given state, so a string shown in the wrong state shows up as a diff.
+# <option> elements are never "visible" while the select is closed, so the
+# compare select's options are collected separately below.
 COLLECT_JS = """() => {
     const norm = (s) => s.replace(/\\s+/g, " ").trim();
     const out = [`[document.title] ${norm(document.title)}`];
@@ -48,6 +50,9 @@ COLLECT_JS = """() => {
             const value = el.getAttribute(attr);
             if (value) out.push(`[${attr}] ${norm(value)}`);
         }
+    }
+    for (const option of document.querySelectorAll("#compare-projection-select option")) {
+        out.push(`[option] ${norm(option.textContent)}`);
     }
     return out;
 }"""

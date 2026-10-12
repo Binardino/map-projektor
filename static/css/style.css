@@ -925,10 +925,21 @@ body {
   display: none;
 }
 
+/* Always-white input fields per Figma, regardless of theme — they keep
+   their own fixed light styling rather than the theme's --bg-app/--border. */
+#compare-card select {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: var(--font-family);
+  font-size: 16px;
+  background: var(--field-bg);
+  color: var(--field-text);
+  border: 1px solid var(--field-border);
+  border-radius: 4px;
+}
+
 /* Searchable country picker — an input instead of a plain <select> so
-   typing can filter the (potentially 190+ item) alphabetical list.
-   Always-white field per Figma, regardless of theme — it keeps its own
-   fixed light styling rather than the theme's --bg-app/--border. */
+   typing can filter the (potentially 190+ item) alphabetical list. */
 #compare-country-picker {
   position: relative;
 }

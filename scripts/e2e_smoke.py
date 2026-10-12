@@ -294,6 +294,15 @@ def country_drag(page):
         f"Greenland should shrink towards the equator on Mercator: {home['height']:.0f}px -> {moved['height']:.0f}px")
     assert page.evaluate(CAMERA_JS) in ("", "translate(0,0) scale(1)"), "dragging a country should not pan the map"
 
+    # Drawn under another projection than the map's, it changes shape but
+    # stays where it was dragged to.
+    page.select_option("#compare-projection-select", "gallPeters")
+    other = page.evaluate(COMPARE_BOX_JS)
+    assert abs(other["height"] - moved["height"]) > 5, "the chosen projection should redraw the country"
+    assert abs(other["x"] - middle[0]) < 60 and abs(other["y"] - middle[1]) < 60, "the redrawn country should stay in place"
+    page.select_option("#compare-projection-select", "")
+    assert page.evaluate(COMPARE_BOX_JS) == moved, "back to the map's projection, the country is drawn as before"
+
     view(page, "africa")
     kept = page.evaluate(COMPARE_BOX_JS)
     assert kept["height"] < home["height"] / 2, "the country should keep its place on Earth through a view change"
@@ -315,16 +324,17 @@ def ui_rebuild(page):
     page.fill("#compare-country-input", "fra")
     page.click("#compare-country-results li")
     snapshot = """() => [document.body.innerText, document.body.getElementsByTagName("*").length,
-        [...document.querySelectorAll(".active")].map((el) => el.id || el.dataset.presetId || el.dataset.projId).join(",")]"""
+        [...document.querySelectorAll(".active")].map((el) => el.id || el.dataset.presetId || el.dataset.projId).join(","),
+        document.getElementById("compare-projection-select").value]"""
     before = page.evaluate(snapshot)
     page.evaluate("() => { window.__app.rebuildUI(); window.__app.rebuildUI(); }")
     after = page.evaluate(snapshot)
-    for label, a, b in zip(("text", "node count", "active buttons"), before, after):
+    for label, a, b in zip(("text", "node count", "active buttons", "compare projection"), before, after):
         assert a == b, f"{label} changed after rebuildUI: {a!r} -> {b!r}"
     # Switching to the language already shown is the same no-op re-render
     page.evaluate("() => window.__app.setLanguage('en')")
     after = page.evaluate(snapshot)
-    for label, a, b in zip(("text", "node count", "active buttons"), before, after):
+    for label, a, b in zip(("text", "node count", "active buttons", "compare projection"), before, after):
         assert a == b, f"{label} changed after setLanguage('en'): {a!r} -> {b!r}"
 
 

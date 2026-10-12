@@ -1,4 +1,4 @@
-import { getProjection } from "../data/projections.js";
+import { PROJECTIONS, getProjection, projectionName } from "../data/projections.js";
 import { mainView } from "../core/scene.js";
 import { rotationFor } from "../core/recenter.js";
 import { moveGeo } from "../core/sphere-move.js";
@@ -16,16 +16,34 @@ import { getState, on } from "../state.js";
 // The shape is moved on the sphere, not on the screen, and projected
 // again at every step, so it grows, shrinks and bends exactly as the
 // map's projection does at the place it is dragged to.
+// The countries can also be drawn under another projection than the map's
+// (one for all of them, so they stay comparable with each other): how
+// projection A draws a country, laid on a map in projection B.
 // ============================================================
 const compareCardToggleBtn    = document.getElementById("compare-toggle-btn");
 const compareCardCloseBtn     = document.getElementById("compare-card-close");
 const compareCardEl           = document.getElementById("compare-card");
+const compareProjectionSelect = document.getElementById("compare-projection-select");
 const compareCountryPicker    = document.getElementById("compare-country-picker");
 const compareCountryInput     = document.getElementById("compare-country-input");
 const compareCountryResults   = document.getElementById("compare-country-results");
 const compareCountryList      = document.getElementById("compare-country-list");
 
+// Called on every "language:changed" (names come from t()); it keeps the
+// HTML's first option (empty value: the map's own projection) and replaces
+// the rest, so a language switch can call it again.
+function buildCompareProjectionOptions() {
+  compareProjectionSelect.querySelectorAll("option[value]:not([value=''])").forEach((o) => o.remove());
+  PROJECTIONS.forEach((proj) => {
+    const option = document.createElement("option");
+    option.value = proj.id;
+    option.textContent = projectionName(proj);
+    compareProjectionSelect.appendChild(option);
+  });
+}
+
 let compareCardVisible     = false;
+let compareProjectionId    = null; // projection the countries are drawn under; null follows the map's
 let compareCountryNames    = null; // populated lazily once worldData is ready — full alphabetical list
 
 // Countries being compared, in pick order. Each entry:
@@ -69,19 +87,35 @@ function compareAnchor(feature) {
   return d3.geoCentroid({ type: "Polygon", coordinates: largest });
 }
 
-// The map's projection at rest, kept for the drag: a pointer position is
-// turned back into a longitude and latitude with its invert().
-let compareProjection = null;
-// The projection the countries were last drawn under: a change of
+// The map's projection at rest: it places the countries, and its invert()
+// turns a pointer position back into a longitude and latitude for the drag.
+let mapProjection = null;
+// The projection that draws them: the map's, unless another was chosen.
+let drawProjection = null;
+// The projection the countries were last drawn on: a change of map
 // projection sends them back home.
 let comparedProjectionId = null;
 
-// Projects the country at the place it was dragged to. Hidden parts (the
-// globe's far side) are clipped by the projection; a shape entirely out
-// of sight has no path at all.
+// Draws the country at the place it was dragged to. Under the map's own
+// projection, hidden parts (the globe's far side) are clipped by the
+// projection and a shape entirely out of sight has no path at all.
+// Under another projection the shape is slid so that the point it is held
+// by sits where the map puts that place: each projection has its own idea
+// of where a place goes on screen. A place the map does not show (a point
+// has no path there) then hides the country: the other projection would
+// happily draw it on the back of the globe.
 function drawCompareOverlay(overlay, entry) {
-  const d = d3.geoPath().projection(compareProjection)(moveGeo(entry.shape, entry.home, entry.target));
-  overlay.selectAll("path").attr("d", d || "");
+  const moved = moveGeo(entry.shape, entry.home, entry.target);
+  let d = null, transform = null;
+  if (drawProjection === mapProjection) {
+    d = d3.geoPath().projection(mapProjection)(moved);
+  } else if (d3.geoPath().projection(mapProjection)({ type: "Point", coordinates: entry.target }) !== null) {
+    d = d3.geoPath().projection(drawProjection)(moved);
+    const [mx, my] = mapProjection(entry.target);
+    const [dx, dy] = drawProjection(entry.target);
+    if (d) transform = `translate(${mx - dx},${my - dy})`;
+  }
+  overlay.attr("transform", transform).selectAll("path").attr("d", d || "");
 }
 
 // Redraws (or clears) every visible compared country under the map's
@@ -95,8 +129,10 @@ export function refreshCompareHighlight() {
   mainView.layers.highlight.style("display", null);
   if (!worldData) return;
 
-  const mapDef = getProjection(getState().projectionId);
-  compareProjection = mainView.makeProjection(mapDef, rotationFor(mapDef));
+  const mapDef  = getProjection(getState().projectionId);
+  const drawDef = compareProjectionId ? getProjection(compareProjectionId) : mapDef;
+  mapProjection  = mainView.makeProjection(mapDef, rotationFor(mapDef));
+  drawProjection = drawDef === mapDef ? mapProjection : mainView.makeProjection(drawDef, rotationFor(drawDef));
   if (comparedProjectionId !== mapDef.id) {
     compareCountries.forEach((entry) => { entry.target = entry.home; });
     comparedProjectionId = mapDef.id;
@@ -119,9 +155,9 @@ export function refreshCompareHighlight() {
 // outside its outline a projection's invert() answers NaN or a place
 // that is drawn somewhere else, so the answer is projected back to check.
 function placeUnder(x, y) {
-  const place = compareProjection.invert([x, y]);
+  const place = mapProjection.invert([x, y]);
   if (!place || !place.every(Number.isFinite)) return null;
-  const [px, py] = compareProjection(place);
+  const [px, py] = mapProjection(place);
   return Math.hypot(px - x, py - y) < 1 ? place : null;
 }
 
@@ -136,7 +172,7 @@ function placeUnder(x, y) {
 // passes over the others.
 const compareDrag = d3.drag()
   .subject((event, entry) => {
-    const [x, y] = compareProjection(entry.target);
+    const [x, y] = mapProjection(entry.target);
     return { x, y };
   })
   .on("start", function () { d3.select(this).classed("dragging", true).raise(); })
@@ -253,8 +289,15 @@ document.addEventListener("pointerdown", (event) => {
   if (!compareCountryPicker.contains(event.target)) hideCompareCountryResults();
 }, true);
 
+compareProjectionSelect.addEventListener("change", () => {
+  compareProjectionId = compareProjectionSelect.value || null;
+  refreshCompareHighlight();
+});
+
 function resetCompareSelection() {
   compareCountries.length = 0;
+  compareProjectionId = null;
+  compareProjectionSelect.value = "";
   compareCountryInput.value = "";
   renderCompareList();
   hideCompareCountryResults();
@@ -294,4 +337,8 @@ compareCardCloseBtn.addEventListener("click", closeCompareCard);
 on("view:changing", hideCompareHighlight);
 on("view:changed", refreshCompareHighlight);
 
-on("language:changed", renderCompareList);
+on("language:changed", () => {
+  buildCompareProjectionOptions();
+  compareProjectionSelect.value = compareProjectionId ?? ""; // the rebuild dropped the selection
+  renderCompareList();
+});
