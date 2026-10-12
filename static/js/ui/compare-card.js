@@ -1,6 +1,5 @@
 import { PROJECTIONS, getProjection, projectionName } from "../data/projections.js";
-import { compareHighlightGroup } from "../core/scene.js";
-import { makeProjection } from "../core/projection.js";
+import { mainView } from "../core/scene.js";
 import { rotationFor } from "../core/recenter.js";
 import { t } from "../i18n.js";
 import { COMPARE_MAX } from "../config.js";
@@ -87,16 +86,16 @@ function compareAnchor(feature) {
 // each projection places a country at its own screen position, so drawn
 // as-is, France under Equirectangular landed on Chad in a Gall-Peters map.
 // Uses the active view's rotation so both shapes share an orientation.
-// Shares the main map's zoomLayer, so it pans/zooms together with it.
+// Lives in the main view's highlight layer, so it pans/zooms together with it.
 export function refreshCompareHighlight() {
-  compareHighlightGroup.selectAll("*").remove();
-  compareHighlightGroup.style("display", null);
+  mainView.layers.highlight.selectAll("*").remove();
+  mainView.layers.highlight.style("display", null);
   if (!worldData) return;
 
   const mapDef      = getProjection(getState().projectionId);
   const compareDef  = compareProjectionId ? getProjection(compareProjectionId) : mapDef;
-  const mapProj     = makeProjection(mapDef, rotationFor(mapDef));
-  const compareProj = makeProjection(compareDef, rotationFor(compareDef));
+  const mapProj     = mainView.makeProjection(mapDef, rotationFor(mapDef));
+  const compareProj = mainView.makeProjection(compareDef, rotationFor(compareDef));
   const comparePath = d3.geoPath().projection(compareProj);
   const [rl, rp]    = mapProj.rotate();
 
@@ -112,7 +111,7 @@ export function refreshCompareHighlight() {
     entry.shift = [mx - cx, my - cy];
 
     const d = comparePath(compareShape(feature));
-    const overlay = compareHighlightGroup.append("g")
+    const overlay = mainView.layers.highlight.append("g")
       .datum(entry)
       .attr("class", "compare-overlay")
       .attr("transform", compareOverlayTransform(entry))
@@ -152,7 +151,7 @@ const compareDrag = d3.drag()
 // A drag only holds until the next projection or view change, which puts
 // the overlay back on the country (the anchor is what's being compared).
 export function hideCompareHighlight() {
-  compareHighlightGroup.style("display", "none");
+  mainView.layers.highlight.style("display", "none");
   resetCompareOffsets();
 }
 

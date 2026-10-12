@@ -1,10 +1,7 @@
-import { getProjection } from "../data/projections.js";
-import { makeProjection } from "../core/projection.js";
-import { rotationFor } from "../core/recenter.js";
-import { truesizeGroup } from "../core/scene.js";
+import { mainView } from "../core/scene.js";
 import { readPalette } from "../core/palette.js";
 import { worldData } from "../data/geodata.js";
-import { getState, subscribe } from "../state.js";
+import { subscribe } from "../state.js";
 
 // ============================================================
 // TRUE SIZE COMPARE
@@ -15,7 +12,7 @@ import { getState, subscribe } from "../state.js";
 // Independent from the main country search (Feature 1) since that one is
 // single-select/highlight-only. Colors cycle through a fixed palette in
 // add order. Scoped to the main view only (like the terrain overlay and
-// globe drag) — the shapes live in truesizeGroup, inside the main map's
+// globe drag) — the shapes live in its truesize layer, inside the main map's
 // svg, which is already hidden while comparing (see mapContainerEl.hidden
 // above), so nothing extra is needed to keep it out of compare mode.
 //
@@ -104,15 +101,13 @@ const trueSizeDrag = d3.drag().on("drag", function (event, feature) {
 // other refresh call sites use this — only a projection switch clears
 // offsets, see resetTrueSizeOnProjectionSwitch).
 function renderTrueSizeShapes() {
-  const projDef    = getProjection(getState().projectionId);
-  const projection = makeProjection(projDef, rotationFor(projDef));
-  const pathFn     = d3.geoPath().projection(projection);
+  const pathFn = d3.geoPath().projection(mainView.projection());
 
   const features = trueSizeOrder
     .map((name) => worldData.features.find((f) => f.properties.name === name))
     .filter(Boolean);
 
-  const shapes = truesizeGroup
+  const shapes = mainView.layers.truesize
     .selectAll("path.truesize-shape")
     .data(features, (d) => d.properties.name);
 

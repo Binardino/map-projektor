@@ -1,13 +1,12 @@
-import { HEIGHT, WIDTH } from "./scene.js";
 import { t } from "../i18n.js";
 
 // ============================================================
-// PROJECTION FACTORY
-// fitSize scales and centres the projection to fill the viewport.
-// rotationOverride (optional [lambda, phi, gamma]) recenters the sphere
-// before fitting — used by the recenter presets below. Overrides any
-// rotate() the projection's own d3fn already set (e.g. the polar views),
-// which is why presets are disabled for those (see recenterable in data/projections.js).
+// PROJECTION FITTING
+// fitSize scales and centres the projection to fill the viewport. A
+// rotation set before fitting (the recenter presets, see makeProjection in
+// map-view.js) overrides any rotate() the projection's own d3fn already
+// set (e.g. the polar views), which is why presets are disabled for those
+// (see recenterable in data/projections.js).
 //
 // Mercator is a special case: its y-coordinate diverges near the poles,
 // so even bounded at the sphere's outline its natural fitted aspect ratio
@@ -20,9 +19,8 @@ import { t } from "../i18n.js";
 // height too. Deliberately not clipped to the viewport — the polar regions
 // (Greenland, northern Russia, Antarctica) extend past the initial frame
 // but stay reachable by panning the free camera (see CAMERA PAN & ZOOM)
-// instead of being permanently cropped away. Shared by makeProjection
-// below and by the comparison panels, which fit independently to their
-// own size.
+// instead of being permanently cropped away. Each map view fits to its
+// own size (see makeProjection in map-view.js).
 // ============================================================
 export function fitProjection(projDef, projection, width, height) {
   if (projDef.fit === "width") {
@@ -34,12 +32,6 @@ export function fitProjection(projDef, projection, width, height) {
     return projection;
   }
   return projection.fitSize([width, height], { type: "Sphere" });
-}
-
-export function makeProjection(projDef, rotationOverride = null) {
-  const projection = projDef.d3fn();
-  if (rotationOverride) projection.rotate(rotationOverride);
-  return fitProjection(projDef, projection, WIDTH, HEIGHT);
 }
 
 // ============================================================

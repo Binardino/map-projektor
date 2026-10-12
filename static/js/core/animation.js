@@ -1,5 +1,4 @@
-import { DEGREES, blendProjection, makeProjection } from "./projection.js";
-import { HEIGHT, WIDTH, globeSphere, globeSphereFade, mapGroup, terrainGroup } from "./scene.js";
+import { DEGREES, blendProjection } from "./projection.js";
 import { GLOBE } from "../data/projections.js";
 import { lightOf } from "./geometry.js";
 import { renderGlobeSphere, updateTerrainPaths } from "./render.js";
@@ -21,15 +20,15 @@ import { emit } from "../state.js";
 // same blend; only this synthetic outline breaks. Sidestepped entirely by
 // crossfading between the two endpoints' own (always well-behaved) static
 // sphere shapes instead of animating one continuously-blended shape.
-function animateBlend(projection, duration, clipFrom = null, clipTo = null, fromSphereProj = null, toSphereProj = null, rotationAt = null) {
+function animateBlend(view, projection, duration, clipFrom = null, clipTo = null, fromSphereProj = null, toSphereProj = null, rotationAt = null) {
   const pathFn    = d3.geoPath().projection(projection);
-  const countries = mapGroup.selectAll("path.country");
+  const countries = view.layers.countries.selectAll("path.country");
 
   const crossfade = clipFrom !== null && fromSphereProj && toSphereProj;
   if (crossfade) {
     const spherePath = d3.geoPath();
-    globeSphere.attr("d", spherePath.projection(fromSphereProj)({ type: "Sphere" })).style("opacity", 1);
-    globeSphereFade.attr("d", spherePath.projection(toSphereProj)({ type: "Sphere" })).style("opacity", 0);
+    view.layers.sphere.attr("d", spherePath.projection(fromSphereProj)({ type: "Sphere" })).style("opacity", 1);
+    view.sphereFade.attr("d", spherePath.projection(toSphereProj)({ type: "Sphere" })).style("opacity", 0);
   }
 
   return new Promise((resolve) => {
@@ -54,16 +53,16 @@ function animateBlend(projection, duration, clipFrom = null, clipTo = null, from
       }
       countries.attr("d", (d) => pathFn(lightOf(d)) || "");
       if (crossfade) {
-        globeSphere.style("opacity", 1 - t);
-        globeSphereFade.style("opacity", t);
+        view.layers.sphere.style("opacity", 1 - t);
+        view.sphereFade.style("opacity", t);
       } else {
-        renderGlobeSphere(globeSphere, projection);
+        renderGlobeSphere(view, projection);
       }
-      updateTerrainPaths(terrainGroup, projection);
-      emit("frame", projection);
+      if (view.layers.terrain) updateTerrainPaths(view.layers.terrain, projection);
+      emit("frame", { view, projection });
       if (elapsed >= duration) {
         timer.stop();
-        if (crossfade) globeSphere.style("opacity", null);
+        if (crossfade) view.layers.sphere.style("opacity", null);
         resolve();
       }
     });
@@ -82,14 +81,14 @@ function lerpRotation(from, to, t) {
 // the user's framing instead of snapping back to Europe. Between the tilted
 // globe and a flat map the two rotations differ, so the wrapper eases from
 // one to the other along with the shape.
-export function animateTransition(fromDef, toDef, duration) {
+export function animateTransition(view, fromDef, toDef, duration) {
   const rotFrom    = rotationFor(fromDef);
   const rotTo      = rotationFor(toDef);
-  const projection = blendProjection(makeProjection(fromDef), makeProjection(toDef), rotFrom);
+  const projection = blendProjection(view.makeProjection(fromDef), view.makeProjection(toDef), rotFrom);
   const rotationAt = rotFrom === rotTo ? null : (t) => lerpRotation(rotFrom, rotTo, t);
   // The crossfade outlines are static endpoint shapes, so they carry the rotation themselves
-  const fromProjection = makeProjection(fromDef, rotFrom);
-  const toProjection   = makeProjection(toDef, rotTo);
+  const fromProjection = view.makeProjection(fromDef, rotFrom);
+  const toProjection   = view.makeProjection(toDef, rotTo);
   // The globe clips to the visible hemisphere (90°); everything else clips
   // at the antimeridian, which animateBlend adds on top of the circle.
   // Animating between the two makes back-hemisphere countries shrink
@@ -98,8 +97,8 @@ export function animateTransition(fromDef, toDef, duration) {
   const clipTo   = toDef.clipAngle;
   // Only azimuthal-hemisphere transitions need the circle clip; other
   // pairs keep D3's default antimeridian clipping untouched.
-  if (clipFrom !== clipTo) return animateBlend(projection, duration, clipFrom, clipTo, fromProjection, toProjection, rotationAt);
-  return animateBlend(projection, duration, null, null, null, null, rotationAt);
+  if (clipFrom !== clipTo) return animateBlend(view, projection, duration, clipFrom, clipTo, fromProjection, toProjection, rotationAt);
+  return animateBlend(view, projection, duration, null, null, null, null, rotationAt);
 }
 
 // ============================================================
@@ -114,10 +113,10 @@ export function animateTransition(fromDef, toDef, duration) {
 // into the polar azimuthal view.
 // ============================================================
 // Spins a real orthographic globe between two orientations.
-function animateRotation(fromRot, toRot, duration) {
-  const projection = d3.geoOrthographic().fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+function animateRotation(view, fromRot, toRot, duration) {
+  const projection = d3.geoOrthographic().fitSize([view.width, view.height], { type: "Sphere" });
   const pathFn    = d3.geoPath().projection(projection);
-  const countries = mapGroup.selectAll("path.country");
+  const countries = view.layers.countries.selectAll("path.country");
 
   return new Promise((resolve) => {
     const timer = d3.timer((elapsed) => {
@@ -127,9 +126,9 @@ function animateRotation(fromRot, toRot, duration) {
         fromRot[1] + (toRot[1] - fromRot[1]) * t,
       ]);
       countries.attr("d", (d) => pathFn(lightOf(d)) || "");
-      renderGlobeSphere(globeSphere, projection);
-      updateTerrainPaths(terrainGroup, projection);
-      emit("frame", projection);
+      renderGlobeSphere(view, projection);
+      if (view.layers.terrain) updateTerrainPaths(view.layers.terrain, projection);
+      emit("frame", { view, projection });
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -142,10 +141,10 @@ function animateRotation(fromRot, toRot, duration) {
 // disc, both centred on the same pole. Endpoints are built unrotated and the
 // blend wrapper carries the rotation, so the hemisphere clip stays centred
 // on the pole while it opens (90° → 179°) or closes (179° → 90°).
-function animatePolarUnfold(rotation, foldToGlobe, duration) {
-  const globe = d3.geoOrthographic().fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+function animatePolarUnfold(view, rotation, foldToGlobe, duration) {
+  const globe = d3.geoOrthographic().fitSize([view.width, view.height], { type: "Sphere" });
   const disc  = d3.geoAzimuthalEquidistant().clipAngle(179)
-    .fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+    .fitSize([view.width, view.height], { type: "Sphere" });
   const projection = foldToGlobe
     ? blendProjection(disc, globe, rotation)
     : blendProjection(globe, disc, rotation);
@@ -155,36 +154,36 @@ function animatePolarUnfold(rotation, foldToGlobe, duration) {
   // (blendProjection's wrapper carries the rotation instead), but the
   // crossfade needs each endpoint's shape as it actually appears on
   // screen, rotation included.
-  const globeAtRotation = d3.geoOrthographic().rotate(rotation).fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+  const globeAtRotation = d3.geoOrthographic().rotate(rotation).fitSize([view.width, view.height], { type: "Sphere" });
   const discAtRotation  = d3.geoAzimuthalEquidistant().clipAngle(179).rotate(rotation)
-    .fitSize([WIDTH, HEIGHT], { type: "Sphere" });
+    .fitSize([view.width, view.height], { type: "Sphere" });
 
   return foldToGlobe
-    ? animateBlend(projection, duration, 179, 90, discAtRotation, globeAtRotation)
-    : animateBlend(projection, duration, 90, 179, globeAtRotation, discAtRotation);
+    ? animateBlend(view, projection, duration, 179, 90, discAtRotation, globeAtRotation)
+    : animateBlend(view, projection, duration, 90, 179, globeAtRotation, discAtRotation);
 }
 
-export async function polarTransition(fromDef, toDef) {
+export async function polarTransition(view, fromDef, toDef) {
   const orthoDef = GLOBE;
   const fromRot  = fromDef.polarRotation;
   const toRot    = toDef.polarRotation;
 
   // Fold: reach an orthographic globe at the starting orientation
   if (fromRot) {
-    await animatePolarUnfold(fromRot, true, TIMING.polarFold);
+    await animatePolarUnfold(view, fromRot, true, TIMING.polarFold);
   } else if (!fromDef.globe) {
-    await animateTransition(fromDef, orthoDef, TIMING.polarFold);
+    await animateTransition(view, fromDef, orthoDef, TIMING.polarFold);
   }
 
   // Spin between orientations (north↔south rolls through the equator); a
   // non-polar end sits on the globe at the active view's tilt.
   const globeRot = rotationFor(orthoDef) || [0, 0];
-  await animateRotation(fromRot || globeRot, toRot || globeRot, TIMING.polarSpin);
+  await animateRotation(view, fromRot || globeRot, toRot || globeRot, TIMING.polarSpin);
 
   // Unfold: from the globe to the target
   if (toRot) {
-    await animatePolarUnfold(toRot, false, TIMING.polarUnfold);
+    await animatePolarUnfold(view, toRot, false, TIMING.polarUnfold);
   } else if (!toDef.globe) {
-    await animateTransition(orthoDef, toDef, TIMING.polarUnfold);
+    await animateTransition(view, orthoDef, toDef, TIMING.polarUnfold);
   }
 }

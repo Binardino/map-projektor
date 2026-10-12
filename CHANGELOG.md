@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## Unreleased — Map view abstraction (on `refactor/map-view`)
+
+Last step of the frontend modularization. Nothing changes on screen: the UI text snapshot and the render fingerprint (17 projections × 2 views) are identical.
+
+### Changed
+- A map is now a **view** object (`core/map-view.js`: SVG, layers, zoom, projection) created by `createMapView`. The main map is one view (`mainView` in `core/scene.js`); rendering, animations and the camera take the view they work on instead of reaching for module-level SVG groups
+- The layer stacking order is declared once (`LAYER_ORDER`) instead of following the order of a dozen `append` calls
+- Overlay tools (distortion grid, reference lines, flight path) draw in every view that has their layer, so the "mirror onto both comparison panels" code is gone
+- The `frame` event carries `{ view, projection }`
+- `makeProjection` is a method of the view (`view.makeProjection`), since the fit depends on the view's size; `updateGlobeBackground` is folded into `view.render()`
+- Side-by-side comparison (still not loaded) is rebuilt on two views: `tools/side-by-side.js` goes from 173 to 92 lines. Its panels are now created on entering the mode and destroyed on leaving it; they remember their projections but not their pan/zoom
+
+### Added
+- `tests/js/map-view.test.mjs`: layer order and unknown-layer validation
+
 ## 2026-10-06 — Continuous integration (on `ci/tests`)
 
 ### Added

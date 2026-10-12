@@ -1,10 +1,10 @@
-import { HEIGHT, WIDTH, globeSphere, mapGroup, terrainGroup, worldGroup } from "./scene.js";
+import { mainView } from "./scene.js";
 import { getProjection } from "../data/projections.js";
 import { RECENTER_PRESETS } from "../data/views.js";
 import { clearSelection } from "./selection.js";
-import { fitProjection, makeProjection } from "./projection.js";
+import { fitProjection } from "./projection.js";
 import { lightOf } from "./geometry.js";
-import { renderGlobeSphere, renderMap, updateTerrainPaths } from "./render.js";
+import { renderGlobeSphere, updateTerrainPaths } from "./render.js";
 import { t } from "../i18n.js";
 import { TIMING } from "../config.js";
 import { emit, getState, setState } from "../state.js";
@@ -42,12 +42,12 @@ export function rotationFor(projDef) {
 // the previous fold did) is what keeps the equator pinned in place:
 // y' = axis + s·(y − axis) = s·y + axis·(1 − s).
 //
-// The axis is HEIGHT / 2 because every recentrable view keeps the globe
+// The axis is half the view's height because every recentrable view keeps the globe
 // untilted (rotate[1] = 0) and fitProjection centres the sphere
 // vertically, so the equator sits on the viewport's centreline for all
 // of them (checked for every projection × preset). A tilted preset would
 // need projection([lon, 0])[1] here instead. At s = -1 this is exactly
-// translate(0, HEIGHT) scale(1, -1), the resting mirrored state.
+// translate(0, height) scale(1, -1), the resting mirrored state.
 //
 // onEdgeOn runs once when the map is edge-on (invisible), which is where
 // the caller swaps the sphere rotation so the jump never shows.
@@ -55,7 +55,7 @@ export function rotationFor(projDef) {
 // Every world-space layer (terrain/tissot/flight-path/true-size/the
 // compare highlight, not just countries) needs to flip together, or
 // they'd end up floating over the wrong regions of the now-flipped map.
-// They're all children of worldGroup (see its declaration) specifically
+// They're all children of the view's world group specifically
 // so ONE transition here moves everything at once, instead of seven
 // separate D3 transitions each interpolating and writing the same value.
 //
@@ -67,8 +67,8 @@ export function rotationFor(projDef) {
 // using vector-effect:non-scaling-stroke, which itself isn't cheap to
 // recompute) plus terrain, that repaint cost was the actual source of
 // the dropped frames during this flip.
-function animateRecenterFlip(flip, onEdgeOn, duration = TIMING.recenterFlip) {
-  const axis = HEIGHT / 2;
+function animateRecenterFlip(view, flip, onEdgeOn, duration = TIMING.recenterFlip) {
+  const axis = view.height / 2;
   const sign = flip ? 1 : -1; // start upright when flipping in, mirrored when flipping out
   let swapped = false;
 
@@ -80,7 +80,7 @@ function animateRecenterFlip(flip, onEdgeOn, duration = TIMING.recenterFlip) {
         swapped = true;
         onEdgeOn();
       }
-      worldGroup.style("transform", `translate(0px, ${axis * (1 - s)}px) scale(1, ${s})`);
+      view.world.style("transform", `translate(0px, ${axis * (1 - s)}px) scale(1, ${s})`);
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -93,12 +93,12 @@ function animateRecenterFlip(flip, onEdgeOn, duration = TIMING.recenterFlip) {
 // preset's, so recentering reads as a camera pan instead of a hard cut.
 // Mirrors animateRotation's per-frame rotate() + repath loop, but against
 // the live projection type instead of a fixed orthographic globe.
-function animateRecenterRotation(projDef, fromRot, toRot, duration) {
+function animateRecenterRotation(view, projDef, fromRot, toRot, duration) {
   const from = fromRot || [0, 0, 0];
   const to   = toRot || [0, 0, 0];
-  const projection = fitProjection(projDef, projDef.d3fn(), WIDTH, HEIGHT);
+  const projection = fitProjection(projDef, projDef.d3fn(), view.width, view.height);
   const pathFn      = d3.geoPath().projection(projection);
-  const countries   = mapGroup.selectAll("path.country");
+  const countries   = view.layers.countries.selectAll("path.country");
 
   return new Promise((resolve) => {
     const timer = d3.timer((elapsed) => {
@@ -113,9 +113,9 @@ function animateRecenterRotation(projDef, fromRot, toRot, duration) {
       // (and the sphere outline/grid, if visible) used to only repaint at
       // the very end of a recenter, so they sat frozen throughout the
       // rotation while countries alone animated.
-      renderGlobeSphere(globeSphere, projection);
-      updateTerrainPaths(terrainGroup, projection);
-      emit("frame", projection);
+      renderGlobeSphere(view, projection);
+      if (view.layers.terrain) updateTerrainPaths(view.layers.terrain, projection);
+      emit("frame", { view, projection });
       if (elapsed >= duration) {
         timer.stop();
         resolve();
@@ -148,17 +148,16 @@ export async function applyRecenter(presetId) {
       // flipping it, reading as a distorted diagonal spin rather than a clean
       // mirror. Instead turn the map over about the equator and swap the
       // rotation instantly at the edge-on midpoint, where it's invisible.
-      await animateRecenterFlip(wantsFlip, () => {
+      await animateRecenterFlip(mainView, wantsFlip, () => {
         patchView({ rotate: preset.rotate, tilt: preset.tilt || null });
-        const projection = makeProjection(currentDef, rotationFor(currentDef));
-        renderMap(projection);
-        emit("frame", projection); // overlays follow the swapped rotation
+        mainView.setProjection(currentDef, rotationFor(currentDef)).render();
+        emit("frame", { view: mainView, projection: mainView.projection() }); // overlays follow the swapped rotation
       });
     } else {
       const toRot = currentDef.tilted ? preset.tilt || preset.rotate : preset.rotate;
-      await animateRecenterRotation(currentDef, fromRot, toRot, TIMING.recenterRotation);
+      await animateRecenterRotation(mainView, currentDef, fromRot, toRot, TIMING.recenterRotation);
       patchView({ rotate: preset.rotate, tilt: preset.tilt || null });
-      renderMap(makeProjection(currentDef, rotationFor(currentDef))); // final render with native clipping
+      mainView.setProjection(currentDef, rotationFor(currentDef)).render(); // final render with native clipping
     }
     patchView({ flip: wantsFlip });
   });
@@ -171,5 +170,5 @@ export function resetRecenter() {
   // Cleared synchronously (no transition): if a projection switch is about
   // to run, the morph must not inherit a leftover flip transform on the
   // group it repaints into.
-  worldGroup.style("transform", null);
+  mainView.world.style("transform", null);
 }

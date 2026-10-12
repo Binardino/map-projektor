@@ -1,8 +1,6 @@
 import { PROJECTIONS } from "./data/projections.js";
 import { RECENTER_PRESETS } from "./data/views.js";
-import { currentZoomTransform } from "./core/camera.js";
-import { makeProjection } from "./core/projection.js";
-import { mapGroup, terrainGroup } from "./core/scene.js";
+import { mainView } from "./core/scene.js";
 import { emit, getState } from "./state.js";
 import { setLanguage } from "./i18n.js";
 
@@ -17,16 +15,16 @@ import { setLanguage } from "./i18n.js";
 window.__app = {
   PROJECTIONS,
   RECENTER_PRESETS,
-  mapGroup,
-  terrainGroup,
+  mapGroup: mainView.layers.countries,
+  terrainGroup: mainView.layers.terrain,
   // Pure function of a projection definition, so exposing it lets the render
   // fingerprint pin fitProjection's numbers without steering the app.
-  makeProjection,
+  makeProjection: mainView.makeProjection,
   get currentProjectionId() { return getState().projectionId; },
   get currentRecenterRotate() { return getState().recenter.rotate; },
   get currentRecenterFlip() { return getState().recenter.flip; },
   get isAnimating() { return getState().busy; },
-  get currentZoomTransform() { return currentZoomTransform; },
+  get currentZoomTransform() { return mainView.transform; },
   // Re-renders every text-bearing UI part as a language change would, so a
   // test can check the builders are idempotent.
   rebuildUI() { emit("language:changed"); },

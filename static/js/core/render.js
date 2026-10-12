@@ -1,40 +1,27 @@
-import { globeSphere, globeSphereFade, mapGroup, terrainGroup } from "./scene.js";
 import { lightOf } from "./geometry.js";
-import { updatePanExtent } from "./camera.js";
-import { getProjection } from "../data/projections.js";
 import { terrainData, worldData } from "../data/geodata.js";
-import { getState } from "../state.js";
 
-// The sphere-outline stroke only shows in orthographic — it's the only
-// projection where the disc needs a visible edge separating it from the
-// void background (see .globe-sphere.active); every other projection's
-// {type: "Sphere"} outline already reaches the void's own dark color at
-// its non-rectangular corners, so no border is needed there.
-export function updateGlobeBackground() {
-  const isGlobe = getProjection(getState().projectionId).globe;
-  globeSphere.classed("active", isGlobe);
-}
 // ============================================================
 // RENDER — draw or update country paths for a given projection
 // ============================================================
 // Draws the sphere's own boundary as a real shape (ocean-colored, with a
 // stroke) rather than relying on the background rect, so the globe's edge
 // reads clearly against the void backdrop in orthographic view.
-export function renderGlobeSphere(pathEl, projection) {
+export function renderGlobeSphere(view, projection) {
   const path = d3.geoPath().projection(projection);
-  pathEl.attr("d", path({ type: "Sphere" }));
+  view.layers.sphere.attr("d", path({ type: "Sphere" }));
   // Keep the crossfade companion shape inert outside of animateBlend's
   // crossfade branch, so it never lingers visible after a normal render.
-  if (pathEl === globeSphere) globeSphereFade.style("opacity", 0).attr("d", null);
+  view.sphereFade.style("opacity", 0).attr("d", null);
 }
 
-export function renderMap(projection) {
+export function renderMap(view, projection) {
   const path = d3.geoPath().projection(projection);
 
-  renderGlobeSphere(globeSphere, projection);
+  renderGlobeSphere(view, projection);
 
   // D3 data join keyed by country name — handles enter/update/exit
-  const paths = mapGroup
+  const paths = view.layers.countries
     .selectAll("path.country")
     .data(worldData.features, (d) => d.properties.name);
 
@@ -46,8 +33,17 @@ export function renderMap(projection) {
 
   paths.attr("d", path);
 
-  renderTerrain(terrainGroup, projection);
-  updatePanExtent(projection);
+  if (view.layers.terrain) renderTerrain(view.layers.terrain, projection);
+
+  // Panning stops once the map's edge reaches the window's edge, so the map
+  // can never be dragged off-screen. The limit is the projected sphere itself:
+  // on an axis where the zoomed map is smaller than the window, d3.zoom keeps
+  // it centred instead, and on Mercator the poles (which overflow the initial
+  // frame on purpose, see fitProjection) stay reachable. Set on every render
+  // since the outline depends on the projection; the recenter rotation and
+  // the upside-down flip (a mirror about the viewport's centre) don't change
+  // its bounding box.
+  view.zoom.translateExtent(path.bounds({ type: "Sphere" }));
 }
 
 // Draws the terrain patches (mountains, deserts, forest-basin proxies —

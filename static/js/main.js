@@ -23,10 +23,9 @@ import "./debug.js";
 import { getProjection } from "./data/projections.js";
 import { buildLightGeometry } from "./core/geometry.js";
 import { setLanguage } from "./i18n.js";
-import { makeProjection } from "./core/projection.js";
 import { openHelpModal } from "./ui/welcome-modal.js";
 import { rotationFor } from "./core/recenter.js";
-import { renderMap, updateGlobeBackground } from "./core/render.js";
+import { mainView } from "./core/scene.js";
 import { loadGeodata, terrainData, worldData } from "./data/geodata.js";
 import { emit, getState } from "./state.js";
 
@@ -45,8 +44,7 @@ async function init() {
   buildLightGeometry(terrainData.features);
 
   const initialProj = getProjection(getState().projectionId);
-  renderMap(makeProjection(initialProj, rotationFor(initialProj)));
-  updateGlobeBackground();
+  mainView.setProjection(initialProj, rotationFor(initialProj)).render();
   emit("view:changed"); // first draw of the overlays that follow the view
 }
 

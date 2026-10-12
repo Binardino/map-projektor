@@ -11,7 +11,8 @@
 // logged and the others still run.
 //
 // Events (emit/on) are for signals that aren't state: "frame" (every
-// animation frame, payload = the live projection), "transition:start",
+// animation frame, payload = { view, projection }: the map view being drawn
+// and its live projection), "transition:start",
 // "transition:end", "language:changed". Listeners are plain callbacks in
 // an array — the frame event fires 60 times a second.
 // ============================================================
