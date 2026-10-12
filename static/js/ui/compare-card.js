@@ -86,7 +86,7 @@ function compareAnchor(feature) {
 // each projection places a country at its own screen position, so drawn
 // as-is, France under Equirectangular landed on Chad in a Gall-Peters map.
 // Uses the active view's rotation so both shapes share an orientation.
-// Shares the main map's zoomLayer, so it pans/zooms together with it.
+// Lives in the main view's highlight layer, so it pans/zooms together with it.
 export function refreshCompareHighlight() {
   mainView.layers.highlight.selectAll("*").remove();
   mainView.layers.highlight.style("display", null);

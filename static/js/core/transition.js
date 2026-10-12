@@ -22,7 +22,7 @@ function transitionTo(newProjId) {
 async function morphTo(newProjId) {
   emit("view:changing");
 
-  // Reset the free camera (pan/zoom on zoomLayer, see CAMERA PAN & ZOOM)
+  // Reset the free camera (the view's pan/zoom, see CAMERA PAN & ZOOM)
   // to the default centered view before starting the morph, so every
   // projection switch lands on that projection's own standard framing
   // instead of carrying over whatever pan/zoom the user left it at.

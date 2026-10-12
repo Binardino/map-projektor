@@ -8,7 +8,7 @@ import { t } from "../i18n.js";
 // needs to change when adding a projection.
 //
 // d3fn must return a D3 projection instance (not yet fitted to
-// the viewport — that happens in makeProjection()).
+// the viewport — that happens in the view's makeProjection()).
 //
 // Optional capabilities (defaults in PROJECTION_DEFAULTS below), so no
 // code elsewhere has to test for a projection by its id:
