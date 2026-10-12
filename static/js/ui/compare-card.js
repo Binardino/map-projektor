@@ -31,7 +31,7 @@ let compareCountryNames    = null; // populated lazily once worldData is ready �
 // Countries being compared, in pick order. Each entry:
 // { name, color, visible, shape: what is drawn, home: the point of the
 //   country it is held by, target: where the user has dragged that point
-//   ([lon, lat], so it survives a projection or view change) }.
+//   ([lon, lat], so it survives a view change) }.
 const compareCountries = [];
 // Saturated hues that stay apart from each other and from the map's own
 // colours in both themes: land (pink / navy), ocean (light / mid blue),
@@ -72,6 +72,9 @@ function compareAnchor(feature) {
 // The map's projection at rest, kept for the drag: a pointer position is
 // turned back into a longitude and latitude with its invert().
 let compareProjection = null;
+// The projection the countries were last drawn under: a change of
+// projection sends them back home.
+let comparedProjectionId = null;
 
 // Projects the country at the place it was dragged to. Hidden parts (the
 // globe's far side) are clipped by the projection; a shape entirely out
@@ -83,6 +86,9 @@ function drawCompareOverlay(overlay, entry) {
 
 // Redraws (or clears) every visible compared country under the map's
 // projection and active view, each at the place it was dragged to.
+// Under a new projection they all start again from home: what is being
+// compared is each country as that projection draws it, and one left in
+// the Arctic by the previous map would be read as its normal size.
 // Lives in the main view's highlight layer, so it pans/zooms together with it.
 export function refreshCompareHighlight() {
   mainView.layers.highlight.selectAll("*").remove();
@@ -91,6 +97,10 @@ export function refreshCompareHighlight() {
 
   const mapDef = getProjection(getState().projectionId);
   compareProjection = mainView.makeProjection(mapDef, rotationFor(mapDef));
+  if (comparedProjectionId !== mapDef.id) {
+    compareCountries.forEach((entry) => { entry.target = entry.home; });
+    comparedProjectionId = mapDef.id;
+  }
 
   compareCountries.filter((entry) => entry.visible).forEach((entry) => {
     const overlay = mainView.layers.highlight.append("g")
@@ -139,8 +149,7 @@ const compareDrag = d3.drag()
   .on("end", function () { d3.select(this).classed("dragging", false); });
 
 // The overlay is drawn with the map's projection, so it's stale for the
-// whole morph or spin — hidden until the matching refresh at the end,
-// which puts each country back at the place it was dragged to.
+// whole morph or spin — hidden until the matching refresh at the end.
 export function hideCompareHighlight() {
   mainView.layers.highlight.style("display", "none");
 }

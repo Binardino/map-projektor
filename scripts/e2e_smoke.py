@@ -252,6 +252,13 @@ def tools_and_cards(page):
     assert not page.is_visible("#projection-info")
 
 
+# Screen centre of a country as the map draws it.
+COUNTRY_BOX_JS = """(name) => {
+    const path = [...document.querySelectorAll("path.country")].find((p) => p.__data__.properties.name === name);
+    const box = path.getBoundingClientRect();
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+}"""
+
 # Screen box of the first compared country: centre and size.
 COMPARE_BOX_JS = """() => {
     const box = document.querySelector(".compare-highlight").getBoundingClientRect();
@@ -261,8 +268,9 @@ COMPARE_BOX_JS = """() => {
 
 def country_drag(page):
     """A compared country is moved on the sphere, not on the screen: dragged
-    from the Arctic to the equator of a Mercator map it shrinks, and it stays
-    at that place on Earth when the projection changes."""
+    from the Arctic to the equator of a Mercator map it shrinks. It stays at
+    that place on Earth through a view change and goes back home when the
+    projection changes."""
     page.keyboard.press("Escape")
     switch(page, "mercator")
     page.click("#compare-toggle-btn")
@@ -286,9 +294,15 @@ def country_drag(page):
         f"Greenland should shrink towards the equator on Mercator: {home['height']:.0f}px -> {moved['height']:.0f}px")
     assert page.evaluate(CAMERA_JS) in ("", "translate(0,0) scale(1)"), "dragging a country should not pan the map"
 
-    switch(page, "robinson")
+    view(page, "africa")
     kept = page.evaluate(COMPARE_BOX_JS)
-    assert abs(kept["x"] - middle[0]) < 60 and abs(kept["y"] - middle[1]) < 60, "the country should keep its place on Earth across projections"
+    assert kept["height"] < home["height"] / 2, "the country should keep its place on Earth through a view change"
+
+    switch(page, "robinson")
+    back = page.evaluate(COMPARE_BOX_JS)
+    greenland = page.evaluate(COUNTRY_BOX_JS, "Greenland")
+    assert abs(back["x"] - greenland["x"]) < 2 and abs(back["y"] - greenland["y"]) < 2, (
+        "a projection switch should send the country back home")
 
 
 def ui_rebuild(page):

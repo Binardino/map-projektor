@@ -9,7 +9,7 @@ Feature 32. In comparison mode a country now behaves as on "The True Size Of…"
 ### Changed
 - A compared country is **moved on the sphere and projected again** at every pointer move, instead of being projected once and slid on the screen (which kept its size wherever it went). Works in the 17 projections, every view (upside-down included) and at any zoom; up to 5 countries, each dragged on its own
 - The country stays upright while it travels: its north keeps pointing at the local north
-- A dragged country keeps its place on Earth when the projection or the view changes (it used to snap back home)
+- A dragged country keeps its place on Earth when the view changes, and goes back home when the projection changes
 - Comparison card description rewritten for the new behaviour
 
 ### Added
