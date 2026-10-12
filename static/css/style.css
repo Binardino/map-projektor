@@ -312,6 +312,17 @@ body {
   pointer-events: none;
 }
 
+/* Demonstration steps (the tour switches projection by itself): no
+   dimming, the map is what there is to watch, and the bubble steps aside
+   for the length of the morph. */
+#tour.demo #tour-spotlight {
+  box-shadow: none;
+}
+
+#tour.morphing #tour-bubble {
+  visibility: hidden;
+}
+
 #tour-bubble {
   position: fixed;
   width: min(280px, calc(100vw - 32px));

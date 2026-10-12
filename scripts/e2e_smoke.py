@@ -82,7 +82,11 @@ def bubble_on_screen(page):
     return box["x"] >= 0 and box["y"] >= 0 and box["x"] + box["width"] <= size["width"] and box["y"] + box["height"] <= size["height"]
 
 
-TOUR_TARGETS = ["#projection-list", "#recenter-panel", "#map-tools", "#zoom-controls"]
+TOUR_TARGETS = ['.proj-btn[data-proj-id="mercator"]', '.proj-btn[data-proj-id="equalEarth"]',
+                "#recenter-panel", "#map-tools", "#zoom-controls"]
+# The tour opens on a demonstration: its first steps switch the projection themselves.
+TOUR_SHOWS = ["mercator", "equalEarth"]
+PROJECTION_JS = "() => window.__app.currentProjectionId"
 
 
 # ---------------------------------------------------------------- scenarios
@@ -110,6 +114,11 @@ def onboarding_tour(page):
     page.click("#help-modal-cta")
     for index, selector in enumerate(TOUR_TARGETS):
         assert tour_open(page), f"step {index + 1} should be showing"
+        if index < len(TOUR_SHOWS):
+            assert not page.is_visible("#tour-bubble"), f"step {index + 1}: the bubble should step aside during the morph"
+            settle(page)
+            assert page.evaluate(PROJECTION_JS) == TOUR_SHOWS[index], f"step {index + 1} should show {TOUR_SHOWS[index]}"
+        assert page.is_visible("#tour-bubble"), f"step {index + 1}: the bubble should show once the map is still"
         assert page.inner_text("#tour-progress") == f"{index + 1} / {len(TOUR_TARGETS)}"
         assert spotlight_covers(page, selector), f"step {index + 1} should highlight {selector}"
         assert bubble_on_screen(page), f"step {index + 1}: the bubble should fit in the window"
@@ -122,10 +131,12 @@ def onboarding_tour(page):
     open_app(page)
     page.click("#help-modal-cta")
     assert not tour_open(page), "a seen tour should not start again by itself"
+    assert page.evaluate(PROJECTION_JS) == "orthographic", "without the tour, the app stays on the globe"
     page.click("#tour-replay-btn")
     assert tour_open(page), "the ? button should replay the tour"
     page.click("#tour-skip")
     assert not tour_open(page), "Skip tutorial should close the tour"
+    assert page.evaluate(PROJECTION_JS) == "mercator", "a skipped tour leaves the map where the demonstration put it"
     switch(page, "robinson")  # the app is clickable again
 
 
@@ -151,9 +162,16 @@ def onboarding_mobile(page):
     page.click("#help-modal-cta")
     drawer_open = "() => document.getElementById('sidebar').classList.contains('open')"
     for index, selector in enumerate(TOUR_TARGETS):
+        settle(page)
         page.wait_for_timeout(350)  # the drawer's slide, after which the bubble is placed again
-        assert page.evaluate(drawer_open) == (index < 2), f"step {index + 1}: drawer open only for the sidebar steps"
-        assert spotlight_covers(page, selector), f"step {index + 1} should highlight {selector}"
+        assert page.evaluate(drawer_open) == (index == 2), f"step {index + 1}: drawer open only for the views step"
+        if index < len(TOUR_SHOWS):
+            # The projection buttons are in the closed drawer: the map is shown instead
+            assert page.evaluate(PROJECTION_JS) == TOUR_SHOWS[index], f"step {index + 1} should show {TOUR_SHOWS[index]}"
+            assert not page.is_visible("#tour-spotlight"), f"step {index + 1}: nothing to highlight with the drawer closed"
+            assert page.evaluate("() => window.scrollX") == 0, f"step {index + 1} should not scroll the page sideways"
+        else:
+            assert spotlight_covers(page, selector), f"step {index + 1} should highlight {selector}"
         assert bubble_on_screen(page), f"step {index + 1}: the bubble should fit in the window"
         page.click("#tour-next")
     assert not tour_open(page) and not page.evaluate(drawer_open)

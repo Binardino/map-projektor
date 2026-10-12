@@ -1,6 +1,7 @@
 import { TOUR_STORAGE_KEY } from "../config.js";
 import { t } from "../i18n.js";
-import { on } from "../state.js";
+import { getState, on, subscribe } from "../state.js";
+import { switchProjection } from "../core/transition.js";
 import { closeSidebar, openSidebar } from "./mobile-sidebar.js";
 
 // ============================================================
@@ -8,14 +9,20 @@ import { closeSidebar, openSidebar } from "./mobile-sidebar.js";
 // A few bubbles, each next to the control it explains, shown once after
 // the welcome modal closes (a localStorage flag remembers it) and again
 // on demand from the toolbar's "?" button.
+// It opens on a demonstration: the tour itself switches the globe to
+// Mercator, then to Equal Earth, so the map deforms in front of someone
+// who has not touched anything yet — the idea of the app before its controls.
 //
 // Adding a step: one entry here plus tour.step.<id>.title / .text in
 // en.json. `side` is where the bubble goes relative to the target;
 // `drawer` marks targets that sit in the sidebar, which is an off-canvas
-// drawer on mobile and has to be opened for the step.
+// drawer on mobile and has to be opened for the step; `show` is a
+// projection the step switches the map to (its drawer then stays closed,
+// the map being what there is to look at).
 // ============================================================
 const STEPS = [
-  { id: "projections", target: "#projection-list", side: "right", drawer: true },
+  { id: "mercator", target: '.proj-btn[data-proj-id="mercator"]', side: "right", show: "mercator" },
+  { id: "equalEarth", target: '.proj-btn[data-proj-id="equalEarth"]', side: "right", show: "equalEarth" },
   { id: "views", target: "#recenter-panel", side: "right", drawer: true },
   { id: "tools", target: "#map-tools", side: "left" },
   { id: "navigation", target: "#zoom-controls", side: "left" },
@@ -42,7 +49,12 @@ const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
 function positionStep() {
   const step = STEPS[stepIndex];
-  const target = document.querySelector(step.target).getBoundingClientRect();
+  const targetEl = document.querySelector(step.target);
+  targetEl.scrollIntoView({ block: "nearest" }); // the projection list scrolls
+  const target = targetEl.getBoundingClientRect();
+  // A target inside the closed mobile drawer: nothing to point at.
+  const offScreen = target.right <= 0;
+  spotlightEl.hidden = offScreen;
   spotlightEl.style.left = `${target.left - SPOTLIGHT_PADDING}px`;
   spotlightEl.style.top = `${target.top - SPOTLIGHT_PADDING}px`;
   spotlightEl.style.width = `${target.width + 2 * SPOTLIGHT_PADDING}px`;
@@ -57,13 +69,14 @@ function positionStep() {
   let left = side === "right" ? target.right + BUBBLE_GAP : target.left - BUBBLE_GAP - width;
   let top = clamp(targetMiddle - height / 2, VIEWPORT_MARGIN, innerHeight - height - VIEWPORT_MARGIN);
 
-  if (left < VIEWPORT_MARGIN || left + width > innerWidth - VIEWPORT_MARGIN) {
+  if (offScreen || left < VIEWPORT_MARGIN || left + width > innerWidth - VIEWPORT_MARGIN) {
     // No room beside the target (the mobile drawer takes most of the
     // width): centre the bubble over the half of the screen the target's
-    // middle is not in, without an arrow.
+    // middle is not in, without an arrow. With no target on screen it goes
+    // to the bottom, off the map.
     side = "none";
     left = (innerWidth - width) / 2;
-    top = targetMiddle > innerHeight / 2 ? VIEWPORT_MARGIN : innerHeight - height - VIEWPORT_MARGIN;
+    top = !offScreen && targetMiddle > innerHeight / 2 ? VIEWPORT_MARGIN : innerHeight - height - VIEWPORT_MARGIN;
   }
 
   bubbleEl.dataset.side = side;
@@ -83,9 +96,22 @@ function renderStep() {
 
   if (step.drawer) openSidebar();
   else closeSidebar();
+  // No dimming on a demonstration step: the map is the thing to watch.
+  tourEl.classList.toggle("demo", Boolean(step.show));
+  if (step.show) switchProjection(step.show);
+  showMorph();
   positionStep();
   nextBtn.focus();
 }
+
+// While the map morphs, the bubble steps aside (and its buttons with it)
+// so nothing competes with the demonstration; it comes back with the text
+// that explains what was just seen.
+function showMorph() {
+  tourEl.classList.toggle("morphing", getState().busy);
+  if (!getState().busy && !tourEl.hidden) nextBtn.focus();
+}
+subscribe(["busy"], showMorph);
 
 function startTour() {
   stepIndex = 0;
@@ -108,7 +134,10 @@ nextBtn.addEventListener("click", () => {
 });
 
 skipBtn.addEventListener("click", endTour);
-replayBtn.addEventListener("click", startTour);
+// Not during a morph: the first step could not start its own.
+replayBtn.addEventListener("click", () => {
+  if (!getState().busy) startTour();
+});
 
 // Capture phase, so this runs before the welcome modal's own Escape
 // handler: otherwise the Escape that closes the modal (which starts the
