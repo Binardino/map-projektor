@@ -1,15 +1,14 @@
 import { animateTransition, polarTransition } from "./animation.js";
 import { GLOBE, PROJECTIONS, getProjection } from "../data/projections.js";
 import { applyRecenter, rotationFor } from "./recenter.js";
-import { makeProjection } from "./projection.js";
-import { renderMap, updateGlobeBackground } from "./render.js";
+import { mainView } from "./scene.js";
 import { resetCamera } from "./camera.js";
 import { TIMING } from "../config.js";
 import { emit, getState, setState } from "../state.js";
 import { runExclusive } from "./busy.js";
 
 // ============================================================
-// TRANSITION — morph source → target
+// TRANSITION — morph the main map from its projection to another
 // ============================================================
 // Defaults to the orthographic globe — the "space view" reads better as a
 // first impression than a flat map, per UX feedback. This module is the
@@ -27,22 +26,21 @@ async function morphTo(newProjId) {
   // to the default centered view before starting the morph, so every
   // projection switch lands on that projection's own standard framing
   // instead of carrying over whatever pan/zoom the user left it at.
-  await resetCamera();
+  await resetCamera(mainView);
 
   const fromDef = getProjection(getState().projectionId);
   const toDef   = getProjection(newProjId);
 
   if (fromDef.polarRotation || toDef.polarRotation) {
-    await polarTransition(fromDef, toDef);
+    await polarTransition(mainView, fromDef, toDef);
   } else {
-    await animateTransition(fromDef, toDef, TIMING.projectionMorph);
+    await animateTransition(mainView, fromDef, toDef, TIMING.projectionMorph);
   }
 
   // Final render with the true target projection (native clipping rules)
-  renderMap(makeProjection(toDef, rotationFor(toDef)));
+  mainView.setProjection(toDef, rotationFor(toDef)).render();
 
   setState({ projectionId: newProjId });
-  updateGlobeBackground();
   emit("view:changed");
 }
 

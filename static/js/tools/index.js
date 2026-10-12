@@ -10,8 +10,3 @@
 // ============================================================
 import "./tissot.js";
 import "./reference-lines.js";
-
-// side-by-side.js is not loaded, so compare mode is never on: the stand-ins
-// the distortion grid reads to mirror itself onto the comparison panels.
-export const compareMode = false;
-export const comparePanels = null;

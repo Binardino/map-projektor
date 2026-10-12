@@ -1,66 +1,46 @@
 import { getProjection } from "../data/projections.js";
-import { makeProjection } from "./projection.js";
-import { renderMap } from "./render.js";
 import { rotationFor, setViewRotation } from "./recenter.js";
-import { svg, zoomLayer } from "./scene.js";
+import { mainView } from "./scene.js";
 import { CAMERA_IDENTITY_EPSILON, GLOBE_DRAG_SENSITIVITY, MAIN_ZOOM_SCALE_EXTENT, TIMING, ZOOM_STEP } from "../config.js";
 import { emit, getState } from "../state.js";
 
 // ============================================================
 // CAMERA PAN & ZOOM
 //
-// Free pan (drag) and zoom (wheel/pinch) on zoomLayer via d3.zoom,
+// Free pan (drag) and zoom (wheel/pinch) through each view's own d3.zoom,
 // independent of any country selection — the camera stays wherever
 // the user leaves it across projection switches, recenter presets,
 // and compare-mode panel changes. Replaces the old model where zoom
 // was only possible while a country was selected and locked to it.
 // ============================================================
 
-export let currentZoomTransform = d3.zoomIdentity;
+// Everything below resetCamera wires the main map's controls (wheel, zoom
+// buttons, globe drag); a secondary view keeps d3.zoom's plain behaviour.
+const { svg, zoom } = mainView;
 
-export const zoom = d3.zoom()
-  .scaleExtent(MAIN_ZOOM_SCALE_EXTENT)
-  // On the orthographic globe, drag/touch-pan is handed off to globeDrag
-  // below instead (see GLOBE ROTATION). The wheel is handled by the smooth
-  // wheel zoom further down, not by d3.zoom.
-  .filter((event) => {
-    if (event.type === "wheel") return false;
-    if (getProjection(getState().projectionId).globe) return false;
-    return !event.ctrlKey && !event.button;
-  })
-  .on("zoom", (event) => {
-    currentZoomTransform = event.transform;
-    zoomLayer.attr("transform", currentZoomTransform);
-  });
+// On the orthographic globe, drag/touch-pan is handed off to globeDrag
+// below instead (see GLOBE ROTATION). The wheel is handled by the smooth
+// wheel zoom further down, not by d3.zoom.
+zoom.filter((event) => {
+  if (event.type === "wheel") return false;
+  if (getProjection(getState().projectionId).globe) return false;
+  return !event.ctrlKey && !event.button;
+});
 
-svg.call(zoom);
-
-// Panning stops once the map's edge reaches the window's edge, so the map
-// can never be dragged off-screen. The limit is the projected sphere itself:
-// on an axis where the zoomed map is smaller than the window, d3.zoom keeps
-// it centred instead, and on Mercator the poles (which overflow the initial
-// frame on purpose, see fitProjection) stay reachable. Set on every
-// renderMap since the outline depends on the projection; the recenter
-// rotation and the upside-down flip (a mirror about the viewport's centre)
-// don't change its bounding box.
-export function updatePanExtent(projection) {
-  zoom.translateExtent(d3.geoPath().projection(projection).bounds({ type: "Sphere" }));
-}
-
-function isCameraAtIdentity() {
+function isCameraAtIdentity({ transform }) {
   return (
-    Math.abs(currentZoomTransform.k - 1) < CAMERA_IDENTITY_EPSILON &&
-    Math.abs(currentZoomTransform.x) < CAMERA_IDENTITY_EPSILON &&
-    Math.abs(currentZoomTransform.y) < CAMERA_IDENTITY_EPSILON
+    Math.abs(transform.k - 1) < CAMERA_IDENTITY_EPSILON &&
+    Math.abs(transform.x) < CAMERA_IDENTITY_EPSILON &&
+    Math.abs(transform.y) < CAMERA_IDENTITY_EPSILON
   );
 }
 
 // Animates the camera back to the default centered view. Returns a promise
 // so callers (e.g. transitionTo) can await it before proceeding; resolves
 // immediately if the camera is already at rest.
-export function resetCamera(duration = TIMING.cameraReset) {
-  if (isCameraAtIdentity()) return Promise.resolve();
-  return svg.transition().duration(duration).call(zoom.transform, d3.zoomIdentity).end();
+export function resetCamera(view, duration = TIMING.cameraReset) {
+  if (isCameraAtIdentity(view)) return Promise.resolve();
+  return view.svg.transition().duration(duration).call(view.zoom.transform, d3.zoomIdentity).end();
 }
 
 // d3.zoom applies each wheel notch in a single frame: a mouse wheel's
@@ -80,7 +60,7 @@ svg.on("wheel.smooth", (event) => {
   // Same notch-to-scale rate as d3.zoom's default wheelDelta.
   const delta = -event.deltaY * (event.deltaMode === 1 ? 0.05 : event.deltaMode ? 1 : 0.002) * (event.ctrlKey ? 10 : 1);
   const [kMin, kMax] = MAIN_ZOOM_SCALE_EXTENT;
-  wheelTargetScale = Math.max(kMin, Math.min(kMax, (wheelTargetScale ?? currentZoomTransform.k) * 2 ** delta));
+  wheelTargetScale = Math.max(kMin, Math.min(kMax, (wheelTargetScale ?? mainView.transform.k) * 2 ** delta));
   const id = ++wheelZoomId;
   svg.transition()
     .duration(TIMING.wheelZoom)
@@ -126,7 +106,7 @@ const globeDrag = d3.drag()
     const tilt = [newLambda, Math.max(-90, Math.min(90, phi - event.dy * GLOBE_DRAG_SENSITIVITY)), 0];
     // Flat maps keep the dragged longitude but never the tilt (see tilted in data/projections.js)
     setViewRotation([newLambda, 0, 0], tilt);
-    renderMap(makeProjection(projDef, rotationFor(projDef)));
+    mainView.setProjection(projDef, rotationFor(projDef)).render();
     emit("view:changed");
   });
 

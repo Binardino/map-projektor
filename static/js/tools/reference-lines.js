@@ -1,9 +1,6 @@
-import { getProjection } from "../data/projections.js";
-import { makeProjection } from "../core/projection.js";
-import { referenceGroup } from "../core/scene.js";
-import { rotationFor } from "../core/recenter.js";
+import { allViews } from "../core/map-view.js";
 import { MERIDIAN_STEP } from "../config.js";
-import { getState, on } from "../state.js";
+import { on } from "../state.js";
 
 // ============================================================
 // REFERENCE LINES
@@ -11,8 +8,8 @@ import { getState, on } from "../state.js";
 // The named parallels (equator, tropics, polar circles) plus a
 // meridian every 15° — one per hour of Earth's rotation, the usual
 // atlas spacing — with the equator and Greenwich drawn heavier as
-// the two origins. Main view only, like the other overlays that
-// live in worldGroup (so they follow recentring and the flip).
+// the two origins. Drawn in every view that has a reference layer —
+// today the main map only.
 // ============================================================
 const TROPIC_LAT       = 23.44; // Earth's axial tilt
 const POLAR_CIRCLE_LAT = 90 - TROPIC_LAT;
@@ -59,15 +56,15 @@ export function updateReferencePaths(group, projection) {
 export let referenceVisible = false;
 const referenceToggleBtn = document.getElementById("reference-toggle-btn");
 
-// Called wherever the main view's projection or rotation settles, next to
+// Called wherever a view's projection or rotation settles, next to
 // refreshTissot — the lines must be re-projected, not just re-shown.
 export function refreshReferenceLines() {
-  if (!referenceVisible) {
-    referenceGroup.selectAll("path.reference-line").remove();
-    return;
+  for (const view of allViews()) {
+    const group = view.layers.reference;
+    if (!group) continue;
+    if (referenceVisible) renderReferenceLines(group, view.projection());
+    else group.selectAll("path.reference-line").remove();
   }
-  const currentDef = getProjection(getState().projectionId);
-  renderReferenceLines(referenceGroup, makeProjection(currentDef, rotationFor(currentDef)));
 }
 
 referenceToggleBtn.addEventListener("click", () => {
@@ -78,7 +75,7 @@ referenceToggleBtn.addEventListener("click", () => {
 });
 
 // Redrawn on every animation frame and whenever the view settles.
-on("frame", (projection) => {
-  if (referenceVisible) updateReferencePaths(referenceGroup, projection);
+on("frame", ({ view, projection }) => {
+  if (referenceVisible && view.layers.reference) updateReferencePaths(view.layers.reference, projection);
 });
 on("view:changed", refreshReferenceLines);

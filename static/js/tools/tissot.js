@@ -1,10 +1,6 @@
-import { getProjection } from "../data/projections.js";
-import { compareMode, comparePanels } from "./index.js";
-import { fitProjection, makeProjection } from "../core/projection.js";
-import { rotationFor } from "../core/recenter.js";
-import { tissotGroup } from "../core/scene.js";
+import { allViews } from "../core/map-view.js";
 import { TISSOT_RADIUS, TISSOT_STEP } from "../config.js";
-import { getState, on } from "../state.js";
+import { on } from "../state.js";
 
 // ============================================================
 // TISSOT'S INDICATRIX OVERLAY
@@ -13,8 +9,8 @@ import { getState, on } from "../state.js";
 // any other geometry. Each circle becomes an ellipse whose shape
 // and size reveal the projection's local distortion — the
 // standard cartography tool for comparing projections objectively.
-// Toggled on demand; recomputed on projection switch and (if
-// active) mirrored onto both comparison panels.
+// Toggled on demand; drawn in every view that has a tissot layer and
+// recomputed whenever one settles on a projection.
 // ============================================================
 const tissotToggleBtn = document.getElementById("grid-toggle-btn");
 
@@ -60,23 +56,14 @@ function clearTissot(group) {
   group.selectAll("path.tissot, path.tissot-graticule").remove();
 }
 
-// Re-renders (or clears) the overlay on the single map and, if active,
-// on both comparison panels — called after any projection change.
+// Re-renders (or clears) the overlay in every view — called after any
+// projection change.
 export function refreshTissot() {
-  if (!tissotVisible) {
-    clearTissot(tissotGroup);
-    if (compareMode && comparePanels) comparePanels.forEach((p) => clearTissot(p.tissotGroup));
-    return;
-  }
-
-  const currentDef = getProjection(getState().projectionId);
-  renderTissot(tissotGroup, makeProjection(currentDef, rotationFor(currentDef)));
-
-  if (compareMode && comparePanels) {
-    comparePanels.forEach((panel) => {
-      const projDef = getProjection(panel.projId);
-      renderTissot(panel.tissotGroup, fitProjection(projDef, projDef.d3fn(), panel.width, panel.height));
-    });
+  for (const view of allViews()) {
+    const group = view.layers.tissot;
+    if (!group) continue;
+    if (tissotVisible) renderTissot(group, view.projection());
+    else clearTissot(group);
   }
 }
 
@@ -92,7 +79,7 @@ if (tissotToggleBtn) {
 }
 
 // Redrawn on every animation frame and whenever the view settles.
-on("frame", (projection) => {
-  if (tissotVisible) updateTissotPaths(tissotGroup, projection);
+on("frame", ({ view, projection }) => {
+  if (tissotVisible && view.layers.tissot) updateTissotPaths(view.layers.tissot, projection);
 });
 on("view:changed", refreshTissot);

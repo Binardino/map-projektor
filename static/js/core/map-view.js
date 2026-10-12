@@ -1,3 +1,7 @@
+import { fitProjection } from "./projection.js";
+import { renderMap } from "./render.js";
+import { MAIN_ZOOM_SCALE_EXTENT } from "../config.js";
+
 // ============================================================
 // MAP VIEW — one drawable map: its SVG, layers, zoom and projection
 //
@@ -7,16 +11,20 @@
 // of them.
 //
 //   createMapView({ svgEl, width, height, layers, zoomExtent })
-//   → { svg, layers: { sphere, countries, … }, zoom,
-//       projectionId, rotation, transform,
-//       setProjection(def, rotation), render(), destroy() }
+//   → { svg, width, height, world, layers: { sphere, countries, … }, zoom,
+//       projectionDef, rotation, transform,
+//       makeProjection(def, rotation), setProjection(def, rotation),
+//       projection(), render(), destroy() }
 //
-// Per-view state (projectionId, rotation, transform) lives on the view.
+// Per-view state lives on the view: projectionDef and rotation are what it
+// shows at rest (an animation draws its in-between frames straight into
+// the layers and settles with setProjection + render), transform is its
+// pan/zoom.
 // Each view builds its own d3.zoom: a zoom behaviour is bound to one
 // <svg>, and sharing it would make two maps pan together.
 //
-// Only the layer table exists so far; the factory comes next (see
-// docs/design/plans/2026-09-21-modularization/pr5-map-view.md).
+// The sphere outline and the countries are the map itself: every view has
+// them. The other layers are overlays a view asks for by name.
 // ============================================================
 
 // Bottom to top: SVG has no z-index, a layer paints over the ones created
@@ -33,13 +41,109 @@ export const LAYER_ORDER = Object.freeze([
   "highlight",  // compare card highlight, always on top
 ]);
 
-// A view asks for the layers it needs in any order and gets them back in
-// paint order. An unknown name throws: a typo would otherwise give a view
-// that silently lacks a layer.
+const BASE_LAYERS = ["sphere", "countries"];
+
+const LAYER_CLASS = {
+  countries: "countries",
+  terrain: "terrain-layer",
+  tissot: "tissot-layer",
+  reference: "reference-layer",
+  flight: "flightpath-layer",
+  truesize: "truesize-layer",
+  highlight: "compare-highlight-layer",
+};
+
+// A view names the overlays it wants in any order and gets its layers back
+// in paint order, base layers included. An unknown name throws: a typo
+// would otherwise give a view that silently lacks a layer.
 export function resolveLayers(names = LAYER_ORDER) {
   const unknown = names.filter((name) => !LAYER_ORDER.includes(name));
   if (unknown.length > 0) {
     throw new Error(`Unknown map layer: ${unknown.join(", ")}`);
   }
-  return LAYER_ORDER.filter((name) => names.includes(name));
+  return LAYER_ORDER.filter((name) => BASE_LAYERS.includes(name) || names.includes(name));
+}
+
+// Every live view, so an overlay tool can redraw itself wherever its layer
+// exists instead of knowing which maps are on screen.
+const views = new Set();
+
+export function allViews() {
+  return [...views];
+}
+
+export function createMapView({ svgEl, width, height, layers, zoomExtent = MAIN_ZOOM_SCALE_EXTENT }) {
+  const svg = d3
+    .select(svgEl)
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("preserveAspectRatio", "xMidYMid meet");
+
+  // Ocean background: outside the zoom layer so it always fills the
+  // viewport, whatever the pan/zoom.
+  const ocean = svg.append("rect").attr("class", "ocean").attr("width", width).attr("height", height);
+
+  // Receives the pan/zoom transform; everything that moves with the map
+  // lives inside it.
+  const viewport = svg.append("g").attr("class", "viewport");
+
+  // One wrapper for every world-space layer, so the upside-down flip (see
+  // animateRecenterFlip) animates a single transform and the layers cannot
+  // drift apart.
+  const world = viewport.append("g").attr("class", "world");
+
+  const view = { svg, width, height, world, layers: {}, projectionDef: null, rotation: null, transform: d3.zoomIdentity };
+
+  for (const name of resolveLayers(layers)) {
+    if (name === "sphere") {
+      // A real shape, not just the background rect, so the globe's edge
+      // shows against the void backdrop.
+      view.layers.sphere = world.append("path").attr("class", "globe-sphere");
+      // Its twin, visible only while a clip-angle blend crossfades the two
+      // endpoint outlines (see animateBlend).
+      view.sphereFade = world.append("path").attr("class", "globe-sphere").style("opacity", 0);
+    } else {
+      view.layers[name] = world.append("g").attr("class", LAYER_CLASS[name]);
+    }
+  }
+
+  view.zoom = d3.zoom()
+    .scaleExtent(zoomExtent)
+    .on("zoom", (event) => {
+      view.transform = event.transform;
+      viewport.attr("transform", event.transform);
+    });
+  svg.call(view.zoom);
+
+  // Fitted to this view's size; `rotation` recentres the sphere first.
+  view.makeProjection = (projDef, rotation = null) => {
+    const projection = projDef.d3fn();
+    if (rotation) projection.rotate(rotation);
+    return fitProjection(projDef, projection, width, height);
+  };
+
+  view.setProjection = (projDef, rotation = null) => {
+    view.projectionDef = projDef;
+    view.rotation = rotation;
+    return view;
+  };
+
+  // The projection the view shows at rest.
+  view.projection = () => view.makeProjection(view.projectionDef, view.rotation);
+
+  view.render = () => {
+    renderMap(view, view.projection());
+    // The outline's stroke only shows on the globe, the one projection
+    // whose disc needs an edge against the void (see .globe-sphere.active).
+    view.layers.sphere.classed("active", view.projectionDef.globe);
+  };
+
+  view.destroy = () => {
+    views.delete(view);
+    svg.on(".zoom", null);
+    ocean.remove();
+    viewport.remove();
+  };
+
+  views.add(view);
+  return view;
 }
