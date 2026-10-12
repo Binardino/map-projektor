@@ -60,7 +60,8 @@ Keep the country's true shape on the sphere and move it there; the projection th
 
 ## Decisions taken (user, 2026-10-12) and what was built
 
-- D1: the second-projection dropdown is removed.
+- D1: the second-projection dropdown stays, as one projection for all the compared countries, defaulting to the
+  map's (removed at first, brought back the same day at the user's request).
 - D2: several countries at once (the compare card's 5), each dragged on its own.
 - D3: upright. No spike was needed: `sphereMover` rebuilds each point in the local east/north/up frame of the
   target, which is a rigid rotation that keeps north pointing north by construction.

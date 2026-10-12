@@ -11,6 +11,7 @@ Feature 32. In comparison mode a country now behaves as on "The True Size Of…"
 - The country stays upright while it travels: its north keeps pointing at the local north
 - A dragged country keeps its place on Earth when the view changes, and goes back home when the projection changes
 - Comparison card description rewritten for the new behaviour
+- The comparison card's projection dropdown now starts on "Drawn as on the map" and follows the map; choosing a projection draws every compared country under it (one projection for all, so they stay comparable), still draggable and deforming by that projection's rules
 
 ### Added
 - `core/sphere-move.js`: rigid rotation of a GeoJSON shape across the sphere (pure maths, no D3), with unit tests for the anchor, the kept distances, the orientation and the poles/antimeridian
@@ -18,9 +19,6 @@ Feature 32. In comparison mode a country now behaves as on "The True Size Of…"
 
 ### Fixed
 - The country list of the comparison card could only be closed by picking a country: a click anywhere outside it now closes it
-
-### Removed
-- The comparison card's second-projection dropdown: the deformation now happens on the map itself
 
 ## 2026-10-12 — Map view abstraction (on `refactor/map-view`)
 
