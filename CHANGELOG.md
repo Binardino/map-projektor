@@ -16,6 +16,9 @@ Feature 32. In comparison mode a country now behaves as on "The True Size Of…"
 - `core/sphere-move.js`: rigid rotation of a GeoJSON shape across the sphere (pure maths, no D3), with unit tests for the anchor, the kept distances, the orientation and the poles/antimeridian
 - e2e scenario `country_drag`: Greenland dragged to the equator of a Mercator map shrinks by more than half and stays there after a projection switch
 
+### Fixed
+- The country list of the comparison card could only be closed by picking a country: a click anywhere outside it now closes it
+
 ### Removed
 - The comparison card's second-projection dropdown: the deformation now happens on the map itself
 

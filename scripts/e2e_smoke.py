@@ -266,6 +266,10 @@ def country_drag(page):
     page.keyboard.press("Escape")
     switch(page, "mercator")
     page.click("#compare-toggle-btn")
+    page.click("#compare-country-input")
+    assert page.is_visible("#compare-country-results"), "focusing the field should list the countries"
+    page.mouse.click(640, 450)
+    assert not page.is_visible("#compare-country-results"), "a click outside the picker should close the list"
     page.fill("#compare-country-input", "greenl")
     page.click("#compare-country-results li")
     home = page.evaluate(COMPARE_BOX_JS)

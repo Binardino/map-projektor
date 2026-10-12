@@ -20,6 +20,7 @@ import { getState, on } from "../state.js";
 const compareCardToggleBtn    = document.getElementById("compare-toggle-btn");
 const compareCardCloseBtn     = document.getElementById("compare-card-close");
 const compareCardEl           = document.getElementById("compare-card");
+const compareCountryPicker    = document.getElementById("compare-country-picker");
 const compareCountryInput     = document.getElementById("compare-country-input");
 const compareCountryResults   = document.getElementById("compare-country-results");
 const compareCountryList      = document.getElementById("compare-country-list");
@@ -235,6 +236,13 @@ compareCountryInput.addEventListener("focus", () => {
 compareCountryInput.addEventListener("keydown", (event) => {
   if (event.key === "Escape") hideCompareCountryResults();
 });
+
+// A press anywhere outside the picker closes the list. Listened to in the
+// capture phase: over the map, d3.zoom and d3.drag stop the event before
+// it would bubble up to the document.
+document.addEventListener("pointerdown", (event) => {
+  if (!compareCountryPicker.contains(event.target)) hideCompareCountryResults();
+}, true);
 
 function resetCompareSelection() {
   compareCountries.length = 0;
