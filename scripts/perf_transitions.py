@@ -139,6 +139,16 @@ def wheel_notches(page, count, direction, interval_ms=80):
         page.wait_for_timeout(interval_ms)
 
 
+def warm_up(page):
+    """One unmeasured polar round trip: the first polar route of a page runs
+    on code the browser hasn't optimised yet, which alone pushed it past
+    MAX_AVG_FRAME_MS on some runs (24.1, 24.9, 22.9ms on identical code)."""
+    start = page.evaluate("() => __app.currentProjectionId")
+    for proj_id in ["polarNorth", start]:
+        page.click(f'.proj-btn[data-proj-id="{proj_id}"]')
+        page.wait_for_timeout(WAIT_AFTER_CLICK_MS)
+
+
 def run_suite(page):
     """Every projection reached in sequence, then every recenter preset
     entered from and exited back to World View (mercator, the initial
@@ -267,6 +277,7 @@ def main():
                 # which would intercept every click in the suite.
                 page.click("#help-modal-close")
                 page.wait_for_timeout(300)  # let the initial render settle
+                warm_up(page)
 
                 print(f"Running transition suite ({run + 1}/{runs})...")
                 all_results.append(run_suite(page))
