@@ -18,6 +18,7 @@
   "info.distorts": "Distorts",
   "info.origin": "Origin",
   "info.preserves": "Preserves",
+  "language.note": "This translation was made by an AI and has not been reviewed by a native speaker.",
   "language.title": "Language",
   "projection.aitoff.bestFor": "Historical and reference use. Its equal-area descendant, Hammer, has mostly replaced it.",
   "projection.aitoff.distorts": "Both shape and area, moderately, worst near the outer edge of the ellipse.",

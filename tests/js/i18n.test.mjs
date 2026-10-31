@@ -8,7 +8,7 @@ import { getState, on } from "../../static/js/state.js";
 // applies the static translations (no marked-up elements here).
 function serve(messages) {
   globalThis.fetch = async () => ({ json: async () => messages });
-  globalThis.document = { querySelectorAll: () => [], documentElement: {}, title: "" };
+  globalThis.document = { querySelectorAll: () => [], documentElement: { style: { removeProperty() {} } }, title: "" };
   return setLanguage("en");
 }
 
@@ -37,7 +37,7 @@ test("a translation falls back on English, keys and country names alike", async 
     "/static/i18n/countries/fr.json": { Germany: "Allemagne" },
   };
   globalThis.fetch = async (url) => ({ json: async () => files[url] });
-  globalThis.document = { querySelectorAll: () => [], documentElement: {}, title: "" };
+  globalThis.document = { querySelectorAll: () => [], documentElement: { style: { removeProperty() {} } }, title: "" };
   await setLanguage("fr");
   assert.equal(t("zoom.in"), "Zoomer");
   assert.equal(t("zoom.out"), "Zoom out");

@@ -18,6 +18,7 @@ Interactive world map web app displaying 17 cartographic projections with animat
 - `poetry run python scripts/ui_text_snapshot.py --check` — every user-visible string in 13 UI states vs `tests/ui_text_snapshot.json`
 - `poetry run python scripts/render_fingerprint.py --check` — hashes of the drawn paths for 17 projections × 2 views, plus 5 projected control points, vs `tests/render_fingerprint.json`
 - `poetry run python scripts/e2e_smoke.py` — walks the main user paths, fails on any page error or missing i18n key (~30 s)
+- `poetry run python scripts/text_fit.py` — every text must fit its box in every language, desktop and phone
 - `node --test 'tests/js/*.test.mjs'` — JS unit tests (Node's built-in runner, no npm). Keep the quoted glob: Node 24 does not accept `node --test tests/js/`
 
 The golden files take `--write` after a deliberate change. **Before a PR:** `scripts/check_all.sh` runs pytest, the JS tests, the three scripts above and the perf harness, stopping at the first failure.

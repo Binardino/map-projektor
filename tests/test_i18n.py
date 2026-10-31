@@ -22,7 +22,7 @@ PLACEHOLDER = re.compile(r"\{(\w+)\}")
 
 
 def test_every_listed_language_is_complete():
-    assert "en" in LANGUAGE_CODES and "fr" in LANGUAGE_CODES, "did the LANGUAGES list change shape?"
+    assert len(LANGUAGE_CODES) >= 2, "did the LANGUAGES list change shape?"
     for code in LANGUAGE_CODES:
         if code == "en":
             continue

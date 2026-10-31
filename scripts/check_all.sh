@@ -16,6 +16,7 @@ run "JS unit tests"        node --test 'tests/js/*.test.mjs'
 run "UI text snapshot"     poetry run python scripts/ui_text_snapshot.py --check
 run "render fingerprint"   poetry run python scripts/render_fingerprint.py --check
 run "e2e smoke"            poetry run python scripts/e2e_smoke.py
+run "text fit"             poetry run python scripts/text_fit.py
 run "perf transitions"     poetry run python scripts/perf_transitions.py
 
 echo

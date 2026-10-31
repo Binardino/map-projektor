@@ -21,7 +21,7 @@
 
   --reference-line: #d64545;
 
-  --font-family:    'Quicksand', 'Georgia', sans-serif;
+  --font-family:    'Quicksand', sans-serif;
   --font-size-base: 14px;
   --sidebar-width:  240px;
 
@@ -943,6 +943,25 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 6px;
   margin-top: 14px;
+}
+
+/* Spacing out the letters breaks up these scripts, whose letters join or sit
+   in a fixed grid; it only reads as refinement in Latin, Greek and Cyrillic. */
+#sidebar-header .tagline:is(:lang(hi), :lang(bn), :lang(zh), :lang(ja)),
+.proj-family-header:is(:lang(hi), :lang(bn), :lang(zh), :lang(ja)) {
+  letter-spacing: 0;
+}
+
+.language-option,
+#welcome-language-select {
+  font-family: 'Quicksand', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Bengali', 'Noto Sans SC', sans-serif;
+}
+
+#language-note {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--card-text-muted);
 }
 
 .language-option {

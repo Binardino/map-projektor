@@ -14,9 +14,24 @@ const SOURCE_LANGUAGE = "en";
 
 // Each language is listed under its own name, the only one its readers can
 // be counted on to recognise: that is why these are not translated strings.
+// In order of speakers, roughly. `font` is for the scripts Quicksand lacks;
+// `reviewed` says a person who reads the language has checked the texts.
 export const LANGUAGES = [
-  { code: "en", name: "English" },
-  { code: "fr", name: "Français" },
+  { code: "en", name: "English", reviewed: true },
+  { code: "zh", name: "中文", font: "Noto Sans SC" },
+  { code: "hi", name: "हिन्दी", font: "Noto Sans Devanagari" },
+  { code: "es", name: "Español" },
+  { code: "fr", name: "Français", reviewed: true },
+  { code: "bn", name: "বাংলা", font: "Noto Sans Bengali" },
+  { code: "pt", name: "Português" },
+  { code: "ru", name: "Русский", font: "Noto Sans" },
+  { code: "id", name: "Bahasa Indonesia" },
+  { code: "de", name: "Deutsch" },
+  { code: "ja", name: "日本語", font: "Noto Sans JP" },
+  { code: "tr", name: "Türkçe" },
+  { code: "it", name: "Italiano" },
+  { code: "pl", name: "Polski" },
+  { code: "el", name: "Ελληνικά", font: "Noto Sans" },
 ];
 
 let messages = {};
@@ -71,6 +86,25 @@ function applyStaticTranslations() {
   document.title = t("app.title");
 }
 
+// Fetched only for the language on screen: Latin text keeps Quicksand, and
+// Google Fonts sends just the parts of a font that the page's text needs.
+function applyFont(lang) {
+  const { font } = LANGUAGES.find((language) => language.code === lang) ?? {};
+  if (!font) {
+    document.documentElement.style.removeProperty("--font-family");
+    return;
+  }
+  const family = font.replaceAll(" ", "+");
+  if (!document.querySelector(`link[data-font="${family}"]`)) {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = `https://fonts.googleapis.com/css2?family=${family}:wght@400;500;600;700&display=swap`;
+    link.dataset.font = family;
+    document.head.append(link);
+  }
+  document.documentElement.style.setProperty("--font-family", `'Quicksand', '${font}', sans-serif`);
+}
+
 // Loads a language and re-renders every text: the static markup here, the
 // built UI through its "language:changed" subscribers. Also how the app
 // starts (init), so the first build and a later switch take the same path.
@@ -85,6 +119,7 @@ export async function setLanguage(lang) {
   messages = { ...source, ...translation };
   countryNames = countries;
   document.documentElement.lang = lang;
+  applyFont(lang);
   applyStaticTranslations();
   setState({ language: lang });
   emit("language:changed");

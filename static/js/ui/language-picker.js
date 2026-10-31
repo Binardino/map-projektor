@@ -15,6 +15,7 @@ const closeBtn = document.getElementById("language-card-close");
 const cardEl = document.getElementById("language-card");
 const listEl = document.getElementById("language-list");
 const welcomeSelect = document.getElementById("welcome-language-select");
+const noteEl = document.getElementById("language-note");
 
 function chooseLanguage(code) {
   localStorage.setItem(LANGUAGE_STORAGE_KEY, code);
@@ -40,6 +41,7 @@ function renderChoices() {
     btn.addEventListener("click", () => chooseLanguage(code));
     return btn;
   }));
+  noteEl.hidden = LANGUAGES.find(({ code }) => code === current).reviewed === true;
   welcomeSelect.replaceChildren(...LANGUAGES.map(({ code, name }) => new Option(name, code, false, code === current)));
 }
 
