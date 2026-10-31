@@ -33,6 +33,7 @@ export const LANGUAGES = [
   { code: "tr", name: "Türkçe" },
   { code: "it", name: "Italiano" },
   { code: "pl", name: "Polski" },
+  { code: "uk", name: "Українська", font: "Noto Sans" },
   { code: "el", name: "Ελληνικά", font: "Noto Sans" },
 ];
 

@@ -356,6 +356,17 @@ def ui_rebuild(page):
         assert a == b, f"{label} changed after setLanguage('en'): {a!r} -> {b!r}"
 
 
+def projection_title_pinned(page):
+    """The list's title stays in view however far down the list is scrolled."""
+    page.keyboard.press("Escape")
+    title = "#projection-list > .section-title"
+    before = page.locator(title).bounding_box()
+    page.evaluate("() => { const list = document.getElementById('projection-list'); list.scrollTop = list.scrollHeight; }")
+    after = page.locator(title).bounding_box()
+    assert page.evaluate("() => document.getElementById('projection-list').scrollTop") > 0, "the list should scroll at this size"
+    assert abs(before["y"] - after["y"]) < 2, f"the title moved: {before['y']} -> {after['y']}"
+
+
 def language_choice(page):
     """The toolbar card and the welcome dropdown change every text, country
     names included, and the choice survives a reload."""
@@ -399,7 +410,7 @@ def mobile_drawer(page):
 
 
 ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, language_choice, mobile_drawer]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, mobile_drawer]
 
 
 def main():

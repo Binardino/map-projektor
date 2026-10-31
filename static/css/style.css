@@ -130,8 +130,18 @@ body {
   overflow-y: auto;
   flex: 1;
   padding-bottom: 8px;
+  scroll-padding-top: 56px; /* a button scrolled into view must clear the pinned title */
   scrollbar-width: thin;
   scrollbar-color: var(--text-primary) transparent;
+}
+
+/* Stays in view while the list scrolls, so that someone far down it still
+   reads what the buttons are for. */
+#projection-list > .section-title {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-sidebar);
 }
 
 #projection-list::-webkit-scrollbar {
