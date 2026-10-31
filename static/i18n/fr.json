@@ -143,6 +143,7 @@
   "view.southAmericaFlipped.name": "Centrée sur le Brésil",
   "view.world.description": "Centrée sur le méridien de Greenwich : la convention atlantique de la plupart des atlas occidentaux, avec l'Europe et l'Afrique de l'Ouest au milieu.",
   "view.world.name": "Centrée sur l'Europe",
+  "welcome.borders": "Les frontières et les noms viennent de Natural Earth et montrent la situation sur le terrain, pas une position politique.",
   "welcome.cta": "C'est parti !",
   "welcome.intro1": "Comme chacun sait, la Terre est une sphère. (Désolé les platistes.)",
   "welcome.intro2": "C'est en l'aplatissant sur une carte que les ennuis commencent : formes, aires, distances et directions ne peuvent pas toutes survivre au voyage, alors chaque projection choisit ce qu'elle garde et ce qu'elle tord.",

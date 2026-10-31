@@ -380,6 +380,11 @@ def language_choice(page):
     open_app(page)
     assert page.input_value("#welcome-language-select") == "fr", "the choice should survive a reload"
     assert page.inner_text("#help-modal-cta") == "C'est parti !"
+    page.select_option("#welcome-language-select", "ar")
+    page.wait_for_function("() => document.documentElement.lang === 'ar'")
+    directions = page.evaluate("""() => ["help-modal", "sidebar", "map-tools"].map((id) => getComputedStyle(document.getElementById(id)).direction)""")
+    assert directions == ["rtl", "rtl", "ltr"], f"text right to left, the page's layout kept: {directions}"
+    assert page.locator("#sidebar").bounding_box()["x"] == 0, "the sidebar stays on the left"
     page.evaluate("() => localStorage.removeItem('mapProjektorLanguage')")
 
 

@@ -143,6 +143,7 @@
   "view.southAmericaFlipped.name": "以巴西为中心",
   "view.world.description": "以格林尼治子午线为中心：大多数西方地图集以大西洋为中心的做法，欧洲和西非位于中间。",
   "view.world.name": "以欧洲为中心",
+  "welcome.borders": "边界和名称来自 Natural Earth，反映的是实际状况，不代表任何政治立场。",
   "welcome.cta": "知道了！",
   "welcome.intro1": "众所周知，地球是个球体。（抱歉了，地平论者。）",
   "welcome.intro2": "麻烦在于把它压平到地图上：形状、面积、距离和方向无法全部保全，所以每种投影都要选择保留什么、扭曲什么。",

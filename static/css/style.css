@@ -230,7 +230,7 @@ body {
 #help-modal-close {
   position: absolute;
   top: 12px;
-  right: 12px;
+  inset-inline-end: 12px;
   width: 24px;
   height: 24px;
   padding: 0;
@@ -267,6 +267,13 @@ body {
   margin-bottom: 0;
 }
 
+#help-modal-borders {
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
 #help-modal-footer {
   display: flex;
   align-items: center;
@@ -278,7 +285,7 @@ body {
 #welcome-language-select {
   min-width: 0;
   padding: 8px 10px;
-  font-family: 'Quicksand', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Bengali', 'Noto Sans SC', sans-serif;
+  font-family: 'Quicksand', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Bengali', 'Noto Sans SC', 'Noto Sans Arabic', sans-serif;
   font-size: 14px;
   background: var(--field-bg);
   color: var(--field-text);
@@ -428,7 +435,7 @@ body {
 
 /* Same pill as the welcome modal's call to action */
 #tour-next {
-  margin-left: auto;
+  margin-inline-start: auto;
   padding: 8px 20px;
   font-family: var(--font-family);
   font-size: 13px;
@@ -487,7 +494,7 @@ body {
      highlight a different width; fill the row minus the 12px side margins. */
   width: calc(100% - 24px);
   box-sizing: border-box;
-  text-align: left;
+  text-align: start;
   background: none;
   border: none;
   border-radius: 8px;
@@ -945,10 +952,26 @@ body {
   margin-top: 14px;
 }
 
+/* Arabic and Urdu read right to left inside the panels, but the page keeps its
+   layout: a map's east stays on the right, and the sidebar stays where the map
+   leaves room for it. Hence no dir="rtl" on the page, only on what holds text. */
+#sidebar:is(:lang(ar), :lang(ur)),
+#help-modal:is(:lang(ar), :lang(ur)),
+#tour-bubble:is(:lang(ar), :lang(ur)),
+#floating-cards:is(:lang(ar), :lang(ur)),
+.tool-btn[data-tooltip]:is(:lang(ar), :lang(ur)):hover::after {
+  direction: rtl;
+}
+
+/* Nastaliq slants down across the line and needs far more room than other scripts. */
+:is(#help-modal-body, #help-modal-borders, #tour-text, #info-tradeoffs-content, .floating-card-description, #language-note):lang(ur) {
+  line-height: 2.2;
+}
+
 /* Spacing out the letters breaks up these scripts, whose letters join or sit
    in a fixed grid; it only reads as refinement in Latin, Greek and Cyrillic. */
-#sidebar-header .tagline:is(:lang(hi), :lang(bn), :lang(zh), :lang(ja)),
-.proj-family-header:is(:lang(hi), :lang(bn), :lang(zh), :lang(ja)) {
+#sidebar-header .tagline:is(:lang(hi), :lang(bn), :lang(zh), :lang(ja), :lang(ar), :lang(ur)),
+.proj-family-header:is(:lang(hi), :lang(bn), :lang(zh), :lang(ja), :lang(ar), :lang(ur)) {
   letter-spacing: 0;
 }
 
@@ -963,7 +986,7 @@ body {
    come from the small font requests at the top of index.html. */
 .language-option {
   padding: 8px 10px;
-  font-family: 'Quicksand', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Bengali', 'Noto Sans SC', sans-serif;
+  font-family: 'Quicksand', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Bengali', 'Noto Sans SC', 'Noto Sans Arabic', sans-serif;
   font-size: 15px;
   text-align: start;
   background: none;
