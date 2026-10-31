@@ -90,6 +90,16 @@ def capture_hero(browser):
     page.close()
 
 
+def capture_social_preview(browser):
+    # GitHub asks for 1280x640; LinkedIn's link preview crops to a similar shape.
+    page = browser.new_page(viewport={"width": 1280, "height": 640})
+    open_app(page)
+    _, proj_id, view_id = HERO
+    show(page, proj_id, view_id)
+    shoot(page, "social-preview")
+    page.close()
+
+
 def capture_gallery(browser):
     page = browser.new_page(viewport=VIEWPORT, device_scale_factor=GALLERY_SCALE)
     open_app(page)
@@ -153,6 +163,7 @@ def main():
         with sync_playwright() as p:
             browser = p.chromium.launch()
             capture_hero(browser)
+            capture_social_preview(browser)
             capture_gallery(browser)
             capture_transition(browser)
             browser.close()
