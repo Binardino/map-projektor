@@ -82,7 +82,11 @@ def bubble_on_screen(page):
     return box["x"] >= 0 and box["y"] >= 0 and box["x"] + box["width"] <= size["width"] and box["y"] + box["height"] <= size["height"]
 
 
-TOUR_TARGETS = ["#projection-list", "#recenter-panel", "#map-tools", "#zoom-controls"]
+TOUR_TARGETS = ['.proj-btn[data-proj-id="mercator"]', '.proj-btn[data-proj-id="equalEarth"]',
+                "#recenter-panel", "#map-tools", "#zoom-controls"]
+# The tour opens on a demonstration: its first steps switch the projection themselves.
+TOUR_SHOWS = ["mercator", "equalEarth"]
+PROJECTION_JS = "() => window.__app.currentProjectionId"
 
 
 # ---------------------------------------------------------------- scenarios
@@ -110,6 +114,11 @@ def onboarding_tour(page):
     page.click("#help-modal-cta")
     for index, selector in enumerate(TOUR_TARGETS):
         assert tour_open(page), f"step {index + 1} should be showing"
+        if index < len(TOUR_SHOWS):
+            assert not page.is_visible("#tour-bubble"), f"step {index + 1}: the bubble should step aside during the morph"
+            settle(page)
+            assert page.evaluate(PROJECTION_JS) == TOUR_SHOWS[index], f"step {index + 1} should show {TOUR_SHOWS[index]}"
+        assert page.is_visible("#tour-bubble"), f"step {index + 1}: the bubble should show once the map is still"
         assert page.inner_text("#tour-progress") == f"{index + 1} / {len(TOUR_TARGETS)}"
         assert spotlight_covers(page, selector), f"step {index + 1} should highlight {selector}"
         assert bubble_on_screen(page), f"step {index + 1}: the bubble should fit in the window"
@@ -122,10 +131,12 @@ def onboarding_tour(page):
     open_app(page)
     page.click("#help-modal-cta")
     assert not tour_open(page), "a seen tour should not start again by itself"
+    assert page.evaluate(PROJECTION_JS) == "orthographic", "without the tour, the app stays on the globe"
     page.click("#tour-replay-btn")
     assert tour_open(page), "the ? button should replay the tour"
     page.click("#tour-skip")
     assert not tour_open(page), "Skip tutorial should close the tour"
+    assert page.evaluate(PROJECTION_JS) == "mercator", "a skipped tour leaves the map where the demonstration put it"
     switch(page, "robinson")  # the app is clickable again
 
 
@@ -151,9 +162,16 @@ def onboarding_mobile(page):
     page.click("#help-modal-cta")
     drawer_open = "() => document.getElementById('sidebar').classList.contains('open')"
     for index, selector in enumerate(TOUR_TARGETS):
+        settle(page)
         page.wait_for_timeout(350)  # the drawer's slide, after which the bubble is placed again
-        assert page.evaluate(drawer_open) == (index < 2), f"step {index + 1}: drawer open only for the sidebar steps"
-        assert spotlight_covers(page, selector), f"step {index + 1} should highlight {selector}"
+        assert page.evaluate(drawer_open) == (index == 2), f"step {index + 1}: drawer open only for the views step"
+        if index < len(TOUR_SHOWS):
+            # The projection buttons are in the closed drawer: the map is shown instead
+            assert page.evaluate(PROJECTION_JS) == TOUR_SHOWS[index], f"step {index + 1} should show {TOUR_SHOWS[index]}"
+            assert not page.is_visible("#tour-spotlight"), f"step {index + 1}: nothing to highlight with the drawer closed"
+            assert page.evaluate("() => window.scrollX") == 0, f"step {index + 1} should not scroll the page sideways"
+        else:
+            assert spotlight_covers(page, selector), f"step {index + 1} should highlight {selector}"
         assert bubble_on_screen(page), f"step {index + 1}: the bubble should fit in the window"
         page.click("#tour-next")
     assert not tour_open(page) and not page.evaluate(drawer_open)
@@ -252,6 +270,68 @@ def tools_and_cards(page):
     assert not page.is_visible("#projection-info")
 
 
+# Screen centre of a country as the map draws it.
+COUNTRY_BOX_JS = """(name) => {
+    const path = [...document.querySelectorAll("path.country")].find((p) => p.__data__.properties.name === name);
+    const box = path.getBoundingClientRect();
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+}"""
+
+# Screen box of the first compared country: centre and size.
+COMPARE_BOX_JS = """() => {
+    const box = document.querySelector(".compare-highlight").getBoundingClientRect();
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2, width: box.width, height: box.height };
+}"""
+
+
+def country_drag(page):
+    """A compared country is moved on the sphere, not on the screen: dragged
+    from the Arctic to the equator of a Mercator map it shrinks. It stays at
+    that place on Earth through a view change and goes back home when the
+    projection changes."""
+    page.keyboard.press("Escape")
+    switch(page, "mercator")
+    page.click("#compare-toggle-btn")
+    page.click("#compare-country-input")
+    assert page.is_visible("#compare-country-results"), "focusing the field should list the countries"
+    page.mouse.click(640, 450)
+    assert not page.is_visible("#compare-country-results"), "a click outside the picker should close the list"
+    page.fill("#compare-country-input", "greenl")
+    page.click("#compare-country-results li")
+    home = page.evaluate(COMPARE_BOX_JS)
+    svg = page.locator("#map-svg").bounding_box()
+    middle = (svg["x"] + svg["width"] / 2, svg["y"] + svg["height"] / 2)
+
+    page.mouse.move(home["x"], home["y"])
+    page.mouse.down()
+    page.mouse.move(*middle, steps=10)
+    page.mouse.up()
+    moved = page.evaluate(COMPARE_BOX_JS)
+    assert abs(moved["x"] - middle[0]) < 60 and abs(moved["y"] - middle[1]) < 60, "the country should follow the pointer"
+    assert moved["height"] < home["height"] / 2, (
+        f"Greenland should shrink towards the equator on Mercator: {home['height']:.0f}px -> {moved['height']:.0f}px")
+    assert page.evaluate(CAMERA_JS) in ("", "translate(0,0) scale(1)"), "dragging a country should not pan the map"
+
+    # Drawn under another projection than the map's, it changes shape but
+    # stays where it was dragged to.
+    page.select_option("#compare-projection-select", "gallPeters")
+    other = page.evaluate(COMPARE_BOX_JS)
+    assert abs(other["height"] - moved["height"]) > 5, "the chosen projection should redraw the country"
+    assert abs(other["x"] - middle[0]) < 60 and abs(other["y"] - middle[1]) < 60, "the redrawn country should stay in place"
+    page.select_option("#compare-projection-select", "")
+    assert page.evaluate(COMPARE_BOX_JS) == moved, "back to the map's projection, the country is drawn as before"
+
+    view(page, "africa")
+    kept = page.evaluate(COMPARE_BOX_JS)
+    assert kept["height"] < home["height"] / 2, "the country should keep its place on Earth through a view change"
+
+    switch(page, "robinson")
+    back = page.evaluate(COMPARE_BOX_JS)
+    greenland = page.evaluate(COUNTRY_BOX_JS, "Greenland")
+    assert abs(back["x"] - greenland["x"]) < 2 and abs(back["y"] - greenland["y"]) < 2, (
+        "a projection switch should send the country back home")
+
+
 def ui_rebuild(page):
     """The UI builders are idempotent: re-rendering for a language change
     leaves the same text, the same number of nodes and the same active
@@ -287,7 +367,7 @@ def mobile_drawer(page):
 
 
 ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, ui_rebuild, mobile_drawer]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, mobile_drawer]
 
 
 def main():

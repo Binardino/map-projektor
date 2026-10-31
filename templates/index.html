@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Map Projektor</title>
+  <!-- Written here, not through data-i18n: search engines and link previews
+       read the raw HTML without running the JavaScript -->
+  <meta name="description" content="An interactive world map that morphs between 17 projections, so you can see what each one preserves and what it distorts." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Map Projektor" />
+  <meta property="og:title" content="Map Projektor" />
+  <meta property="og:description" content="An interactive world map that morphs between 17 projections, so you can see what each one preserves and what it distorts." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
   <!-- Closest free match for the Figma design's "Neulis Neue" (a rounded
        geometric sans not available for web use) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -25,6 +34,7 @@
   <link rel="modulepreload" href="/static/js/core/render.js" />
   <link rel="modulepreload" href="/static/js/core/scene.js" />
   <link rel="modulepreload" href="/static/js/core/selection.js" />
+  <link rel="modulepreload" href="/static/js/core/sphere-move.js" />
   <link rel="modulepreload" href="/static/js/core/transition.js" />
   <link rel="modulepreload" href="/static/js/data/geodata.js" />
   <link rel="modulepreload" href="/static/js/data/projections.js" />
@@ -107,7 +117,7 @@
             </div>
             <ul id="compare-country-list" hidden></ul>
             <select id="compare-projection-select">
-              <option value="" disabled selected data-i18n="compare.chooseProjection"></option>
+              <option value="" selected data-i18n="compare.mapProjection"></option>
             </select>
           </div>
           <div id="projection-info" class="floating-card" hidden>
@@ -161,9 +171,10 @@
 
   </div>
 
-  <!-- CDN libraries — order matters: d3-geo-projection extends d3, the modules use both -->
-  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4/dist/d3-geo-projection.min.js"></script>
+  <!-- CDN libraries — order matters: d3-geo-projection extends d3, the modules use both.
+       Exact versions: a floating one would let a new release change the live site with no deploy. -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4.0.0/dist/d3-geo-projection.min.js"></script>
   <script type="module" src="/static/js/main.js"></script>
 </body>
 </html>

@@ -61,6 +61,7 @@ Two files change, nothing else.
 
    ```json
    "projection.myProjection.name": "My Projection",
+   "projection.myProjection.origin": "Created in 1900 by Jane Doe (Scottish).",
    "projection.myProjection.preserves": "...",
    "projection.myProjection.distorts": "...",
    "projection.myProjection.bestFor": "..."

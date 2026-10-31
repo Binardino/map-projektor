@@ -1,6 +1,7 @@
 import { PROJECTIONS, getProjection, projectionName } from "../data/projections.js";
 import { mainView } from "../core/scene.js";
 import { rotationFor } from "../core/recenter.js";
+import { moveGeo } from "../core/sphere-move.js";
 import { t } from "../i18n.js";
 import { COMPARE_MAX } from "../config.js";
 import { readPalette } from "../core/palette.js";
@@ -10,24 +11,28 @@ import { getState, on } from "../state.js";
 // ============================================================
 // COMPARE CARD
 //
-// Pick a country (searchable, alphabetical) and it's redrawn on top of
-// the map as a red highlight, under its own projection — independent of
-// whatever projection the main map/sidebar has active. Lets you see how
-// the same country's shape/size changes between two projections at a
-// glance: the base map (unchanged) vs. the highlighted overlay.
+// Pick up to five countries (searchable, alphabetical): each is redrawn
+// on top of the map as a coloured shape that can be dragged anywhere.
+// The shape is moved on the sphere, not on the screen, and projected
+// again at every step, so it grows, shrinks and bends exactly as the
+// map's projection does at the place it is dragged to.
+// The countries can also be drawn under another projection than the map's
+// (one for all of them, so they stay comparable with each other): how
+// projection A draws a country, laid on a map in projection B.
 // ============================================================
 const compareCardToggleBtn    = document.getElementById("compare-toggle-btn");
 const compareCardCloseBtn     = document.getElementById("compare-card-close");
 const compareCardEl           = document.getElementById("compare-card");
 const compareProjectionSelect = document.getElementById("compare-projection-select");
+const compareCountryPicker    = document.getElementById("compare-country-picker");
 const compareCountryInput     = document.getElementById("compare-country-input");
 const compareCountryResults   = document.getElementById("compare-country-results");
 const compareCountryList      = document.getElementById("compare-country-list");
 
-// Called from init() once the language is loaded (names come from t()); it
-// keeps the HTML placeholder option (empty value) and replaces the rest, so a
-// language switch can call it again.
-export function buildCompareProjectionOptions() {
+// Called on every "language:changed" (names come from t()); it keeps the
+// HTML's first option (empty value: the map's own projection) and replaces
+// the rest, so a language switch can call it again.
+function buildCompareProjectionOptions() {
   compareProjectionSelect.querySelectorAll("option[value]:not([value=''])").forEach((o) => o.remove());
   PROJECTIONS.forEach((proj) => {
     const option = document.createElement("option");
@@ -38,12 +43,13 @@ export function buildCompareProjectionOptions() {
 }
 
 let compareCardVisible     = false;
+let compareProjectionId    = null; // projection the countries are drawn under; null follows the map's
 let compareCountryNames    = null; // populated lazily once worldData is ready — full alphabetical list
-let compareProjectionId    = null; // null until a country is picked, then defaults to currentProjectionId
 
 // Countries being compared, in pick order. Each entry:
-// { name, color, visible, shift: pins its anchor on the map's copy of the
-//   country, offset: how far the user has dragged it from there }.
+// { name, color, visible, shape: what is drawn, home: the point of the
+//   country it is held by, target: where the user has dragged that point
+//   ([lon, lat], so it survives a view change) }.
 const compareCountries = [];
 // Saturated hues that stay apart from each other and from the map's own
 // colours in both themes: land (pink / navy), ocean (light / mid blue),
@@ -81,78 +87,107 @@ function compareAnchor(feature) {
   return d3.geoCentroid({ type: "Polygon", coordinates: largest });
 }
 
-// Redraws (or clears) every visible compared country under compareProjectionId,
-// each shifted so its anchor sits on the same country in the map on screen:
-// each projection places a country at its own screen position, so drawn
-// as-is, France under Equirectangular landed on Chad in a Gall-Peters map.
-// Uses the active view's rotation so both shapes share an orientation.
+// The map's projection at rest: it places the countries, and its invert()
+// turns a pointer position back into a longitude and latitude for the drag.
+let mapProjection = null;
+// The projection that draws them: the map's, unless another was chosen.
+let drawProjection = null;
+// The projection the countries were last drawn on: a change of map
+// projection sends them back home.
+let comparedProjectionId = null;
+
+// Draws the country at the place it was dragged to. Under the map's own
+// projection, hidden parts (the globe's far side) are clipped by the
+// projection and a shape entirely out of sight has no path at all.
+// Under another projection the shape is slid so that the point it is held
+// by sits where the map puts that place: each projection has its own idea
+// of where a place goes on screen. A place the map does not show (a point
+// has no path there) then hides the country: the other projection would
+// happily draw it on the back of the globe.
+function drawCompareOverlay(overlay, entry) {
+  const moved = moveGeo(entry.shape, entry.home, entry.target);
+  let d = null, transform = null;
+  if (drawProjection === mapProjection) {
+    d = d3.geoPath().projection(mapProjection)(moved);
+  } else if (d3.geoPath().projection(mapProjection)({ type: "Point", coordinates: entry.target }) !== null) {
+    d = d3.geoPath().projection(drawProjection)(moved);
+    const [mx, my] = mapProjection(entry.target);
+    const [dx, dy] = drawProjection(entry.target);
+    if (d) transform = `translate(${mx - dx},${my - dy})`;
+  }
+  overlay.attr("transform", transform).selectAll("path").attr("d", d || "");
+}
+
+// Redraws (or clears) every visible compared country under the map's
+// projection and active view, each at the place it was dragged to.
+// Under a new projection they all start again from home: what is being
+// compared is each country as that projection draws it, and one left in
+// the Arctic by the previous map would be read as its normal size.
 // Lives in the main view's highlight layer, so it pans/zooms together with it.
 export function refreshCompareHighlight() {
   mainView.layers.highlight.selectAll("*").remove();
   mainView.layers.highlight.style("display", null);
   if (!worldData) return;
 
-  const mapDef      = getProjection(getState().projectionId);
-  const compareDef  = compareProjectionId ? getProjection(compareProjectionId) : mapDef;
-  const mapProj     = mainView.makeProjection(mapDef, rotationFor(mapDef));
-  const compareProj = mainView.makeProjection(compareDef, rotationFor(compareDef));
-  const comparePath = d3.geoPath().projection(compareProj);
-  const [rl, rp]    = mapProj.rotate();
+  const mapDef  = getProjection(getState().projectionId);
+  const drawDef = compareProjectionId ? getProjection(compareProjectionId) : mapDef;
+  mapProjection  = mainView.makeProjection(mapDef, rotationFor(mapDef));
+  drawProjection = drawDef === mapDef ? mapProjection : mainView.makeProjection(drawDef, rotationFor(drawDef));
+  if (comparedProjectionId !== mapDef.id) {
+    compareCountries.forEach((entry) => { entry.target = entry.home; });
+    comparedProjectionId = mapDef.id;
+  }
 
   compareCountries.filter((entry) => entry.visible).forEach((entry) => {
-    const feature = worldData.features.find((f) => f.properties.name === entry.name);
-    if (!feature) return;
-    const anchor = compareAnchor(feature);
-    // A projection returns a point even for the globe's far side, which
-    // would pin the overlay on a country the user can't see.
-    if (getProjection(getState().projectionId).globe && d3.geoDistance(anchor, [-rl, -rp]) > Math.PI / 2) return;
-    const [mx, my] = mapProj(anchor);
-    const [cx, cy] = compareProj(anchor);
-    entry.shift = [mx - cx, my - cy];
-
-    const d = comparePath(compareShape(feature));
     const overlay = mainView.layers.highlight.append("g")
       .datum(entry)
       .attr("class", "compare-overlay")
-      .attr("transform", compareOverlayTransform(entry))
       .call(compareDrag);
-    overlay.append("path").attr("class", "compare-hit").attr("d", d);
-    overlay.append("path").attr("class", "compare-highlight").attr("d", d)
+    overlay.append("path").attr("class", "compare-hit");
+    overlay.append("path").attr("class", "compare-highlight")
       .style("fill", entry.color)
       .style("stroke", entry.color);
+    drawCompareOverlay(overlay, entry);
   });
 }
 
-function compareOverlayTransform(entry) {
-  return `translate(${entry.shift[0] + entry.offset[0]},${entry.shift[1] + entry.offset[1]})`;
-}
-
-function resetCompareOffsets() {
-  compareCountries.forEach((entry) => { entry.offset = [0, 0]; });
+// The place on Earth under a point of the map, or null off the map:
+// outside its outline a projection's invert() answers NaN or a place
+// that is drawn somewhere else, so the answer is projected back to check.
+function placeUnder(x, y) {
+  const place = mapProjection.invert([x, y]);
+  if (!place || !place.every(Number.isFinite)) return null;
+  const [px, py] = mapProjection(place);
+  return Math.hypot(px - x, py - y) < 1 ? place : null;
 }
 
 // Grabbing the overlay moves it; d3.drag stops the pointer-down from
 // reaching d3.zoom and globeDrag, so a drag anywhere else still pans the
-// map (or turns the globe), and the wheel still zooms over it. dx/dy come
-// in the overlay's parent coordinates, which already undo the camera zoom
-// and the upside-down flip, so the shape stays under the cursor.
+// map (or turns the globe), and the wheel still zooms over it. The drag's
+// coordinates are those of the overlay's parent, which already undo the
+// camera zoom and the upside-down flip. The subject is where the country
+// is held, so it follows the pointer from where it was grabbed instead of
+// jumping under it.
 // Each country moves on its own; the one being dragged is raised so it
 // passes over the others.
 const compareDrag = d3.drag()
+  .subject((event, entry) => {
+    const [x, y] = mapProjection(entry.target);
+    return { x, y };
+  })
   .on("start", function () { d3.select(this).classed("dragging", true).raise(); })
   .on("drag", function (event, entry) {
-    entry.offset = [entry.offset[0] + event.dx, entry.offset[1] + event.dy];
-    d3.select(this).attr("transform", compareOverlayTransform(entry));
+    const place = placeUnder(event.x, event.y);
+    if (!place) return; // pointer off the map: the country waits at the edge
+    entry.target = place;
+    drawCompareOverlay(d3.select(this), entry);
   })
   .on("end", function () { d3.select(this).classed("dragging", false); });
 
-// The overlay is pinned to the map's projection, so it's stale for the
+// The overlay is drawn with the map's projection, so it's stale for the
 // whole morph or spin — hidden until the matching refresh at the end.
-// A drag only holds until the next projection or view change, which puts
-// the overlay back on the country (the anchor is what's being compared).
 export function hideCompareHighlight() {
   mainView.layers.highlight.style("display", "none");
-  resetCompareOffsets();
 }
 
 // Rebuilds the picked-country rows and locks the search field once the
@@ -223,15 +258,10 @@ function selectCompareCountry(name) {
   if (compareCountries.length >= COMPARE_MAX || compareCountries.some((entry) => entry.name === name)) return;
   // First colour no listed country is using, so removing one frees its colour
   const color = COMPARE_COLORS.find((c) => !compareCountries.some((entry) => entry.color === c));
-  compareCountries.push({ name, color, visible: true, shift: [0, 0], offset: [0, 0] });
+  const feature = worldData.features.find((f) => f.properties.name === name);
+  const home = compareAnchor(feature);
+  compareCountries.push({ name, color, visible: true, shape: compareShape(feature), home, target: home });
   renderCompareList();
-
-  // First pick since the card opened (or since it was last cleared):
-  // default the projection to whatever the main map is currently showing.
-  if (compareProjectionId === null) {
-    compareProjectionId = getState().projectionId;
-    compareProjectionSelect.value = getState().projectionId;
-  }
   refreshCompareHighlight();
 }
 
@@ -252,17 +282,23 @@ compareCountryInput.addEventListener("keydown", (event) => {
   if (event.key === "Escape") hideCompareCountryResults();
 });
 
+// A press anywhere outside the picker closes the list. Listened to in the
+// capture phase: over the map, d3.zoom and d3.drag stop the event before
+// it would bubble up to the document.
+document.addEventListener("pointerdown", (event) => {
+  if (!compareCountryPicker.contains(event.target)) hideCompareCountryResults();
+}, true);
+
 compareProjectionSelect.addEventListener("change", () => {
-  compareProjectionId = compareProjectionSelect.value;
-  resetCompareOffsets();
+  compareProjectionId = compareProjectionSelect.value || null;
   refreshCompareHighlight();
 });
 
 function resetCompareSelection() {
   compareCountries.length = 0;
   compareProjectionId = null;
-  compareCountryInput.value = "";
   compareProjectionSelect.value = "";
+  compareCountryInput.value = "";
   renderCompareList();
   hideCompareCountryResults();
   refreshCompareHighlight();

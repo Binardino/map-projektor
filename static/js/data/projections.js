@@ -89,7 +89,7 @@ export const PROJECTIONS = [
   {
     id: "naturalEarth",
     family: "Pseudocylindrical",
-    year: 2012,
+    year: 2008,
     description:
       "Designed by Tom Patterson for attractive world maps. A smooth compromise " +
       "between conformal and equal-area with gently rounded poles.",
@@ -125,7 +125,7 @@ export const PROJECTIONS = [
   {
     id: "orthographic",
     family: "Azimuthal",
-    year: 200,
+    year: -150,
     description:
       "Simulates viewing Earth from infinite distance — the 'space view'. " +
       "Only one hemisphere is visible at a time.",
@@ -147,7 +147,7 @@ export const PROJECTIONS = [
   {
     id: "polarNorth",
     family: "Azimuthal",
-    year: 1946,
+    year: 1000,
     description:
       "Azimuthal equidistant centred on the North Pole — the view on the United " +
       "Nations emblem. Distances measured from the pole are true to scale.",

@@ -72,11 +72,11 @@ def show(page, proj_id, view_id):
     apply_view(page, view_id)
 
 
-def shoot(page, name):
+def shoot(page, name, directory=ASSETS_DIR):
     # Park the pointer off the map so no hover state ends up in the picture.
     page.mouse.move(0, 0)
     page.wait_for_timeout(300)
-    path = ASSETS_DIR / f"{name}.png"
+    path = directory / f"{name}.png"
     page.screenshot(path=path)
     print(f"Written {path.relative_to(ROOT_DIR)}")
 
@@ -87,6 +87,17 @@ def capture_hero(browser):
     name, proj_id, view_id = HERO
     show(page, proj_id, view_id)
     shoot(page, name)
+    page.close()
+
+
+def capture_social_preview(browser):
+    # GitHub asks for 1280x640; LinkedIn's link preview crops to a similar shape.
+    # Under static/ because link previews fetch it from the live site.
+    page = browser.new_page(viewport={"width": 1280, "height": 640})
+    open_app(page)
+    _, proj_id, view_id = HERO
+    show(page, proj_id, view_id)
+    shoot(page, "social-preview", ROOT_DIR / "static")
     page.close()
 
 
@@ -153,6 +164,7 @@ def main():
         with sync_playwright() as p:
             browser = p.chromium.launch()
             capture_hero(browser)
+            capture_social_preview(browser)
             capture_gallery(browser)
             capture_transition(browser)
             browser.close()
