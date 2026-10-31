@@ -473,6 +473,11 @@ body {
    RECENTER PRESETS
    ============================================================ */
 #recenter-panel {
+  /* Shares a short window with the projection list instead of crushing it:
+     tall scripts (Urdu) would otherwise leave the list no room for a button. */
+  flex-shrink: 1;
+  max-height: 50%;
+  overflow-y: auto;
   padding: 10px 0;
   border-top: 1px solid var(--border);
 }
