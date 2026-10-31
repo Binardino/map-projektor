@@ -34,7 +34,11 @@ FOREST_BASIN_NAMES = {"AMAZON BASIN", "CONGO BASIN"}
 OUTPUT_PATH = pathlib.Path(__file__).parent.parent / "app" / "data" / "world.geojson"
 TERRAIN_OUTPUT_PATH = pathlib.Path(__file__).parent.parent / "app" / "data" / "terrain.geojson"
 
-SIMPLIFY_TOLERANCE   = 0.1  # degrees - ~11km around Equator (was 0.5 = too aggressive)
+COUNTRY_NAMES_DIR = pathlib.Path(__file__).parent.parent / "static" / "i18n" / "countries"
+# Natural Earth names the countries in these languages (columns NAME_AR, NAME_BN...)
+COUNTRY_NAME_LANGUAGES = ["ar", "bn", "de", "es", "fr", "hi", "id", "it", "ja", "pl", "pt", "ru", "tr", "ur", "zh"]
+
+SIMPLIFY_TOLERANCE   = 0.1 # degrees - ~11km around Equator (was 0.5 = too aggressive)
 COORDINATE_PRECISION = 4    # decimals - ~11km of precision, enough for web map
 
 # Clip every geometry to stay strictly inside ±179.9° longitude.
@@ -81,6 +85,15 @@ def simplify_feature(feature, tolerance):
     except Exception as e:
         print(f"Warning : {e}")
         return None
+
+def write_country_names(features):
+    """One static/i18n/countries/<lang>.json per language, English name → name
+    in that language: the English name is what the map data calls a country."""
+    COUNTRY_NAMES_DIR.mkdir(exist_ok=True)
+    for lang in COUNTRY_NAME_LANGUAGES:
+        names = {raw["properties"]["NAME"]: raw["properties"][f"NAME_{lang.upper()}"] for raw in features}
+        path = COUNTRY_NAMES_DIR / f"{lang}.json"
+        path.write_text(json.dumps(names, ensure_ascii=False, indent=0, sort_keys=True) + "\n", encoding="utf-8")
 
 def fetch_terrain():
     """Fetch Natural Earth physical regions, keep mountains/deserts and the two
@@ -154,6 +167,7 @@ def main():
     
     OUTPUT_PATH.write_text(json.dumps(dict_feature, separators=(",", ":")))
 
+    write_country_names(features)
     fetch_terrain()
 
 if __name__ == "__main__":
