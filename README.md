@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/hero.png" alt="Map Projektor showing the orthographic globe centered on Africa, with the projection and view lists in the sidebar" width="830">
+  <img src="docs/assets/hero.png" alt="Map Projektor showing the orthographic globe centred on Africa, with the projection and view lists in the sidebar" width="830">
 </p>
 
 ## See it move
@@ -32,12 +32,12 @@ Switching projection never snaps: the map morphs from one to the other, and rout
 
 - **17 projections in 5 families**: cylindrical, pseudocylindrical, azimuthal, pseudoazimuthal and conic, from Mercator to Equal Earth, plus a draggable 3D globe and two polar views
 - **Animated transitions**: the map morphs from one projection to the next instead of snapping; a switch to or from a polar view folds into the globe, spins, then unfolds
-- **Six points of view**: Europe-, China-, Africa-, America- and Oceania-centered, and a south-up map. The Europe-centered default is a convention, not a fact of nature, and the chosen view carries over when you switch projection
+- **Six points of view**: Europe-, China-, Africa-, America- and Oceania-centred, and a south-up map. The Europe-centred default is a convention, not a fact of nature, and the chosen view carries over when you switch projection
 - **Distortion grid**: Tissot's indicatrix, a grid of identical circles on the sphere that the projection stretches into ellipses, so you see where and how much it distorts
 - **Reference lines**: equator, tropics, polar circles and meridians
 - **Country size comparison**: pick up to 5 countries and drag them across the map; each one is moved on the sphere and projected again, so it stretches or shrinks exactly as the projection does at that place. They can also be drawn under another projection than the map's
 - **Projection facts**: what each projection preserves, what it distorts and what it is best for
-- **Navigation**: zoom with the buttons or the mouse wheel, drag to pan or to spin the globe, click a country to focus on it
+- **Navigation**: zoom with the buttons or the mouse wheel, drag to pan the map or to spin the globe
 - **Light and dark themes**, remembered between visits
 - **Guided tour** on the first visit, replayable from the toolbar: it opens by unfolding the globe into Mercator, then morphing it into Equal Earth, so you see the idea before touching anything
 - **Mobile layout**: the sidebar becomes a drawer on small screens
