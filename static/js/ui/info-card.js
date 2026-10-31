@@ -8,10 +8,10 @@ import { getState, on, subscribe } from "../state.js";
 const infoTradeoffsContent = document.getElementById("info-tradeoffs-content");
 
 // Always fully shown now (no expand/collapse) — matches the Figma card,
-// which has no toggle, just the three terms laid out directly.
+// which has no toggle, just the terms laid out directly.
 function renderTradeoffs(projDef) {
   infoTradeoffsContent.innerHTML = "";
-  ["preserves", "distorts", "bestFor"].forEach((field) => {
+  ["origin", "preserves", "distorts", "bestFor"].forEach((field) => {
     const dt = document.createElement("dt");
     dt.textContent = t(`info.${field}`);
     const dd = document.createElement("dd");

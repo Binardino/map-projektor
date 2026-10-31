@@ -13,7 +13,8 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 
 ### Changed
 - All interface texts edited for plainer wording and written in British English
-- The "Brasil-centered" view is now "South-up", and its description also cites the south-up world map announced in 2025 by Brazil's IBGE
+- The "Brasil-centered" view is now "Brazil-centred", and its description also cites the south-up world map announced in 2025 by Brazil's IBGE
+- The projection card opens on an "Origin" line: who created the projection, when, and where they came from. A projection now takes five strings instead of four
 - `scripts/perf_transitions.py` does one unmeasured polar round trip before measuring, so that the first polar route no longer flaps around the 24 ms ceiling
 
 ## Unreleased — Onboarding opens on a demonstration (on `feature/onboarding-demo`)

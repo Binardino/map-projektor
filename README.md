@@ -36,7 +36,7 @@ Switching projection never snaps: the map morphs from one to the other, and rout
 - **Distortion grid**: Tissot's indicatrix, a grid of identical circles on the sphere that the projection stretches into ellipses, so you see where and how much it distorts
 - **Reference lines**: equator, tropics, polar circles and meridians
 - **Country size comparison**: pick up to 5 countries and drag them across the map; each one is moved on the sphere and projected again, so it stretches or shrinks exactly as the projection does at that place. They can also be drawn under another projection than the map's
-- **Projection facts**: what each projection preserves, what it distorts and what it is best for
+- **Projection facts**: who created each projection and when, what it preserves, what it distorts and what it is best for
 - **Navigation**: zoom with the buttons or the mouse wheel, drag to pan the map or to spin the globe
 - **Light and dark themes**, remembered between visits
 - **Guided tour** on the first visit, replayable from the toolbar: it opens by unfolding the globe into Mercator, then morphing it into Equal Earth, so you see the idea before touching anything
@@ -99,7 +99,7 @@ Open [http://localhost:8000](http://localhost:8000). The container listens on `$
 
 ## Contributing
 
-Adding a projection takes one object in the registry and four strings. [CONTRIBUTING.md](CONTRIBUTING.md) explains how, where the code lives and which checks to run. The history of changes is in [CHANGELOG.md](CHANGELOG.md).
+Adding a projection takes one object in the registry and five strings. [CONTRIBUTING.md](CONTRIBUTING.md) explains how, where the code lives and which checks to run. The history of changes is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Credits
 
