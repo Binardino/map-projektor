@@ -19,9 +19,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <!-- Just the letters of the language names, so that the language list reads
-       on a machine without these scripts: each name must be readable whatever
-       the language on screen (the text= parameter keeps the files tiny) -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&family=Noto+Sans+Devanagari&family=Noto+Sans+Bengali&family=Noto+Sans+SC&text=%CE%95%CE%AC%CE%B7%CE%B9%CE%BA%CE%BB%CE%BD%D0%A0%D0%B8%D0%B9%D0%BA%D1%81%D1%83%E0%A4%A6%E0%A4%A8%E0%A4%B9%E0%A4%BF%E0%A5%80%E0%A5%8D%E0%A6%82%E0%A6%AC%E0%A6%B2%E0%A6%BE%E4%B8%AD%E6%96%87%E6%97%A5%E6%9C%AC%E8%AA%9E&display=swap" rel="stylesheet" />
+       on a machine without these scripts, whatever the language on screen.
+       One request per script: asked together, the fonts all claim the same
+       letters, and the first one draws empty boxes for those it lacks. -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&text=%CE%95%CE%BB%CE%BB%CE%B7%CE%BD%CE%B9%CE%BA%CE%AC%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari&text=%E0%A4%B9%E0%A4%BF%E0%A4%A8%E0%A5%8D%E0%A4%A6%E0%A5%80&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali&text=%E0%A6%AC%E0%A6%BE%E0%A6%82%E0%A6%B2%E0%A6%BE&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC&text=%E4%B8%AD%E6%96%87%E6%97%A5%E6%9C%AC%E8%AA%9E&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/css/style.css" />
   <!-- Every module main.js imports, fetched in parallel instead of level by
        level as imports are discovered (tests/js/modulepreload.test.mjs keeps

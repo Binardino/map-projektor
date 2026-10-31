@@ -278,7 +278,7 @@ body {
 #welcome-language-select {
   min-width: 0;
   padding: 8px 10px;
-  font-family: var(--font-family);
+  font-family: 'Quicksand', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Bengali', 'Noto Sans SC', sans-serif;
   font-size: 14px;
   background: var(--field-bg);
   color: var(--field-text);
@@ -952,11 +952,6 @@ body {
   letter-spacing: 0;
 }
 
-.language-option,
-#welcome-language-select {
-  font-family: 'Quicksand', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Bengali', 'Noto Sans SC', sans-serif;
-}
-
 #language-note {
   margin-top: 12px;
   font-size: 13px;
@@ -964,9 +959,11 @@ body {
   color: var(--card-text-muted);
 }
 
+/* Every name in its own script, whatever the language on screen: the letters
+   come from the small font requests at the top of index.html. */
 .language-option {
   padding: 8px 10px;
-  font-family: var(--font-family);
+  font-family: 'Quicksand', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Bengali', 'Noto Sans SC', sans-serif;
   font-size: 15px;
   text-align: start;
   background: none;
