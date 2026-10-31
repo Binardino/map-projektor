@@ -5,7 +5,7 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 ## Unreleased — Language picker (on `feature/language-picker`)
 
 ### Added
-- A language button in the toolbar (the letters A, Я and ع), opening a card with every language under its own name
+- A language button in the toolbar (the characters 字, अ and A), opening a card with every language under its own name
 - The same choice as a dropdown in the welcome modal, for someone who cannot read the page yet, and a tour step pointing at the button
 - The app starts in the browser's language when we have it; a choice is remembered between visits
 - French, the first translation. A key a translation lacks shows in English

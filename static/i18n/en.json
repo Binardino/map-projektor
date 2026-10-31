@@ -144,8 +144,9 @@
   "view.world.name": "Europe-centred",
   "welcome.cta": "Got it!",
   "welcome.intro1": "As we all know, the Earth is a sphere. (Sorry, flat earthers.)",
-  "welcome.intro2": "Squashing it onto a flat map is where it gets awkward: shapes, areas, distances and directions can't all survive the trip, so every projection picks what to keep and what to bend. Each choice has its perks and its little lies. On a Mercator map, Greenland looks as big as Africa, which is about 14 times larger.",
-  "welcome.intro3": "This tool lets you see those trade-offs for yourself.",
+  "welcome.intro2": "Squashing it onto a flat map is where it gets awkward: shapes, areas, distances and directions can't all survive the trip, so every projection picks what to keep and what to bend.",
+  "welcome.intro3": "Each choice has its perks and its little lies. On a Mercator map, Greenland looks as big as Africa, which is about 14 times larger.",
+  "welcome.intro4": "This tool lets you see those trade-offs for yourself.",
   "welcome.title": "Welcome to Map Projektor!",
   "zoom.in": "Zoom in",
   "zoom.out": "Zoom out"

@@ -36,7 +36,7 @@ TERRAIN_OUTPUT_PATH = pathlib.Path(__file__).parent.parent / "app" / "data" / "t
 
 COUNTRY_NAMES_DIR = pathlib.Path(__file__).parent.parent / "static" / "i18n" / "countries"
 # Natural Earth names the countries in these languages (columns NAME_AR, NAME_BN...)
-COUNTRY_NAME_LANGUAGES = ["ar", "bn", "de", "es", "fr", "hi", "id", "it", "ja", "pl", "pt", "ru", "tr", "ur", "zh"]
+COUNTRY_NAME_LANGUAGES = ["ar", "bn", "de", "el", "es", "fr", "hi", "id", "it", "ja", "pl", "pt", "ru", "tr", "ur", "zh"]
 
 SIMPLIFY_TOLERANCE   = 0.1 # degrees - ~11km around Equator (was 0.5 = too aggressive)
 COORDINATE_PRECISION = 4    # decimals - ~11km of precision, enough for web map

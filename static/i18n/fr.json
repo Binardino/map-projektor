@@ -143,9 +143,10 @@
   "view.world.description": "Centrée sur le méridien de Greenwich : la convention atlantique de la plupart des atlas occidentaux, avec l'Europe et l'Afrique de l'Ouest au milieu.",
   "view.world.name": "Centrée sur l'Europe",
   "welcome.cta": "C'est parti !",
-  "welcome.intro1": "Comme chacun sait, la Terre est une sphère. (Désolé, platistes.)",
-  "welcome.intro2": "C'est en l'aplatissant sur une carte que les ennuis commencent : formes, aires, distances et directions ne peuvent pas toutes survivre au voyage, alors chaque projection choisit ce qu'elle garde et ce qu'elle tord. Chaque choix a ses atouts et ses petits mensonges. Sur une carte de Mercator, le Groenland paraît aussi grand que l'Afrique, qui est pourtant environ 14 fois plus vaste.",
-  "welcome.intro3": "Cet outil vous permet de voir ces compromis par vous-même.",
+  "welcome.intro1": "Comme chacun sait, la Terre est une sphère. (Désolé les platistes.)",
+  "welcome.intro2": "C'est en l'aplatissant sur une carte que les ennuis commencent : formes, aires, distances et directions ne peuvent pas toutes survivre au voyage, alors chaque projection choisit ce qu'elle garde et ce qu'elle tord.",
+  "welcome.intro3": "Chaque choix a ses atouts et ses petits mensonges. Sur une carte de Mercator, le Groenland paraît aussi grand que l'Afrique, qui est pourtant environ 14 fois plus vaste.",
+  "welcome.intro4": "Cet outil vous permet de voir ces compromis par vous-même.",
   "welcome.title": "Bienvenue sur Map Projektor !",
   "zoom.in": "Zoomer",
   "zoom.out": "Dézoomer"

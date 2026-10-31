@@ -105,7 +105,7 @@ Adding a projection takes one object in the registry and five strings. [CONTRIBU
 
 - Map data: [Natural Earth](https://www.naturalearthdata.com/) (public domain), simplified by `scripts/fetch_geodata.py`
 - Projections and rendering: [D3](https://d3js.org/) and [d3-geo-projection](https://github.com/d3/d3-geo-projection) (ISC license)
-- Typeface: [Quicksand](https://fonts.google.com/specimen/Quicksand) (SIL Open Font License)
+- Typeface: [Quicksand](https://fonts.google.com/specimen/Quicksand) (SIL Open Font License); the language icon's 字 and अ are drawn from [Noto Sans](https://fonts.google.com/noto) (same license)
 
 ## License
 
