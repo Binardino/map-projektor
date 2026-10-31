@@ -8,6 +8,7 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 - The tour now **shows the idea before the controls**: closing the welcome modal unfolds the globe into Mercator, the first bubble points at Greenland's size, and "Next" morphs the map into Equal Earth with a second bubble on what just changed. The two steps replace the former "Pick a projection" one (5 steps instead of 4)
 - During these two morphs the bubble steps aside and the page is not dimmed, so the map is all there is to watch; on mobile the drawer stays closed and the bubble sits at the bottom
 - Only when the tour plays (first visit, or the `?` button): a returning visitor stays on the globe. Skipping the tour leaves the map where the demonstration put it
+- Larger text in the welcome modal and the tour bubble (15 px instead of 13), with a bubble widened to 320 px to keep the same line length
 
 ## Unreleased — Drag a country across the map (on `feature/country-drag`)
 

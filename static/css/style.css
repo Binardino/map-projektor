@@ -249,12 +249,12 @@ body {
 }
 
 #help-modal-title {
-  font-size: 16px;
+  font-size: 18px;
   margin-bottom: 14px;
 }
 
 #help-modal-body {
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.6;
   color: var(--text-muted);
 }
@@ -325,7 +325,7 @@ body {
 
 #tour-bubble {
   position: fixed;
-  width: min(280px, calc(100vw - 32px));
+  width: min(320px, calc(100vw - 32px));
   padding: 16px;
   background: var(--bg-sidebar);
   border: 1px solid var(--border);
@@ -371,12 +371,12 @@ body {
 }
 
 #tour-title {
-  font-size: 15px;
+  font-size: 17px;
   margin-bottom: 8px;
 }
 
 #tour-text {
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--text-muted);
 }
