@@ -52,6 +52,7 @@
   <link rel="modulepreload" href="/static/js/ui/onboarding.js" />
   <link rel="modulepreload" href="/static/js/ui/sidebar.js" />
   <link rel="modulepreload" href="/static/js/ui/theme.js" />
+  <link rel="modulepreload" href="/static/js/ui/language-picker.js" />
   <link rel="modulepreload" href="/static/js/ui/welcome-modal.js" />
 </head>
 <body>
@@ -101,10 +102,20 @@
           <button id="compare-toggle-btn" class="tool-btn" aria-pressed="false" data-i18n-attr="aria-label:tool.compare;data-tooltip:tool.compare">
             <svg width="16" height="23" viewBox="0 0 16 23" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.0498 0C8.46402 1.81059e-08 8.7998 0.335786 8.7998 0.75V3H15C15.5523 3 16 3.44772 16 4V18C16 18.5523 15.5523 19 15 19H8.7998V22.25C8.7998 22.6642 8.46402 23 8.0498 23C7.63576 22.9998 7.2998 22.6641 7.2998 22.25V19H1L0.897461 18.9951C0.393331 18.9438 0 18.5177 0 18V4C0 3.48232 0.393331 3.05621 0.897461 3.00488L1 3H7.2998V0.75C7.2998 0.335909 7.63576 0.000197827 8.0498 0ZM8.7998 17.5H14.5V4.5H8.7998V17.5ZM1.5 17.5H7.2998V4.5H1.5V17.5Z" fill="currentColor"/></svg>
           </button>
+          <button id="language-toggle-btn" class="tool-btn" aria-pressed="false" data-i18n-attr="aria-label:tool.language;data-tooltip:tool.language">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 11 5.2 1.5 9 11M2.8 7.8h4.8"/><path d="M20.5 11V1.5h-4.2a2.8 2.8 0 0 0 0 5.6h4.2M16.3 7.1 13 11"/><path d="M13.5 13.6c-2.2-.7-3.9.1-3.9 1.5 0 1.3 1.7 1.7 3.4 1.2-2.6.3-4.5 1.1-4.5 2.5 0 1.3 2.3 1.8 5 1.2"/></svg>
+          </button>
           <button id="info-toggle-btn" class="tool-btn" aria-pressed="false" data-i18n-attr="aria-label:tool.info;data-tooltip:tool.info">i</button>
           <button id="tour-replay-btn" class="tool-btn" data-i18n-attr="aria-label:tool.tour;data-tooltip:tool.tour">?</button>
         </div>
         <div id="floating-cards">
+          <div id="language-card" class="floating-card" hidden>
+            <div class="floating-card-header">
+              <p class="floating-card-title" data-i18n="language.title"></p>
+              <button id="language-card-close" class="floating-card-close" data-i18n-attr="aria-label:common.close">✕</button>
+            </div>
+            <div id="language-list"></div>
+          </div>
           <div id="compare-card" class="floating-card" hidden>
             <div class="floating-card-header">
               <p class="floating-card-title" data-i18n="compare.title"></p>
@@ -151,7 +162,10 @@
           <p data-i18n="welcome.intro2"></p>
           <p data-i18n="welcome.intro3"></p>
         </div>
-        <button id="help-modal-cta" data-i18n="welcome.cta"></button>
+        <div id="help-modal-footer">
+          <select id="welcome-language-select" data-i18n-attr="aria-label:language.title"></select>
+          <button id="help-modal-cta" data-i18n="welcome.cta"></button>
+        </div>
       </div>
     </div>
 

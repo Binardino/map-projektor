@@ -95,6 +95,9 @@ def capture_states(page):
     page.click("#compare-country-results li")
     states["compare card, one country picked"] = page.evaluate(COLLECT_JS)
 
+    page.click("#language-toggle-btn")
+    states["language card"] = page.evaluate(COLLECT_JS)
+
     page.click("#tour-replay-btn")
     step = 1
     while page.is_visible("#tour"):

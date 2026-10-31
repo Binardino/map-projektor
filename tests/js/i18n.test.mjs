@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { t, setLanguage } from "../../static/js/i18n.js";
+import { countryName, preferredLanguage, t, setLanguage } from "../../static/js/i18n.js";
+import { LANGUAGE_STORAGE_KEY } from "../../static/js/config.js";
 import { getState, on } from "../../static/js/state.js";
 
 // Just enough of the browser for setLanguage: it fetches the JSON, then
@@ -27,6 +28,33 @@ test("t() returns the key and warns when it is missing", async (context) => {
   const warn = context.mock.method(console, "warn", () => {});
   assert.equal(t("nope.key"), "nope.key");
   assert.deepEqual(warn.mock.calls.map((call) => call.arguments[0]), ["[i18n] missing key: nope.key"]);
+});
+
+test("a translation falls back on English, keys and country names alike", async () => {
+  const files = {
+    "/static/i18n/en.json": { "app.title": "Map Projektor", "zoom.in": "Zoom in", "zoom.out": "Zoom out" },
+    "/static/i18n/fr.json": { "zoom.in": "Zoomer" },
+    "/static/i18n/countries/fr.json": { Germany: "Allemagne" },
+  };
+  globalThis.fetch = async (url) => ({ json: async () => files[url] });
+  globalThis.document = { querySelectorAll: () => [], documentElement: {}, title: "" };
+  await setLanguage("fr");
+  assert.equal(t("zoom.in"), "Zoomer");
+  assert.equal(t("zoom.out"), "Zoom out");
+  assert.equal(countryName("Germany"), "Allemagne");
+  assert.equal(countryName("Atlantis"), "Atlantis");
+});
+
+test("the language chosen earlier wins over the browser's, which wins over English", () => {
+  const stored = {};
+  globalThis.localStorage = { getItem: (key) => stored[key] ?? null };
+  Object.defineProperty(globalThis, "navigator", { configurable: true, value: { languages: ["xx-YY", "fr-CA", "en"] } });
+  assert.equal(preferredLanguage(), "fr");
+  stored[LANGUAGE_STORAGE_KEY] = "en";
+  assert.equal(preferredLanguage(), "en");
+  stored[LANGUAGE_STORAGE_KEY] = "gone";
+  Object.defineProperty(globalThis, "navigator", { configurable: true, value: { languages: ["xx"] } });
+  assert.equal(preferredLanguage(), "en");
 });
 
 test("setLanguage records the language and tells the UI to re-render", async () => {

@@ -15,6 +15,34 @@ INDEX_HTML = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
 ONBOARDING_JS = (JS_DIR / "ui" / "onboarding.js").read_text(encoding="utf-8")
 
 
+I18N_DIR = ROOT / "static" / "i18n"
+I18N_JS = (JS_DIR / "i18n.js").read_text(encoding="utf-8")
+LANGUAGE_CODES = re.findall(r'\{ code: "([\w-]+)", name:', I18N_JS)
+PLACEHOLDER = re.compile(r"\{(\w+)\}")
+
+
+def test_every_listed_language_is_complete():
+    assert "en" in LANGUAGE_CODES and "fr" in LANGUAGE_CODES, "did the LANGUAGES list change shape?"
+    for code in LANGUAGE_CODES:
+        if code == "en":
+            continue
+        messages = json.loads((I18N_DIR / f"{code}.json").read_text(encoding="utf-8"))
+        assert sorted(set(EN) - set(messages)) == [], f"{code}: missing keys"
+        assert sorted(set(messages) - set(EN)) == [], f"{code}: keys that English does not have"
+        wrong = [k for k in EN if set(PLACEHOLDER.findall(EN[k])) != set(PLACEHOLDER.findall(messages[k]))]
+        assert wrong == [], f"{code}: placeholders differ"
+
+
+def test_every_listed_language_names_every_country():
+    world = json.loads((ROOT / "app" / "data" / "world.geojson").read_text(encoding="utf-8"))
+    names = {f["properties"]["name"] for f in world["features"]}
+    for code in LANGUAGE_CODES:
+        if code == "en":
+            continue
+        countries = json.loads((I18N_DIR / "countries" / f"{code}.json").read_text(encoding="utf-8"))
+        assert sorted(names - set(countries)) == [], f"{code}: countries without a name"
+
+
 def test_html_keys_exist():
     keys = re.findall(r'data-i18n(?:-html)?="([^"]+)"', INDEX_HTML)
     for attr_list in re.findall(r'data-i18n-attr="([^"]+)"', INDEX_HTML):

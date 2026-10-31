@@ -267,10 +267,28 @@ body {
   margin-bottom: 0;
 }
 
+#help-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+#welcome-language-select {
+  min-width: 0;
+  padding: 8px 10px;
+  font-family: var(--font-family);
+  font-size: 14px;
+  background: var(--field-bg);
+  color: var(--field-text);
+  border: 1px solid var(--field-border);
+  border-radius: 4px;
+}
+
 /* The ✕ alone read as "dismiss"; a clear call to action says "start". */
 #help-modal-cta {
-  display: block;
-  margin: 20px 0 0 auto;
+  flex: none;
   padding: 10px 24px;
   font-family: var(--font-family);
   font-size: 14px;
@@ -917,6 +935,36 @@ body {
 
 #info-tradeoffs-content dd {
   margin: 2px 0 0;
+}
+
+/* Two columns: all the languages stay in view without a scrolling list. */
+#language-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.language-option {
+  padding: 8px 10px;
+  font-family: var(--font-family);
+  font-size: 15px;
+  text-align: start;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--card-text);
+  cursor: pointer;
+}
+
+.language-option:hover {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.language-option.active {
+  background: var(--accent);
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 /* Compare card shell, triggered by the toolbar's comparison icon — a

@@ -83,7 +83,7 @@ def bubble_on_screen(page):
 
 
 TOUR_TARGETS = ['.proj-btn[data-proj-id="mercator"]', '.proj-btn[data-proj-id="equalEarth"]',
-                "#recenter-panel", "#map-tools", "#zoom-controls"]
+                "#recenter-panel", "#map-tools", "#language-toggle-btn", "#zoom-controls"]
 # The tour opens on a demonstration: its first steps switch the projection themselves.
 TOUR_SHOWS = ["mercator", "equalEarth"]
 PROJECTION_JS = "() => window.__app.currentProjectionId"
@@ -356,6 +356,33 @@ def ui_rebuild(page):
         assert a == b, f"{label} changed after setLanguage('en'): {a!r} -> {b!r}"
 
 
+def language_choice(page):
+    """The toolbar card and the welcome dropdown change every text, country
+    names included, and the choice survives a reload."""
+    assert page.input_value("#welcome-language-select") == "en"
+    page.select_option("#welcome-language-select", "fr")
+    page.wait_for_function("() => document.documentElement.lang === 'fr'")
+    assert page.inner_text("#help-modal-title") == "Bienvenue sur Map Projektor !"
+    page.keyboard.press("Escape")
+    page.click("#compare-toggle-btn")
+    page.fill("#compare-country-input", "allem")
+    assert page.inner_text("#compare-country-results li") == "Allemagne", "search by the translated name"
+    page.fill("#compare-country-input", "germany")
+    assert page.inner_text("#compare-country-results li") == "Allemagne", "search by the English name too"
+    page.click("#compare-country-results li")
+    assert page.inner_text(".compare-country-name") == "Allemagne"
+    page.click("#language-toggle-btn")
+    page.click('.language-option[data-lang="en"]')
+    page.wait_for_function("() => document.documentElement.lang === 'en'")
+    assert page.inner_text(".compare-country-name") == "Germany", "a picked country follows the language"
+    page.click('.language-option[data-lang="fr"]')
+    page.wait_for_function("() => document.documentElement.lang === 'fr'")
+    open_app(page)
+    assert page.input_value("#welcome-language-select") == "fr", "the choice should survive a reload"
+    assert page.inner_text("#help-modal-cta") == "C'est parti !"
+    page.evaluate("() => localStorage.removeItem('mapProjektorLanguage')")
+
+
 def mobile_drawer(page):
     page.set_viewport_size(MOBILE_VIEWPORT)
     open_app(page)
@@ -367,7 +394,7 @@ def mobile_drawer(page):
 
 
 ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, mobile_drawer]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, language_choice, mobile_drawer]
 
 
 def main():

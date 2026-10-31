@@ -25,6 +25,7 @@ const STEPS = [
   { id: "equalEarth", target: '.proj-btn[data-proj-id="equalEarth"]', side: "right", show: "equalEarth" },
   { id: "views", target: "#recenter-panel", side: "right", drawer: true },
   { id: "tools", target: "#map-tools", side: "left" },
+  { id: "language", target: "#language-toggle-btn", side: "left" },
   { id: "navigation", target: "#zoom-controls", side: "left" },
 ];
 
