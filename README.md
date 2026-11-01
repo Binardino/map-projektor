@@ -85,7 +85,7 @@ Or with Docker Compose:
 docker compose up --build
 ```
 
-Open [http://localhost:8000](http://localhost:8000). The container listens on `$PORT` (8000 by default), which is what most hosting platforms expect; [docs/deployment.md](docs/deployment.md) walks through one of them.
+Open [http://localhost:8000](http://localhost:8000). The container listens on `$PORT` (8000 by default), which is what most hosting platforms expect. The public site is published differently, as static files: see [docs/deployment.md](docs/deployment.md).
 
 ## Stack
 
