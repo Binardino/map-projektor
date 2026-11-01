@@ -32,9 +32,9 @@ test("t() returns the key and warns when it is missing", async (context) => {
 
 test("a translation falls back on English, keys and country names alike", async () => {
   const files = {
-    "/static/i18n/en.json": { "app.title": "Map Projektor", "zoom.in": "Zoom in", "zoom.out": "Zoom out" },
-    "/static/i18n/fr.json": { "zoom.in": "Zoomer" },
-    "/static/i18n/countries/fr.json": { Germany: "Allemagne" },
+    "static/i18n/en.json": { "app.title": "Map Projektor", "zoom.in": "Zoom in", "zoom.out": "Zoom out" },
+    "static/i18n/fr.json": { "zoom.in": "Zoomer" },
+    "static/i18n/countries/fr.json": { Germany: "Allemagne" },
   };
   globalThis.fetch = async (url) => ({ json: async () => files[url] });
   globalThis.document = { querySelectorAll: () => [], documentElement: { style: { removeProperty() {} } }, title: "" };

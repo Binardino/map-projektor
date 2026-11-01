@@ -26,6 +26,6 @@ function staticGraph(entry = "main.js") {
 
 test("index.html preloads exactly the modules main.js imports", () => {
   const html = readFileSync(INDEX_HTML, "utf8");
-  const preloaded = [...html.matchAll(/<link rel="modulepreload" href="\/static\/js\/([^"]+)"/g)].map((m) => m[1]).sort();
+  const preloaded = [...html.matchAll(/<link rel="modulepreload" href="static\/js\/([^"]+)"/g)].map((m) => m[1]).sort();
   assert.deepEqual(preloaded, staticGraph());
 });
