@@ -2,7 +2,7 @@ import { PROJECTIONS, getProjection, projectionName } from "../data/projections.
 import { mainView } from "../core/scene.js";
 import { rotationFor } from "../core/recenter.js";
 import { moveGeo } from "../core/sphere-move.js";
-import { t } from "../i18n.js";
+import { countryName, t } from "../i18n.js";
 import { COMPARE_MAX } from "../config.js";
 import { readPalette } from "../core/palette.js";
 import { worldData } from "../data/geodata.js";
@@ -202,7 +202,7 @@ function renderCompareList() {
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.checked = entry.visible;
-    checkbox.setAttribute("aria-label", t("compare.showCountry", { name: entry.name }));
+    checkbox.setAttribute("aria-label", t("compare.showCountry", { name: countryName(entry.name) }));
     checkbox.addEventListener("change", () => {
       entry.visible = checkbox.checked;
       renderCompareList();
@@ -213,13 +213,13 @@ function renderCompareList() {
     swatch.style.background = entry.color;
     const name = document.createElement("span");
     name.className = "compare-country-name";
-    name.textContent = entry.name;
+    name.textContent = countryName(entry.name);
     label.append(checkbox, swatch, name);
 
     const removeBtn = document.createElement("button");
     removeBtn.className = "floating-card-close";
     removeBtn.textContent = "✕";
-    removeBtn.setAttribute("aria-label", t("compare.removeCountry", { name: entry.name }));
+    removeBtn.setAttribute("aria-label", t("compare.removeCountry", { name: countryName(entry.name) }));
     removeBtn.addEventListener("click", () => {
       compareCountries.splice(compareCountries.indexOf(entry), 1);
       renderCompareList();
@@ -245,7 +245,7 @@ function showCompareCountryResults(names) {
   compareCountryResults.innerHTML = "";
   names.forEach((name) => {
     const li = document.createElement("li");
-    li.textContent = name;
+    li.textContent = countryName(name);
     li.addEventListener("click", () => selectCompareCountry(name));
     compareCountryResults.appendChild(li);
   });
@@ -269,7 +269,7 @@ compareCountryInput.addEventListener("input", () => {
   const query = compareCountryInput.value.trim().toLowerCase();
   if (!compareCountryNames) return;
   const matches = query
-    ? compareCountryNames.filter((name) => name.toLowerCase().includes(query))
+    ? compareCountryNames.filter((name) => countryName(name).toLowerCase().includes(query) || name.toLowerCase().includes(query))
     : compareCountryNames;
   showCompareCountryResults(matches.slice(0, 8));
 });
@@ -321,8 +321,15 @@ function openCompareCard() {
   // Country names depend on the geodata fetch in init() — populate the
   // alphabetical list once it's available instead of duplicating it here.
   if (worldData && !compareCountryNames) {
-    compareCountryNames = [...new Set(worldData.features.map((f) => f.properties.name))].sort();
+    compareCountryNames = [...new Set(worldData.features.map((f) => f.properties.name))];
+    sortCompareCountryNames();
   }
+}
+
+// Alphabetical in the language on screen: the entries stay the English
+// names, which are what the map data calls the countries.
+function sortCompareCountryNames() {
+  compareCountryNames?.sort((a, b) => countryName(a).localeCompare(countryName(b), getState().language));
 }
 
 compareCardToggleBtn.addEventListener("click", () => {
@@ -340,5 +347,6 @@ on("view:changed", refreshCompareHighlight);
 on("language:changed", () => {
   buildCompareProjectionOptions();
   compareProjectionSelect.value = compareProjectionId ?? ""; // the rebuild dropped the selection
+  sortCompareCountryNames();
   renderCompareList();
 });

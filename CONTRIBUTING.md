@@ -73,7 +73,7 @@ Two files change, nothing else.
 
 ## Texts
 
-No user-visible string is written in the JS modules or in `index.html`. Add a key to `static/i18n/en.json`, then read it with `t("key")` in JS or with a `data-i18n="key"` attribute in the markup. English is the source language and the only one for now.
+No user-visible string is written in the JS modules or in `index.html`. Add a key to `static/i18n/en.json`, then read it with `t("key")` in JS or with a `data-i18n="key"` attribute in the markup. English is the source language; a translation is `static/i18n/<lang>.json` plus an entry in `LANGUAGES` (`static/js/i18n.js`), and `tests/test_i18n.py` fails if it misses a key.
 
 ## Checks
 

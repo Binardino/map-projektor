@@ -21,7 +21,7 @@
 
   --reference-line: #d64545;
 
-  --font-family:    'Quicksand', 'Georgia', sans-serif;
+  --font-family:    'Quicksand', sans-serif;
   --font-size-base: 14px;
   --sidebar-width:  240px;
 
@@ -130,8 +130,18 @@ body {
   overflow-y: auto;
   flex: 1;
   padding-bottom: 8px;
+  scroll-padding-top: 56px; /* a button scrolled into view must clear the pinned title */
   scrollbar-width: thin;
   scrollbar-color: var(--text-primary) transparent;
+}
+
+/* Stays in view while the list scrolls, so that someone far down it still
+   reads what the buttons are for. */
+#projection-list > .section-title {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-sidebar);
 }
 
 #projection-list::-webkit-scrollbar {
@@ -230,7 +240,7 @@ body {
 #help-modal-close {
   position: absolute;
   top: 12px;
-  right: 12px;
+  inset-inline-end: 12px;
   width: 24px;
   height: 24px;
   padding: 0;
@@ -267,10 +277,35 @@ body {
   margin-bottom: 0;
 }
 
+#help-modal-borders {
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+#help-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+#welcome-language-select {
+  min-width: 0;
+  padding: 8px 10px;
+  font-family: 'Quicksand', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Bengali', 'Noto Sans SC', 'Noto Sans Arabic', sans-serif;
+  font-size: 14px;
+  background: var(--field-bg);
+  color: var(--field-text);
+  border: 1px solid var(--field-border);
+  border-radius: 4px;
+}
+
 /* The ✕ alone read as "dismiss"; a clear call to action says "start". */
 #help-modal-cta {
-  display: block;
-  margin: 20px 0 0 auto;
+  flex: none;
   padding: 10px 24px;
   font-family: var(--font-family);
   font-size: 14px;
@@ -410,7 +445,7 @@ body {
 
 /* Same pill as the welcome modal's call to action */
 #tour-next {
-  margin-left: auto;
+  margin-inline-start: auto;
   padding: 8px 20px;
   font-family: var(--font-family);
   font-size: 13px;
@@ -438,6 +473,11 @@ body {
    RECENTER PRESETS
    ============================================================ */
 #recenter-panel {
+  /* Shares a short window with the projection list instead of crushing it:
+     tall scripts (Urdu) would otherwise leave the list no room for a button. */
+  flex-shrink: 1;
+  max-height: 50%;
+  overflow-y: auto;
   padding: 10px 0;
   border-top: 1px solid var(--border);
 }
@@ -469,7 +509,7 @@ body {
      highlight a different width; fill the row minus the 12px side margins. */
   width: calc(100% - 24px);
   box-sizing: border-box;
-  text-align: left;
+  text-align: start;
   background: none;
   border: none;
   border-radius: 8px;
@@ -917,6 +957,68 @@ body {
 
 #info-tradeoffs-content dd {
   margin: 2px 0 0;
+}
+
+/* Two columns: all the languages stay in view without a scrolling list. */
+#language-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+/* Arabic and Urdu read right to left inside the panels, but the page keeps its
+   layout: a map's east stays on the right, and the sidebar stays where the map
+   leaves room for it. Hence no dir="rtl" on the page, only on what holds text. */
+#sidebar:is(:lang(ar), :lang(ur)),
+#help-modal:is(:lang(ar), :lang(ur)),
+#tour-bubble:is(:lang(ar), :lang(ur)),
+#floating-cards:is(:lang(ar), :lang(ur)),
+.tool-btn[data-tooltip]:is(:lang(ar), :lang(ur)):hover::after {
+  direction: rtl;
+}
+
+/* Nastaliq slants down across the line and needs far more room than other scripts. */
+:is(#help-modal-body, #help-modal-borders, #tour-text, #info-tradeoffs-content, .floating-card-description, #language-note):lang(ur) {
+  line-height: 2.2;
+}
+
+/* Spacing out the letters breaks up these scripts, whose letters join or sit
+   in a fixed grid; it only reads as refinement in Latin, Greek and Cyrillic. */
+#sidebar-header .tagline:is(:lang(hi), :lang(bn), :lang(zh), :lang(ja), :lang(ar), :lang(ur)),
+.proj-family-header:is(:lang(hi), :lang(bn), :lang(zh), :lang(ja), :lang(ar), :lang(ur)) {
+  letter-spacing: 0;
+}
+
+#language-note {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--card-text-muted);
+}
+
+/* Every name in its own script, whatever the language on screen: the letters
+   come from the small font requests at the top of index.html. */
+.language-option {
+  padding: 8px 10px;
+  font-family: 'Quicksand', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Bengali', 'Noto Sans SC', 'Noto Sans Arabic', sans-serif;
+  font-size: 15px;
+  text-align: start;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--card-text);
+  cursor: pointer;
+}
+
+.language-option:hover {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.language-option.active {
+  background: var(--accent);
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 /* Compare card shell, triggered by the toolbar's comparison icon — a

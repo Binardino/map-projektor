@@ -1,7 +1,7 @@
 import requests
 import json
 import pathlib
-from shapely.geometry import mapping, shape, box as shapely_box
+from shapely.geometry import Point, mapping, shape, box as shapely_box
 from shapely.ops import unary_union
 
 SOURCE_URL = (
@@ -34,7 +34,15 @@ FOREST_BASIN_NAMES = {"AMAZON BASIN", "CONGO BASIN"}
 OUTPUT_PATH = pathlib.Path(__file__).parent.parent / "app" / "data" / "world.geojson"
 TERRAIN_OUTPUT_PATH = pathlib.Path(__file__).parent.parent / "app" / "data" / "terrain.geojson"
 
-SIMPLIFY_TOLERANCE   = 0.1  # degrees - ~11km around Equator (was 0.5 = too aggressive)
+# Natural Earth's default view draws a few territories by who controls them.
+# Each entry follows the UN General Assembly instead: (from, to, a point inside).
+TERRITORY_CORRECTIONS = [("Russia", "Ukraine", (34.1, 44.95))]
+
+COUNTRY_NAMES_DIR = pathlib.Path(__file__).parent.parent / "static" / "i18n" / "countries"
+# Natural Earth names the countries in these languages (columns NAME_AR, NAME_BN...)
+COUNTRY_NAME_LANGUAGES = ["ar", "bn", "de", "el", "es", "fr", "hi", "id", "it", "ja", "pl", "pt", "ru", "tr", "uk", "ur", "zh"]
+
+SIMPLIFY_TOLERANCE   = 0.1 # degrees - ~11km around Equator (was 0.5 = too aggressive)
 COORDINATE_PRECISION = 4    # decimals - ~11km of precision, enough for web map
 
 # Clip every geometry to stay strictly inside ±179.9° longitude.
@@ -81,6 +89,24 @@ def simplify_feature(feature, tolerance):
     except Exception as e:
         print(f"Warning : {e}")
         return None
+
+def apply_territory_corrections(features):
+    """Moves the polygon holding each listed point from one country to another."""
+    by_name = {feature["properties"]["name"]: feature for feature in features}
+    for source, target, (lon, lat) in TERRITORY_CORRECTIONS:
+        polygons = by_name[source]["geometry"]["coordinates"]
+        moved = next(p for p in polygons if shape({"type": "Polygon", "coordinates": p}).contains(Point(lon, lat)))
+        polygons.remove(moved)
+        by_name[target]["geometry"]["coordinates"].append(moved)
+
+def write_country_names(features):
+    """One static/i18n/countries/<lang>.json per language, English name → name
+    in that language: the English name is what the map data calls a country."""
+    COUNTRY_NAMES_DIR.mkdir(exist_ok=True)
+    for lang in COUNTRY_NAME_LANGUAGES:
+        names = {raw["properties"]["NAME"]: raw["properties"][f"NAME_{lang.upper()}"] for raw in features}
+        path = COUNTRY_NAMES_DIR / f"{lang}.json"
+        path.write_text(json.dumps(names, ensure_ascii=False, indent=0, sort_keys=True) + "\n", encoding="utf-8")
 
 def fetch_terrain():
     """Fetch Natural Earth physical regions, keep mountains/deserts and the two
@@ -149,11 +175,14 @@ def main():
         if simp is not None:
             simplified_features.append(simp)
 
+    apply_territory_corrections(simplified_features)
+
     dict_feature = {"type"     : "FeatureCollection",
                     "features" : simplified_features}
     
     OUTPUT_PATH.write_text(json.dumps(dict_feature, separators=(",", ":")))
 
+    write_country_names(features)
     fetch_terrain()
 
 if __name__ == "__main__":

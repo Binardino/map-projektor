@@ -18,6 +18,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Just the letters of the language names, so that the language list reads
+       on a machine without these scripts, whatever the language on screen.
+       One request per script: asked together, the fonts all claim the same
+       letters, and the first one draws empty boxes for those it lacks. -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&text=%CE%95%CE%BB%CE%B7%CE%BD%CE%B9%CE%BA%CE%AC%D0%A0%D1%83%D1%81%D0%BA%D0%B8%D0%B9%D0%A3%D1%80%D0%B0%D1%97%D0%BD%D1%8C&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari&text=%E0%A4%B9%E0%A4%BF%E0%A4%A8%E0%A5%8D%E0%A4%A6%E0%A5%80&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali&text=%E0%A6%AC%E0%A6%BE%E0%A6%82%E0%A6%B2%E0%A6%BE&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC&text=%E4%B8%AD%E6%96%87%E6%97%A5%E6%9C%AC%E8%AA%9E&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic&text=%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9%D8%A7%D8%B1%D8%AF%D9%88&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/css/style.css" />
   <!-- Every module main.js imports, fetched in parallel instead of level by
        level as imports are discovered (tests/js/modulepreload.test.mjs keeps
@@ -52,6 +61,7 @@
   <link rel="modulepreload" href="/static/js/ui/onboarding.js" />
   <link rel="modulepreload" href="/static/js/ui/sidebar.js" />
   <link rel="modulepreload" href="/static/js/ui/theme.js" />
+  <link rel="modulepreload" href="/static/js/ui/language-picker.js" />
   <link rel="modulepreload" href="/static/js/ui/welcome-modal.js" />
 </head>
 <body>
@@ -101,10 +111,21 @@
           <button id="compare-toggle-btn" class="tool-btn" aria-pressed="false" data-i18n-attr="aria-label:tool.compare;data-tooltip:tool.compare">
             <svg width="16" height="23" viewBox="0 0 16 23" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.0498 0C8.46402 1.81059e-08 8.7998 0.335786 8.7998 0.75V3H15C15.5523 3 16 3.44772 16 4V18C16 18.5523 15.5523 19 15 19H8.7998V22.25C8.7998 22.6642 8.46402 23 8.0498 23C7.63576 22.9998 7.2998 22.6641 7.2998 22.25V19H1L0.897461 18.9951C0.393331 18.9438 0 18.5177 0 18V4C0 3.48232 0.393331 3.05621 0.897461 3.00488L1 3H7.2998V0.75C7.2998 0.335909 7.63576 0.000197827 8.0498 0ZM8.7998 17.5H14.5V4.5H8.7998V17.5ZM1.5 17.5H7.2998V4.5H1.5V17.5Z" fill="currentColor"/></svg>
           </button>
+          <button id="language-toggle-btn" class="tool-btn" aria-pressed="false" data-i18n-attr="aria-label:tool.language;data-tooltip:tool.language">
+            <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.4 9.75 9 11.3 8.09 10.29 7.33 9.18 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z" fill="currentColor"/></svg>
+          </button>
           <button id="info-toggle-btn" class="tool-btn" aria-pressed="false" data-i18n-attr="aria-label:tool.info;data-tooltip:tool.info">i</button>
           <button id="tour-replay-btn" class="tool-btn" data-i18n-attr="aria-label:tool.tour;data-tooltip:tool.tour">?</button>
         </div>
         <div id="floating-cards">
+          <div id="language-card" class="floating-card" hidden>
+            <div class="floating-card-header">
+              <p class="floating-card-title" data-i18n="language.title"></p>
+              <button id="language-card-close" class="floating-card-close" data-i18n-attr="aria-label:common.close">✕</button>
+            </div>
+            <div id="language-list"></div>
+            <p id="language-note" data-i18n="language.note" hidden></p>
+          </div>
           <div id="compare-card" class="floating-card" hidden>
             <div class="floating-card-header">
               <p class="floating-card-title" data-i18n="compare.title"></p>
@@ -150,8 +171,13 @@
           <p data-i18n="welcome.intro1"></p>
           <p data-i18n="welcome.intro2"></p>
           <p data-i18n="welcome.intro3"></p>
+          <p data-i18n="welcome.intro4"></p>
         </div>
-        <button id="help-modal-cta" data-i18n="welcome.cta"></button>
+        <p id="help-modal-borders" data-i18n="welcome.borders"></p>
+        <div id="help-modal-footer">
+          <select id="welcome-language-select" data-i18n-attr="aria-label:language.title"></select>
+          <button id="help-modal-cta" data-i18n="welcome.cta"></button>
+        </div>
       </div>
     </div>
 

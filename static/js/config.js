@@ -67,6 +67,10 @@ export const COMPARE_MAX = 5;
 // localStorage key of the chosen theme
 export const THEME_STORAGE_KEY = "mapProjektorTheme";
 
+// --- language ---
+// localStorage key of the language the visitor chose
+export const LANGUAGE_STORAGE_KEY = "mapProjektorLanguage";
+
 // --- onboarding ---
 // localStorage key set once the tour was finished or skipped
 export const TOUR_STORAGE_KEY = "mapProjektorTourSeen";

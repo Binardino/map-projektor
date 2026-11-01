@@ -39,6 +39,7 @@ Switching projection never snaps: the map morphs from one to the other, and rout
 - **Projection facts**: who created each projection and when, what it preserves, what it distorts and what it is best for
 - **Navigation**: zoom with the buttons or the mouse wheel, drag to pan the map or to spin the globe
 - **Light and dark themes**, remembered between visits
+- **18 languages**, country names included, Arabic and Urdu reading right to left: the app follows the browser's language and remembers a choice. Most translations were made by an AI, and the app says so
 - **Guided tour** on the first visit, replayable from the toolbar: it opens by unfolding the globe into Mercator, then morphing it into Equal Earth, so you see the idea before touching anything
 - **Mobile layout**: the sidebar becomes a drawer on small screens
 
@@ -103,9 +104,10 @@ Adding a projection takes one object in the registry and five strings. [CONTRIBU
 
 ## Credits
 
-- Map data: [Natural Earth](https://www.naturalearthdata.com/) (public domain), simplified by `scripts/fetch_geodata.py`
+- Map data: [Natural Earth](https://www.naturalearthdata.com/) (public domain), simplified and lightly corrected by `scripts/fetch_geodata.py`
 - Projections and rendering: [D3](https://d3js.org/) and [d3-geo-projection](https://github.com/d3/d3-geo-projection) (ISC license)
-- Typeface: [Quicksand](https://fonts.google.com/specimen/Quicksand) (SIL Open Font License)
+- Typeface: [Quicksand](https://fonts.google.com/specimen/Quicksand) (SIL Open Font License); [Noto Sans](https://fonts.google.com/noto) for the other scripts (same license)
+- Language icon: [Material Icons](https://fonts.google.com/icons) (Apache License 2.0)
 
 ## License
 
