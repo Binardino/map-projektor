@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
-## Unreleased — Language picker (on `feature/language-picker`)
+## 2026-11-01 — Language picker (on `feature/language-picker`)
 
 ### Added
 - A language button in the toolbar opening a card with every language under its own name, in alphabetical order
