@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
-## 2026-11-01 — Publication on GitHub Pages (on `chore/deploy-pages`, `chore/site-url`)
+## 2026-11-01 — Publication on GitHub Pages (on `chore/deploy-pages`, `chore/site-url`, `chore/site-subpath`)
 
 ### Added
 - A `deploy` job in the workflow: once the tests pass, a push to `main` publishes the site as a static export
@@ -10,6 +10,7 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 
 ### Changed
 - `docs/deployment.md` describes GitHub Pages instead of Render
+- The site's paths are relative, so that it works in the `/map-projektor/` subfolder of the domain
 
 ## 2026-11-01 — Language picker (on `feature/language-picker`)
 
