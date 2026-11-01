@@ -36,3 +36,29 @@ jobs:
           node-version: 24
       # No npm install: the tests import the modules directly
       - run: node --test 'tests/js/*.test.mjs'
+
+  deploy:
+    name: Publish to GitHub Pages
+    needs: [python, javascript]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      # The same paths the FastAPI app serves, as plain files
+      - run: |
+          mkdir -p _site/data
+          cp templates/index.html _site/
+          cp -r static _site/static
+          cp app/data/*.geojson _site/data/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
