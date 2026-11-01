@@ -10,6 +10,8 @@ Interactive world map web app displaying 17 cartographic projections with animat
 
 **Generate data (once):** `poetry run python scripts/fetch_geodata.py`
 
+**Deploy:** a push to `main` publishes a static export to GitHub Pages (https://binardino.lauramini.fr), see `docs/deployment.md`. FastAPI does not run in production: a new route needs its file copied by the `deploy` job.
+
 **Tests:** `poetry run pytest -v`
 
 **Perf regression check (transitions):** `poetry run python scripts/perf_transitions.py` — drives every projection switch and recenter preset in headless Chromium and compares frame-drop/avg-frame-time against `tests/perf_baseline.json`. Re-run with `--write-baseline` (median of 3 runs) after a deliberate, verified perf improvement to update the reference numbers. Requires `poetry run playwright install chromium` once (not run automatically, not part of `pytest`).
