@@ -5,13 +5,14 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 ## Unreleased — Language picker (on `feature/language-picker`)
 
 ### Added
-- A language button in the toolbar (the characters 字, अ and A), opening a card with every language under its own name
+- A language button in the toolbar opening a card with every language under its own name, in alphabetical order
 - The same choice as a dropdown in the welcome modal, for someone who cannot read the page yet, and a tour step pointing at the button
 - The app starts in the browser's language when we have it; a choice is remembered between visits
 - Translations in 18 languages: Mandarin (simplified), Hindi, Spanish, French, Arabic, Bengali, Portuguese (Brazil), Russian, Urdu, Indonesian, German, Japanese, Turkish, Italian, Polish, Ukrainian and Greek. A key a translation lacks shows in English
 - A note in the language card says when the texts were translated by an AI and not checked by a person who reads the language
 - Arabic and Urdu read right to left inside the panels; the sidebar stays on the left and the map is never mirrored
-- A short note in the welcome modal: borders and names come from Natural Earth and show the situation on the ground, not a political position
+- A short note in the welcome modal: borders and names are adapted from Natural Earth, are shown for reference, and some are disputed
+- `scripts/fetch_geodata.py` can apply corrections to the map data, so that a refresh keeps them
 - The "Select a projection" title stays in view while the list scrolls
 - The view list takes at most half of the sidebar and scrolls, so that a short window still shows projection buttons in tall scripts
 - Noto Sans fonts, fetched only for the language on screen, for the scripts Quicksand lacks

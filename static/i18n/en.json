@@ -143,7 +143,7 @@
   "view.southAmericaFlipped.name": "Brazil-centred",
   "view.world.description": "Centred on the Greenwich meridian: the Atlantic-centred convention of most Western atlases, with Europe and West Africa in the middle.",
   "view.world.name": "Europe-centred",
-  "welcome.borders": "Borders and names come from Natural Earth and show the situation on the ground, not a political position.",
+  "welcome.borders": "Borders and names are adapted from Natural Earth. They are shown for reference, and some are disputed.",
   "welcome.cta": "Got it!",
   "welcome.intro1": "As we all know, the Earth is a sphere. (Sorry, flat earthers.)",
   "welcome.intro2": "Squashing it onto a flat map is where it gets awkward: shapes, areas, distances and directions can't all survive the trip, so every projection picks what to keep and what to bend.",

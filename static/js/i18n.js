@@ -14,27 +14,29 @@ const SOURCE_LANGUAGE = "en";
 
 // Each language is listed under its own name, the only one its readers can
 // be counted on to recognise: that is why these are not translated strings.
-// In order of speakers, roughly. `font` is for the scripts Quicksand lacks;
-// `reviewed` says a person who reads the language has checked the texts.
+// Alphabetical by each language's own name, read in Latin letters (Al-Arabiyya,
+// Bahasa, Bangla, Deutsch, Elliniká…): the order Wikipedia uses, which favours
+// no language. `font` is for the scripts Quicksand lacks; `reviewed` says a
+// person who reads the language has checked the texts.
 export const LANGUAGES = [
+  { code: "ar", name: "العربية", font: "Noto Sans Arabic" },
+  { code: "id", name: "Bahasa Indonesia" },
+  { code: "bn", name: "বাংলা", font: "Noto Sans Bengali" },
+  { code: "de", name: "Deutsch" },
+  { code: "el", name: "Ελληνικά", font: "Noto Sans" },
   { code: "en", name: "English", reviewed: true },
-  { code: "zh", name: "中文", font: "Noto Sans SC" },
-  { code: "hi", name: "हिन्दी", font: "Noto Sans Devanagari" },
   { code: "es", name: "Español" },
   { code: "fr", name: "Français", reviewed: true },
-  { code: "ar", name: "العربية", font: "Noto Sans Arabic" },
-  { code: "bn", name: "বাংলা", font: "Noto Sans Bengali" },
+  { code: "hi", name: "हिन्दी", font: "Noto Sans Devanagari" },
+  { code: "it", name: "Italiano" },
+  { code: "ja", name: "日本語", font: "Noto Sans JP" },
+  { code: "pl", name: "Polski" },
   { code: "pt", name: "Português" },
   { code: "ru", name: "Русский", font: "Noto Sans" },
-  { code: "ur", name: "اردو", font: "Noto Nastaliq Urdu" },
-  { code: "id", name: "Bahasa Indonesia" },
-  { code: "de", name: "Deutsch" },
-  { code: "ja", name: "日本語", font: "Noto Sans JP" },
   { code: "tr", name: "Türkçe" },
-  { code: "it", name: "Italiano" },
-  { code: "pl", name: "Polski" },
   { code: "uk", name: "Українська", font: "Noto Sans" },
-  { code: "el", name: "Ελληνικά", font: "Noto Sans" },
+  { code: "ur", name: "اردو", font: "Noto Nastaliq Urdu" },
+  { code: "zh", name: "中文", font: "Noto Sans SC" },
 ];
 
 let messages = {};
