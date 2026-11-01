@@ -286,6 +286,15 @@ body {
   color: var(--text-muted);
 }
 
+#help-modal-credit {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+#help-modal-credit a {
+  color: var(--text-muted);
+}
+
 #help-modal-footer {
   display: flex;
   align-items: center;
