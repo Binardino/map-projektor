@@ -20,6 +20,8 @@ from perf_transitions import BASE_URL, skip_tour, start_server, stop_server
 
 VIEWPORT = {"width": 1280, "height": 900}
 MOBILE_VIEWPORT = {"width": 390, "height": 844}
+LANDSCAPE_VIEWPORT = {"width": 844, "height": 390}
+SMALL_LANDSCAPE_VIEWPORT = {"width": 568, "height": 320}
 
 # Screen-space centre of a country's drawn shape, in the map's world group
 # (before the camera transform, which every projection switch resets).
@@ -409,8 +411,88 @@ def mobile_drawer(page):
     assert not page.evaluate("() => document.getElementById('sidebar').classList.contains('open')"), "drawer should close"
 
 
-ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, mobile_drawer]
+def map_fits_window(page):
+    """The drawing has the size of the map's container, and the globe fills its height."""
+    sizes = page.evaluate("""() => {
+        const { width, height } = document.getElementById("map-svg").viewBox.baseVal;
+        const { clientWidth, clientHeight } = document.getElementById("map-container");
+        return { width, height, clientWidth, clientHeight, sphere: document.querySelector(".globe-sphere").getBBox().height };
+    }""")
+    assert (sizes["width"], sizes["height"]) == (sizes["clientWidth"], sizes["clientHeight"]), f"the drawing should follow its container: {sizes}"
+    return sizes
+
+
+def inside_window(page, selector):
+    box = page.locator(selector).bounding_box()
+    size = page.viewport_size
+    return box["x"] >= 0 and box["y"] >= 0 and box["x"] + box["width"] <= size["width"] and box["y"] + box["height"] <= size["height"]
+
+
+def phone_turns(page):
+    """Turning the phone redraws the map at the new size, with what is on it:
+    the distortion grid and a compared country stay where they belong. A turn
+    during a morph waits for its end."""
+    page.set_viewport_size(MOBILE_VIEWPORT)
+    open_app(page)
+    page.keyboard.press("Escape")
+    map_fits_window(page)
+    page.click("#grid-toggle-btn")
+    page.click("#compare-toggle-btn")
+    page.fill("#compare-country-input", "fra")
+    page.click("#compare-country-results li")
+    tissot = page.evaluate("() => document.querySelector('path.tissot-graticule').getAttribute('d')")
+
+    page.set_viewport_size(LANDSCAPE_VIEWPORT)
+    page.wait_for_timeout(300)
+    sideways = map_fits_window(page)
+    assert sideways["sphere"] > sideways["height"] * 0.9, f"the globe should fill the height: {sideways}"
+    assert page.evaluate("() => document.querySelector('path.tissot-graticule').getAttribute('d')") != tissot, "the grid should be redrawn"
+    highlight = page.evaluate(COMPARE_BOX_JS)
+    france = page.evaluate(COUNTRY_BOX_JS, "France")
+    assert abs(highlight["y"] - france["y"]) < 40, "a compared country should follow the map"
+    assert page.evaluate("() => document.documentElement.scrollWidth <= innerWidth"), "the page should not scroll sideways"
+    for selector in ("#zoom-controls", "#map-tools"):
+        assert inside_window(page, selector), f"{selector} should stay inside the window"
+
+    page.click("#sidebar-toggle")
+    page.wait_for_timeout(350)
+    assert inside_window(page, "#sidebar"), "the drawer should stay inside the window"
+    page.click('.proj-btn[data-proj-id="robinson"]')
+    page.set_viewport_size(MOBILE_VIEWPORT)
+    settle(page)
+    page.wait_for_timeout(300)
+    map_fits_window(page)
+    assert page.evaluate(PROJECTION_JS) == "robinson", "the morph should finish despite the turn"
+
+    # An upside-down map is mirrored around its height, which the turn changes
+    page.evaluate("() => document.querySelector('.recenter-btn[data-preset-id=\"southAmericaFlipped\"]').click()")
+    settle(page)
+    page.set_viewport_size(LANDSCAPE_VIEWPORT)
+    page.wait_for_timeout(300)
+    box = page.evaluate("""() => {
+        const world = document.querySelector("g.world").getBoundingClientRect();
+        const { top, height } = document.getElementById("map-svg").getBoundingClientRect();
+        return { top: world.top - top, bottom: world.bottom - top, height };
+    }""")
+    assert box["top"] >= -2 and box["bottom"] <= box["height"] + 2, f"the upside-down map should stay in the window: {box}"
+
+
+def onboarding_landscape(page):
+    page.set_viewport_size(SMALL_LANDSCAPE_VIEWPORT)
+    open_app(page)
+    page.click("#help-modal-cta")
+    for index, selector in enumerate(TOUR_TARGETS):
+        settle(page)
+        page.wait_for_timeout(350)  # the drawer's slide, after which the bubble is placed again
+        if index >= len(TOUR_SHOWS):
+            assert spotlight_covers(page, selector), f"step {index + 1} should highlight {selector}"
+        assert bubble_on_screen(page), f"step {index + 1}: the bubble should fit in the window"
+        page.click("#tour-next")
+    assert not tour_open(page), "Done should close the tour"
+
+
+ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile, onboarding_landscape]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, mobile_drawer, phone_turns]
 
 
 def main():

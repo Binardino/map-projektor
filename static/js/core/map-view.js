@@ -14,7 +14,7 @@ import { MAIN_ZOOM_SCALE_EXTENT } from "../config.js";
 //   → { svg, width, height, world, layers: { sphere, countries, … }, zoom,
 //       projectionDef, rotation, transform,
 //       makeProjection(def, rotation), setProjection(def, rotation),
-//       projection(), render(), destroy() }
+//       projection(), render(), resize(width, height), destroy() }
 //
 // Per-view state lives on the view: projectionDef and rotation are what it
 // shows at rest (an animation draws its in-between frames straight into
@@ -118,7 +118,7 @@ export function createMapView({ svgEl, width, height, layers, zoomExtent = MAIN_
   view.makeProjection = (projDef, rotation = null) => {
     const projection = projDef.d3fn();
     if (rotation) projection.rotate(rotation);
-    return fitProjection(projDef, projection, width, height);
+    return fitProjection(projDef, projection, view.width, view.height);
   };
 
   view.setProjection = (projDef, rotation = null) => {
@@ -135,6 +135,16 @@ export function createMapView({ svgEl, width, height, layers, zoomExtent = MAIN_
     // The outline's stroke only shows on the globe, the one projection
     // whose disc needs an edge against the void (see .globe-sphere.active).
     view.layers.sphere.classed("active", view.projectionDef.globe);
+  };
+
+  // The caller redraws. The camera goes back to the default framing: a pan
+  // or zoom chosen for the old shape would frame something else in the new one.
+  view.resize = (newWidth, newHeight) => {
+    view.width = newWidth;
+    view.height = newHeight;
+    svg.attr("viewBox", `0 0 ${newWidth} ${newHeight}`);
+    ocean.attr("width", newWidth).attr("height", newHeight);
+    svg.interrupt().call(view.zoom.transform, d3.zoomIdentity);
   };
 
   view.destroy = () => {

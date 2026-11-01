@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-01 — A phone on its side (on `fix/mobile-landscape`)
+
+### Fixed
+- The map follows its container when the screen turns or the window resizes, with the grid, the compared countries and an upside-down view; a turn during a morph waits for its end
+- A phone on its side gets the drawer too, even when it is wider than 768 px, so that the map keeps the whole screen
+- On a phone on its side, the toolbar sits in two columns inside the screen, the drawer shows its lists side by side, and the language and compare cards scroll instead of leaving the window
+- The page height follows the space the mobile browser's bars leave free
+
+### Added
+- `scripts/text_fit.py` also checks a phone on its side and the compare card; `scripts/e2e_smoke.py` turns the phone and plays the tour on its side
+
 ## 2026-11-01 — Publication on GitHub Pages (on `chore/deploy-pages`, `chore/site-url`, `chore/site-subpath`)
 
 ### Added

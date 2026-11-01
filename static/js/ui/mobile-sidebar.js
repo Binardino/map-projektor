@@ -5,7 +5,7 @@ import { on } from "../state.js";
 // The sidebar becomes an off-canvas drawer under the mobile
 // breakpoint (see the media query in style.css); this button and
 // backdrop only have a visual effect there — desktop layout is
-// untouched since #sidebar-toggle stays display:none above 768px.
+// untouched since #sidebar-toggle stays display:none outside it.
 // ============================================================
 const sidebarToggleBtn = document.getElementById("sidebar-toggle");
 const sidebarBackdrop  = document.getElementById("sidebar-backdrop");

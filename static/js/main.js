@@ -13,6 +13,7 @@ import "./ui/sidebar.js";
 import "./data/views.js";
 import "./core/recenter.js";
 import "./core/camera.js";
+import "./core/resize.js";
 import "./core/selection.js";
 import "./ui/mobile-sidebar.js";
 import "./tools/index.js";

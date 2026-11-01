@@ -1,7 +1,7 @@
 """Checks that every text fits its box, in every language.
 
 Translations run longer or taller than the English they replace, so this walks
-the languages on a desktop and a phone window: no text may overflow its button,
+the languages on a desktop and a phone window, upright and on its side: no text may overflow its button,
 and the cards and tour bubbles must stay inside the window. A text box that
 scrolls is allowed (nothing is cut off) but listed, so it can be looked at.
 
@@ -15,7 +15,11 @@ from playwright.sync_api import sync_playwright
 
 from perf_transitions import BASE_URL, ROOT_DIR, skip_tour, start_server, stop_server
 
-VIEWPORTS = {"desktop": {"width": 1280, "height": 800}, "phone": {"width": 390, "height": 740}}
+VIEWPORTS = {
+    "desktop": {"width": 1280, "height": 800},
+    "phone": {"width": 390, "height": 740},
+    "phone on its side": {"width": 568, "height": 320},
+}
 LANGUAGES = re.findall(r'\{ code: "([\w-]+)", name:', (ROOT_DIR / "static" / "js" / "i18n.js").read_text(encoding="utf-8"))
 
 # Runs in the page. The tour's steps and the projection cards are filled
@@ -44,6 +48,10 @@ MEASURE_JS = """async () => {
     if (el.scrollWidth > el.clientWidth + 1) hard.push(`language name too wide: ${el.textContent}`);
   });
   document.getElementById("language-card-close").click();
+
+  document.getElementById("compare-toggle-btn").click();
+  if (!inWindow(box(document.getElementById("compare-card")))) hard.push("compare card outside the window");
+  document.getElementById("compare-toggle-btn").click();
 
   document.getElementById("info-toggle-btn").click();
   const info = document.getElementById("projection-info");

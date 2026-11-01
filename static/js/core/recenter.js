@@ -67,8 +67,17 @@ export function rotationFor(projDef) {
 // using vector-effect:non-scaling-stroke, which itself isn't cheap to
 // recompute) plus terrain, that repaint cost was the actual source of
 // the dropped frames during this flip.
+function flipTransform(view, s) {
+  return `translate(0px, ${(view.height / 2) * (1 - s)}px) scale(1, ${s})`;
+}
+
+// The mirror is written in pixels from the map's height, so it has to be
+// written again when that height changes.
+export function refreshFlip(view) {
+  if (getState().recenter.flip) view.world.style("transform", flipTransform(view, -1));
+}
+
 function animateRecenterFlip(view, flip, onEdgeOn, duration = TIMING.recenterFlip) {
-  const axis = view.height / 2;
   const sign = flip ? 1 : -1; // start upright when flipping in, mirrored when flipping out
   let swapped = false;
 
@@ -80,7 +89,7 @@ function animateRecenterFlip(view, flip, onEdgeOn, duration = TIMING.recenterFli
         swapped = true;
         onEdgeOn();
       }
-      view.world.style("transform", `translate(0px, ${axis * (1 - s)}px) scale(1, ${s})`);
+      view.world.style("transform", flipTransform(view, s));
       if (elapsed >= duration) {
         timer.stop();
         resolve();
