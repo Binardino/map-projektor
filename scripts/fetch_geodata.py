@@ -1,7 +1,7 @@
 import requests
 import json
 import pathlib
-from shapely.geometry import mapping, shape, box as shapely_box
+from shapely.geometry import Point, mapping, shape, box as shapely_box
 from shapely.ops import unary_union
 
 SOURCE_URL = (
@@ -33,6 +33,10 @@ FOREST_BASIN_NAMES = {"AMAZON BASIN", "CONGO BASIN"}
 
 OUTPUT_PATH = pathlib.Path(__file__).parent.parent / "app" / "data" / "world.geojson"
 TERRAIN_OUTPUT_PATH = pathlib.Path(__file__).parent.parent / "app" / "data" / "terrain.geojson"
+
+# Natural Earth's default view draws a few territories by who controls them.
+# Each entry follows the UN General Assembly instead: (from, to, a point inside).
+TERRITORY_CORRECTIONS = [("Russia", "Ukraine", (34.1, 44.95))]
 
 COUNTRY_NAMES_DIR = pathlib.Path(__file__).parent.parent / "static" / "i18n" / "countries"
 # Natural Earth names the countries in these languages (columns NAME_AR, NAME_BN...)
@@ -85,6 +89,15 @@ def simplify_feature(feature, tolerance):
     except Exception as e:
         print(f"Warning : {e}")
         return None
+
+def apply_territory_corrections(features):
+    """Moves the polygon holding each listed point from one country to another."""
+    by_name = {feature["properties"]["name"]: feature for feature in features}
+    for source, target, (lon, lat) in TERRITORY_CORRECTIONS:
+        polygons = by_name[source]["geometry"]["coordinates"]
+        moved = next(p for p in polygons if shape({"type": "Polygon", "coordinates": p}).contains(Point(lon, lat)))
+        polygons.remove(moved)
+        by_name[target]["geometry"]["coordinates"].append(moved)
 
 def write_country_names(features):
     """One static/i18n/countries/<lang>.json per language, English name → name
@@ -161,6 +174,8 @@ def main():
         simp = simplify_feature(raw, SIMPLIFY_TOLERANCE)
         if simp is not None:
             simplified_features.append(simp)
+
+    apply_territory_corrections(simplified_features)
 
     dict_feature = {"type"     : "FeatureCollection",
                     "features" : simplified_features}

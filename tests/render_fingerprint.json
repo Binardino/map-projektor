@@ -2,139 +2,139 @@
   "paths": {
     "world / mercator": {
       "view shown": "world",
-      "paths": "04873703c0f31e80af8af6fda3f01223090d77613ae1d93fa0aff9c277375e74"
+      "paths": "16ac75a42d986165236f33c1571cc41c9f7d7e23745b10c7d2cec260bc02751f"
     },
     "world / equirectangular": {
       "view shown": "world",
-      "paths": "575724fa59ddc8d2d194af777e98e6ca138470ec99b253980e499df91e9aa90d"
+      "paths": "b98c763471463b7604e7d9b9b4c07860c1cd1898a285ef98a324faf9f47db9c6"
     },
     "world / gallPeters": {
       "view shown": "world",
-      "paths": "be5825b9ecbf9ec5b739e14d52e558fc1bc6003044e3b911b4dcea39323b110d"
+      "paths": "7838228b4ad7b15b1a20fdf39748664b1151a587589df3d04f0ab065b2b5ac7b"
     },
     "world / robinson": {
       "view shown": "world",
-      "paths": "ef61cde75225d4a41f439dced5108351d132ea61694d0c9600ef0fcc91e99a6d"
+      "paths": "ec95bf82db149ad6aa4751e5ab31b4af503c12c5f54da0f70cec48a4f679fc33"
     },
     "world / mollweide": {
       "view shown": "world",
-      "paths": "3b886f77d19c9b10becbac7da62a02f93889bd5795b14e936db83727b4c1efc3"
+      "paths": "d1c2cb99c4402eb6a08b52bbbc9989db7772a90652838442a6c9bae0cb10b9cd"
     },
     "world / naturalEarth": {
       "view shown": "world",
-      "paths": "399df55dbbe25d4a2f223d16c8944ca6838b0b050a7b473e216797fe3a717baf"
+      "paths": "65f6909d222cddd91c79083673b1240132bce10c7db85b13b394cea9da97054f"
     },
     "world / equalEarth": {
       "view shown": "world",
-      "paths": "96905ac01a0e3a323edb394f0194e002648b49db46f60e8c2ed785a23884bf5f"
+      "paths": "fbefefc06000902951be671c2f9b57af5e2efcae1db9307eeff931033b0cf7d0"
     },
     "world / eckert4": {
       "view shown": "world",
-      "paths": "b6d92eb6ca0c962cca4eeb4e1b71592b31218682f25d205e51d49c1f62440ca0"
+      "paths": "0335aa07387f0a823948c141c01be978d8c1ee48831d6210fbe53ced9b7324d2"
     },
     "world / sinusoidal": {
       "view shown": "world",
-      "paths": "c64062a24f3700204183f67ead94d63c2d1921d68b38ede0c977b2587ab73503"
+      "paths": "12656b7f3e830eda04a3545b7a474803af4a29c85e941a4422bdd5275b44e78e"
     },
     "world / orthographic": {
       "view shown": "world",
-      "paths": "7b03b90a8fffc308a3f30320fd0edffb90a951499f6a7102203a3b6fbadc7a27"
+      "paths": "f214ec9cc91c6da2c0971f60f59094e3f06e1764b357312719ef478a8b08f13a"
     },
     "world / azimuthalEqualArea": {
       "view shown": "world",
-      "paths": "cda26456f9f71cc212143846176f5c72bc10f9365307969554d48d9fcdfc4714"
+      "paths": "68042efc700c5673e26d02de73d11d6dff6cf6443cb32cb0c8ae01d500b30f6e"
     },
     "world / polarNorth": {
       "view shown": "world",
-      "paths": "e2079bd6fd2bfb6cf5f32abef6f1156d85f229bf9347989bc8e8c779a325f5d5"
+      "paths": "c4edfc613c1c4474c941dd1cb686987f6634fba2cfb177a19005dbc27cb645b3"
     },
     "world / polarSouth": {
       "view shown": "world",
-      "paths": "902f5afe09adbb58a264adb0912bcc1bc563f757c05c30b80e5dbac4470b6429"
+      "paths": "b148ab0ff1bf7b319e22f10081211375f9058a5eb5fecf94fa3d855ed7412fa4"
     },
     "world / winkelTripel": {
       "view shown": "world",
-      "paths": "138213dd9a297fe775d1e9ed4b3cbb1280e140b26d120623de8765b23a5e08e9"
+      "paths": "2c33a48ec0da6f5068e6f8d20dce732ceba91bcb3df131834c163da74291e598"
     },
     "world / aitoff": {
       "view shown": "world",
-      "paths": "2bdf03b04d7f558d998f0c2ceef98f8fc1564902f26f780fb74a9db2b668bef5"
+      "paths": "cc08302c1bc55ab9da48104168b2fd2ab2b6dcbbfa9ef4538dce411e38af4ca9"
     },
     "world / hammer": {
       "view shown": "world",
-      "paths": "2fbce80d984277c8918608f9f391ce3ac131e1f8f3261e91d8dc2afc78ca90ea"
+      "paths": "d4a1399d6517f80526c9f1a5cd340fd6308fbf0fadc30bbd00261b65e32c5d14"
     },
     "world / albers": {
       "view shown": "world",
-      "paths": "754cac028157e189e2628eb1c599624c762913a7b2a627b0ee904c1d16d3ba65"
+      "paths": "3866d9bc3f5849f6e555145630942ffbc29d3ddcfe829da8673f8d6347222098"
     },
     "china / mercator": {
       "view shown": "china",
-      "paths": "afc6b5c825f11eeb7401591d9ee2d2b6aaa9c8a7c91f564bbf6219b9960b94fc"
+      "paths": "764f750cbfa996fc4f7780e83149301088be620b4508b2bed6789d44f2905f80"
     },
     "china / equirectangular": {
       "view shown": "china",
-      "paths": "76ef61b565ef8c89f2395eadba5c6e117e51d7c3d3f443820a5de0d64e6c2d30"
+      "paths": "74cff541c951fccd204871fa1feac99df93fec79bd058255dffa58e809aa27d3"
     },
     "china / gallPeters": {
       "view shown": "china",
-      "paths": "50fb9252c4cf0cef522d24533aba9c3c1b3cbadc83051ed0a204b8d50ad295d5"
+      "paths": "4998c506d75dfa1a8dfae5814cd8278253a80a54d55f33a796ffc4d3200c0bf3"
     },
     "china / robinson": {
       "view shown": "china",
-      "paths": "a4495018e5271ede4ae8924e28f6a8904c095031af2f70b054ccf21c514bb8a3"
+      "paths": "314de3c0c15665b7152e69ad7280225595f77576ab41b8ccf3c5f36555d05409"
     },
     "china / mollweide": {
       "view shown": "china",
-      "paths": "6c52dd64838e91da5ac79767661c6622c23eec21b7dd8171191704d583f268d3"
+      "paths": "5f3b62e6e544d8cedf154dc99e71c2ae49b74b6874680b03c34f554cd1fbd0d4"
     },
     "china / naturalEarth": {
       "view shown": "china",
-      "paths": "8431f0e464e7e4d4aa5fb493c51b47e8caaa20116940bbf45d2ea98fe64ceeb9"
+      "paths": "260543702f1a665d3efb5c691c47b1ce7e204ace350b91f1e3ed9996893e660a"
     },
     "china / equalEarth": {
       "view shown": "china",
-      "paths": "403f8c5d970d37e6413e4b65cbc4105426dcffde5f799864ea73802cb7e41a15"
+      "paths": "4cd098892c2ea92e76c40e44ff0d5ee04e2d3bfd55930508ce0ea28f1d40133b"
     },
     "china / eckert4": {
       "view shown": "china",
-      "paths": "3e7883412a7489399e666afc470086023c282f6e32e383b508f2b1611e68be68"
+      "paths": "68e8e1b1821035f72be3a52626a0eb3e92bdf6461209f5b1ba107883d5ab4ae6"
     },
     "china / sinusoidal": {
       "view shown": "china",
-      "paths": "7f08d2b9ad11151868ba724039b4b40521175347d180a74561ff383e1bbe88cb"
+      "paths": "c1dd7f9478c5f2c3eb03b334eed1ab8d84a9f11ad7e75790af499f4555ae31d7"
     },
     "china / orthographic": {
       "view shown": "china",
-      "paths": "856d6b9baf8320d123a62dba0d8b606626a73a773b196b2f1c31be5e9689f730"
+      "paths": "b24a237190c9bba1aac9e28b9e8140dbf4a14da7379ea4eedd6f4930528b8e3f"
     },
     "china / azimuthalEqualArea": {
       "view shown": "china",
-      "paths": "dbd408b415db5632dd31c612ad92fd73d3bbe0224a559079379a1e0e81a96a48"
+      "paths": "acf4bad11cd68df24dfbae956ecc7462fcbefbf473a8b256626229bed8771a94"
     },
     "china / polarNorth": {
       "view shown": "world",
-      "paths": "e2079bd6fd2bfb6cf5f32abef6f1156d85f229bf9347989bc8e8c779a325f5d5"
+      "paths": "c4edfc613c1c4474c941dd1cb686987f6634fba2cfb177a19005dbc27cb645b3"
     },
     "china / polarSouth": {
       "view shown": "world",
-      "paths": "902f5afe09adbb58a264adb0912bcc1bc563f757c05c30b80e5dbac4470b6429"
+      "paths": "b148ab0ff1bf7b319e22f10081211375f9058a5eb5fecf94fa3d855ed7412fa4"
     },
     "china / winkelTripel": {
       "view shown": "china",
-      "paths": "cd6508f0266c2721130163e38d862f8a3aeb81a000b19c4c4b30f75682ea92b0"
+      "paths": "3649fc60f45fbc5a43851d3813e48e4e2e53bee921ad63abe72380167aa7953d"
     },
     "china / aitoff": {
       "view shown": "china",
-      "paths": "c4b59f8c722b22e38c7bfffe878eae2377ea3f5052b4952041cd3f928745be1d"
+      "paths": "669d294e979d670515d840ece81ab91accbddeea8f3f32c8f5bddfaf40de7378"
     },
     "china / hammer": {
       "view shown": "china",
-      "paths": "13016ba455eae09e343bc8dd898ba195c9e4326083f75a23eb6dbbf91e891095"
+      "paths": "c1d3dfb1faaebc3f5a9d99f35090665377602ecfdac8891742eb9186504af530"
     },
     "china / albers": {
       "view shown": "world",
-      "paths": "754cac028157e189e2628eb1c599624c762913a7b2a627b0ee904c1d16d3ba65"
+      "paths": "3866d9bc3f5849f6e555145630942ffbc29d3ddcfe829da8673f8d6347222098"
     }
   },
   "control points": {
