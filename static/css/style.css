@@ -1178,7 +1178,9 @@ body {
   display: block;
 }
 
-@media (max-width: 768px) {
+/* A phone on its side is wide but short: the sidebar would take a third of the
+   map and leave its list a line or two. */
+@media (max-width: 768px), (max-height: 500px) {
   #sidebar-toggle {
     display: block;
   }
@@ -1202,7 +1204,9 @@ body {
   #sidebar-header {
     padding-left: 56px; /* clears the fixed toggle button */
   }
+}
 
+@media (max-width: 768px) {
   #compare-container {
     flex-direction: column;
   }
