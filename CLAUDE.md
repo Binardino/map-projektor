@@ -10,7 +10,7 @@ Interactive world map web app displaying 17 cartographic projections with animat
 
 **Generate data (once):** `poetry run python scripts/fetch_geodata.py`
 
-**Deploy:** a push to `main` publishes a static export to GitHub Pages (https://binardino.lauramini.fr), see `docs/deployment.md`. FastAPI does not run in production: a new route needs its file copied by the `deploy` job.
+**Deploy:** a push to `main` publishes a static export to GitHub Pages (https://binardino.lauramini.fr/map-projektor/), see `docs/deployment.md`. FastAPI does not run in production: a new route needs its file copied by the `deploy` job, and every path in the front end must be relative.
 
 **Tests:** `poetry run pytest -v`
 

@@ -1,6 +1,6 @@
 # Deploying Map Projektor
 
-The site is live at <https://binardino.lauramini.fr>, hosted on **GitHub Pages**. Every push to `main` publishes it, once pytest and the JS tests have passed.
+The site is live at <https://binardino.lauramini.fr/map-projektor/>, hosted on **GitHub Pages**. Every push to `main` publishes it, once pytest and the JS tests have passed.
 
 ## Why a static host
 
@@ -14,9 +14,9 @@ The `deploy` job in `.github/workflows/tests.yml` copies the files to the paths 
 
 | Source | Published at |
 |---|---|
-| `templates/index.html` | `/` |
-| `static/` | `/static/` |
-| `app/data/*.geojson` | `/data/` |
+| `templates/index.html` | `index.html` |
+| `static/` | `static/` |
+| `app/data/*.geojson` | `data/` |
 
 Nothing else in the repository is published.
 
@@ -27,15 +27,19 @@ mkdir -p _site/data
 cp templates/index.html _site/
 cp -r static _site/static
 cp app/data/*.geojson _site/data/
-python -m http.server 8000 --directory _site
+mkdir serve && mv _site serve/map-projektor
+python -m http.server 8000 --directory serve
 ```
+
+Then open <http://localhost:8000/map-projektor/>: serving it from a subfolder is what catches a path written from the root.
 
 ## Settings outside the repository
 
-- **GitHub:** Settings → Pages. Source is **GitHub Actions**, the custom domain is `binardino.lauramini.fr`, and **Enforce HTTPS** is on.
+- **This repository:** Settings → Pages. Source is **GitHub Actions**, with no custom domain: it inherits the one below, which puts the site in the `/map-projektor/` subfolder.
+- **The `Binardino.github.io` repository:** it holds the root of the domain. Its Settings → Pages has the custom domain `binardino.lauramini.fr` and **Enforce HTTPS** on. Any other repository of the account with Pages enabled also appears under this domain, at `/<repository name>/`.
 - **DNS:** one record, `CNAME binardino` → `binardino.github.io`, on the `lauramini.fr` domain. A subdomain takes no A record.
 
-The site's paths start from the root, so it renders broken at `binardino.github.io/map-projektor/`: only the custom domain works.
+**Every path in the site must be relative** (`static/...`, not `/static/...`), because the site is not at the root of its domain.
 
 ## Caching
 
