@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-01 — Credit (on `chore/credit`)
+
+### Added
+- A "© Binardino" line in the welcome modal, linking to the GitHub profile
+
 ## 2026-11-01 — A phone on its side (on `fix/mobile-landscape`)
 
 ### Fixed
