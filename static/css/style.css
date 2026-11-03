@@ -584,6 +584,27 @@ body {
   cursor: grabbing;
 }
 
+/* Bottom-right is where map credits usually sit, and nothing else is
+   anchored there. The translucent backing keeps it legible over any
+   projection or ocean colour. */
+#map-credit {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  z-index: 5;
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: color-mix(in srgb, var(--bg-sidebar) 75%, transparent);
+  color: var(--text-muted);
+  font-size: 11px;
+  text-decoration: none;
+}
+
+#map-credit:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
 /* ============================================================
    MAP TOOLBAR — right-side icon pills (zoom, then tools below).
    ============================================================ */
@@ -891,7 +912,8 @@ body {
   gap: 12px;
   width: 339px;
   max-width: calc(100% - 80px);
-  max-height: calc(100% - 100px);
+  /* Stops above #map-credit, which the cards would otherwise cover. */
+  max-height: calc(100% - 120px);
 }
 
 /* Figma drew only a dark card; it follows the theme instead (--card-*),
@@ -1194,6 +1216,11 @@ body {
 @media (max-width: 768px), (max-height: 500px) {
   #sidebar-toggle {
     display: block;
+  }
+
+  /* A phone has no spare corner; the welcome modal already credits. */
+  #map-credit {
+    display: none;
   }
 
   #sidebar {
