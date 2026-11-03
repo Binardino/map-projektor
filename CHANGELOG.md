@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-03 — Credit in the map's corner (on `feat/credit-corner`)
+
+### Added
+- A "© Binardino · GitHub" link in the bottom-right corner of the map, on desktop only; a phone keeps the welcome modal's credit
+
+### Changed
+- The floating cards stop 20 px higher so that they never cover that link
+
 ## 2026-11-01 — Credit (on `chore/credit`)
 
 ### Added
