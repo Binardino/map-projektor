@@ -271,6 +271,9 @@ def main():
             for run in range(runs):
                 page = browser.new_page(viewport={"width": 1280, "height": 900})
                 skip_tour(page)
+                # The info panel closed: the map keeps the full height the baseline was
+                # measured at (the key is INFO_PANEL_STORAGE_KEY in static/js/config.js).
+                page.add_init_script("localStorage.setItem('mapProjektorInfoPanel', 'hidden')")
                 page.goto(BASE_URL)
                 page.wait_for_selector("path.country")
                 # The welcome modal opens on every launch and overlays the whole page,
