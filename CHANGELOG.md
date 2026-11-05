@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-05 — Bottom info panel prototype (on `feat/info-panel`)
+
+### Added
+- Two layouts of the info card along the bottom of the map, to try side by side: `?info=sheet` (a one-line bar that unfolds into four columns) and `?info=band` (the four columns, open until closed). Without the parameter the floating card is unchanged
+- On a phone the terms stack upright, and on its side the panel lies over the map, clear of the toolbar
+- `scripts/e2e_smoke.py` walks both layouts; `scripts/text_fit.py` measures the panel in every language
+
 ## 2026-11-03 — Credit in the map's corner (on `feat/credit-corner`)
 
 ### Added
