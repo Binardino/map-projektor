@@ -992,6 +992,97 @@ body {
   margin: 2px 0 0;
 }
 
+/* Bottom info panel (prototype, ?info=sheet|band). It sits under the map in
+   #main's column, so the map shrinks to make room instead of being covered:
+   core/resize.js already follows the container. */
+#info-panel {
+  flex: none;
+  padding: 14px 24px;
+  background: var(--card-bg);
+  color: var(--card-text);
+  box-shadow: 0 -4px 16px var(--card-shadow);
+  /* The shadow must fall on the map, which comes earlier in the column. */
+  z-index: 1;
+}
+
+.info-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+#info-panel-name {
+  flex: none;
+  font-size: 20px;
+}
+
+/* One line, cut short: the folded sheet is a teaser, the columns hold the rest. */
+#info-panel-summary {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 16px;
+  color: var(--card-text-muted);
+}
+
+.info-panel-summary-label {
+  font-weight: bold;
+  color: var(--card-text);
+}
+
+#info-panel-toggle {
+  flex: none;
+  margin-inline-start: auto;
+  transition: transform 0.2s;
+}
+
+#info-panel.expanded #info-panel-toggle {
+  transform: rotate(180deg);
+}
+
+/* Four columns side by side: dt above its dd, filled column by column. */
+#info-panel-content {
+  display: none;
+  grid-template-rows: auto 1fr;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  column-gap: 32px;
+  margin-top: 12px;
+  max-height: 40vh;
+  overflow-y: auto;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--card-text-muted);
+}
+
+#info-panel.expanded #info-panel-content {
+  display: grid;
+}
+
+#info-panel-content dt {
+  font-weight: bold;
+  color: var(--card-text);
+}
+
+#info-panel-content dd {
+  margin: 2px 0 0;
+}
+
+/* Each layout keeps one control: the sheet folds, the band only closes.
+   Unfolded, the summary would repeat the "Preserves" column. */
+[data-info-layout="sheet"] #info-panel-close,
+[data-info-layout="band"] #info-panel-toggle,
+[data-info-layout="band"] #info-panel-summary,
+#info-panel.expanded #info-panel-summary {
+  display: none;
+}
+
+[data-info-layout="band"] #info-panel-close {
+  margin-inline-start: auto;
+}
+
 /* Two columns: all the languages stay in view without a scrolling list. */
 #language-list {
   display: grid;
@@ -1007,12 +1098,13 @@ body {
 #help-modal:is(:lang(ar), :lang(ur)),
 #tour-bubble:is(:lang(ar), :lang(ur)),
 #floating-cards:is(:lang(ar), :lang(ur)),
+#info-panel:is(:lang(ar), :lang(ur)),
 .tool-btn[data-tooltip]:is(:lang(ar), :lang(ur)):hover::after {
   direction: rtl;
 }
 
 /* Nastaliq slants down across the line and needs far more room than other scripts. */
-:is(#help-modal-body, #help-modal-borders, #tour-text, #info-tradeoffs-content, .floating-card-description, #language-note):lang(ur) {
+:is(#help-modal-body, #help-modal-borders, #tour-text, #info-tradeoffs-content, #info-panel-summary, #info-panel-content, .floating-card-description, #language-note):lang(ur) {
   line-height: 2.2;
 }
 
