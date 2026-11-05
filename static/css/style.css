@@ -1050,9 +1050,10 @@ body {
   grid-auto-columns: minmax(0, 1fr);
   column-gap: 32px;
   margin-top: 12px;
-  /* The map must stay tall enough for its toolbar (~480px with the panel's
-     own header): on a short screen the columns scroll instead. */
-  max-height: clamp(60px, calc(100dvh - 570px), 40vh);
+  /* The map must stay tall enough for its toolbar and the credit under it
+     (~510px, plus the panel's own header): on a short screen the columns
+     scroll instead. */
+  max-height: clamp(40px, calc(100dvh - 610px), 40vh);
   overflow-y: auto;
   font-size: 15px;
   line-height: 1.5;
