@@ -146,10 +146,10 @@
   "welcome.borders": "As fronteiras e os nomes são adaptados do Natural Earth. São mostrados como referência, e alguns são contestados.",
   "welcome.cta": "Entendi!",
   "welcome.intro1": "Como todos sabemos, a Terra é uma esfera. (Desculpem, terraplanistas.)",
-  "welcome.intro2": "O problema surge ao achatá-la em um mapa: formas, áreas, distâncias e direções não conseguem sobreviver todas à viagem, por isso cada projeção escolhe o que mantém e o que deforma.",
+  "welcome.intro2": "O problema surge ao achatá-la em um mapa: formas, áreas, distâncias e direções não conseguem sobreviver à viagem, por isso cada projeção escolhe o que manter e o que deformar.",
   "welcome.intro3": "Cada escolha tem suas vantagens e suas pequenas mentiras. Em um mapa de Mercator, a Groenlândia parece tão grande quanto a África, que na verdade é cerca de 14 vezes maior.",
-  "welcome.intro4": "Esta ferramenta permite que você veja esses compromissos por conta própria.",
-  "welcome.title": "Boas-vindas ao Map Projektor!",
+  "welcome.intro4": "Esta ferramenta permite que você veja esses dilemas por conta própria.",
+  "welcome.title": "Bem-vindos ao Map Projektor!",
   "zoom.in": "Aproximar",
   "zoom.out": "Afastar"
 }
