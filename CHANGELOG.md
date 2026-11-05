@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-05 — Clearer texts for Mercator and the Brazil view (on `fix/info-texts`)
+
+### Changed
+- Mercator's "Best for" says why sailors used it for four centuries and that satellite navigation has made it less vital
+- The Brazil-centred view says plainly that north at the top is a convention, in every language
+
 ## 2026-11-03 — Credit in the map's corner (on `feat/credit-corner`)
 
 ### Added
