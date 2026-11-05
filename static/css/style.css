@@ -959,42 +959,9 @@ body {
   line-height: 1.5;
 }
 
-/* #info-name reuses .floating-card-title via its class in the HTML;
-   #info-tradeoffs-content lays the three terms out inline (Figma flattens
-   them into one running paragraph — this keeps them as distinguishable
-   label/value pairs instead, at the same 16px size). */
-/* Only the info card shrinks and scrolls when the stack outgrows a short
-   window: the compare card must not clip its absolutely-positioned country
-   list, which also paints over the info card below it. */
-#projection-info {
-  min-height: 0;
-  overflow-y: auto;
-}
-
-#info-tradeoffs-content {
-  margin-top: 16px;
-  font-size: 16px;
-  line-height: 1.5;
-  color: var(--card-text-muted);
-}
-
-#info-tradeoffs-content dt {
-  font-weight: bold;
-  color: var(--card-text);
-  margin-top: 12px;
-}
-
-#info-tradeoffs-content dt:first-child {
-  margin-top: 0;
-}
-
-#info-tradeoffs-content dd {
-  margin: 2px 0 0;
-}
-
-/* Bottom info panel (prototype, ?info=sheet|band). It sits under the map in
-   #main's column, so the map shrinks to make room instead of being covered:
-   core/resize.js already follows the container. */
+/* Bottom info panel. It sits under the map in #main's column, so the map
+   shrinks to make room instead of being covered: core/resize.js already
+   follows the container. */
 #info-panel {
   flex: none;
   padding: 14px 24px;
@@ -1073,16 +1040,9 @@ body {
   margin: 2px 0 0;
 }
 
-/* The sheet folds and closes, the band only closes.
-   Unfolded, the summary would repeat the "Preserves" column. */
-[data-info-layout="band"] #info-panel-toggle,
-[data-info-layout="band"] #info-panel-summary,
+/* Unfolded, the summary would repeat the "Preserves" column. */
 #info-panel.expanded #info-panel-summary {
   display: none;
-}
-
-[data-info-layout="band"] #info-panel-close {
-  margin-inline-start: auto;
 }
 
 /* The onboarding's nudge: two hops up, the second smaller, so the bar reads
@@ -1189,7 +1149,7 @@ body {
 }
 
 /* Nastaliq slants down across the line and needs far more room than other scripts. */
-:is(#help-modal-body, #help-modal-borders, #tour-text, #info-tradeoffs-content, #info-panel-summary, #info-panel-content, .floating-card-description, #language-note):lang(ur) {
+:is(#help-modal-body, #help-modal-borders, #tour-text, #info-panel-summary, #info-panel-content, .floating-card-description, #language-note):lang(ur) {
   line-height: 2.2;
 }
 

@@ -72,6 +72,9 @@ def apply_view(page, view_id):
 
 def capture(page):
     skip_tour(page)
+    # The info panel closed: the map keeps the full height the golden hashes
+    # were drawn at (the key is INFO_PANEL_STORAGE_KEY in static/js/config.js).
+    page.add_init_script("localStorage.setItem('mapProjektorInfoPanel', 'hidden')")
     page.goto(BASE_URL)
     page.wait_for_selector("path.country")
     page.keyboard.press("Escape")  # welcome modal

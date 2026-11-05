@@ -53,16 +53,26 @@ MEASURE_JS = """async () => {
   if (!inWindow(box(document.getElementById("compare-card")))) hard.push("compare card outside the window");
   document.getElementById("compare-toggle-btn").click();
 
-  document.getElementById("info-toggle-btn").click();
-  const info = document.getElementById("projection-info");
-  const fields = ["origin", "preserves", "distorts", "bestFor"];
-  for (const id of window.__app.PROJECTIONS.map((p) => p.id)) {
-    const cells = info.querySelectorAll("dd");
-    fields.forEach((field, i) => { cells[i].textContent = text(`projection.${id}.${field}`, cells[i].textContent); });
-    if (!inWindow(box(info))) hard.push(`info card outside the window: ${id}`);
-    if (info.scrollHeight > info.clientHeight + 1) scrolls.push(`info card: ${id}`);
+  // The info panel, unfolded. Its columns may scroll on a short screen by
+  // design; what must hold is the panel inside the window, its header on one
+  // row of controls and the toolbar still whole above it.
+  document.getElementById("info-panel-toggle").click();
+  const panel = document.getElementById("info-panel");
+  const header = panel.querySelector(".info-panel-header");
+  const content = document.getElementById("info-panel-content");
+  if (box(document.getElementById("map-tools")).bottom > box(document.getElementById("map-container")).bottom + 1) {
+    hard.push("info panel cuts the toolbar");
   }
-  document.getElementById("info-close-btn").click();
+  const fields = ["origin", "preserves", "distorts", "bestFor"];
+  for (const p of window.__app.PROJECTIONS) {
+    document.getElementById("info-panel-name").textContent = text(`projection.${p.id}.name`, p.id);
+    const cells = content.querySelectorAll("dd");
+    fields.forEach((field, i) => { cells[i].textContent = text(`projection.${p.id}.${field}`, cells[i].textContent); });
+    if (!inWindow(box(panel))) hard.push(`info panel outside the window: ${p.id}`);
+    if (header.scrollWidth > header.clientWidth + 1) hard.push(`info panel header too wide: ${p.id}`);
+    if (content.scrollHeight > content.clientHeight + 1) scrolls.push(`info panel: ${p.id}`);
+  }
+  document.getElementById("info-panel-toggle").click();
 
   const tour = document.getElementById("tour");
   const bubble = document.getElementById("tour-bubble");
@@ -73,34 +83,6 @@ MEASURE_JS = """async () => {
     if (bubble.offsetHeight > innerHeight - 24) hard.push(`tour bubble taller than the window: ${step}`);
   }
   tour.hidden = true;
-  return { hard, scrolls };
-}"""
-
-# The bottom info panel prototype (?info=band opens it, with the same content
-# as the unfolded sheet). Its columns may scroll on a short screen by design;
-# what must hold is the panel inside the window, its header on one row of
-# controls and the toolbar still whole above it.
-PANEL_JS = """async () => {
-  const hard = [], scrolls = [];
-  const box = (el) => el.getBoundingClientRect();
-  const messages = await (await fetch(`/static/i18n/${document.documentElement.lang}.json`)).json()
-    .catch(() => ({}));
-  document.getElementById("help-modal-close").click();
-  const panel = document.getElementById("info-panel");
-  const header = panel.querySelector(".info-panel-header");
-  const content = document.getElementById("info-panel-content");
-  const map = box(document.getElementById("map-container"));
-  if (box(document.getElementById("map-tools")).bottom > map.bottom + 1) hard.push("info panel cuts the toolbar");
-  const fields = ["origin", "preserves", "distorts", "bestFor"];
-  for (const p of window.__app.PROJECTIONS) {
-    document.getElementById("info-panel-name").textContent = messages[`projection.${p.id}.name`] ?? p.id;
-    const cells = content.querySelectorAll("dd");
-    fields.forEach((field, i) => { cells[i].textContent = messages[`projection.${p.id}.${field}`] ?? cells[i].textContent; });
-    const r = box(panel);
-    if (r.bottom > innerHeight + 1 || r.right > innerWidth + 1) hard.push(`info panel outside the window: ${p.id}`);
-    if (header.scrollWidth > header.clientWidth + 1) hard.push(`info panel header too wide: ${p.id}`);
-    if (content.scrollHeight > content.clientHeight + 1) scrolls.push(`info panel: ${p.id}`);
-  }
   return { hard, scrolls };
 }"""
 
@@ -116,16 +98,14 @@ def main():
                     page = browser.new_page(viewport=viewport)
                     skip_tour(page)
                     page.add_init_script(f"localStorage.setItem('mapProjektorLanguage', '{lang}')")
-                    for url, measure, label in ((BASE_URL, MEASURE_JS, name),
-                                                (f"{BASE_URL}/?info=band", PANEL_JS, f"{name}, info panel")):
-                        page.goto(url)
-                        page.wait_for_selector("path.country")
-                        page.evaluate("() => document.fonts.ready")
-                        result = page.evaluate(measure)
-                        status = "ok" if not result["hard"] else "FAIL"
-                        note = f"  scrolls: {', '.join(result['scrolls'])}" if result["scrolls"] else ""
-                        print(f"  {status:5s} {lang:3s} {label}{note}")
-                        failures += [f"{lang} {label}: {problem}" for problem in result["hard"]]
+                    page.goto(BASE_URL)
+                    page.wait_for_selector("path.country")
+                    page.evaluate("() => document.fonts.ready")
+                    result = page.evaluate(MEASURE_JS)
+                    status = "ok" if not result["hard"] else "FAIL"
+                    note = f"  scrolls: {', '.join(result['scrolls'])}" if result["scrolls"] else ""
+                    print(f"  {status:5s} {lang:3s} {name}{note}")
+                    failures += [f"{lang} {name}: {problem}" for problem in result["hard"]]
                     page.close()
             browser.close()
     finally:

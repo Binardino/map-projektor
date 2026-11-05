@@ -2,7 +2,7 @@ import { PROJECTIONS, getProjection, projectionName } from "../data/projections.
 import { createMapView } from "../core/map-view.js";
 import { applySelection } from "../core/selection.js";
 import { attachFlightPath } from "./flight-path.js";
-import { infoVisible, setInfoVisible } from "../ui/info-card.js";
+import { hideInfoPanel } from "../ui/info-card.js";
 import { DEFAULT_COMPARISON_PROJECTION } from "../config.js";
 import { emit, getState, on } from "../state.js";
 
@@ -64,10 +64,10 @@ if (compareToggleBtn) {
     mapContainerEl.hidden   = compareMode;
     compareContainer.hidden = !compareMode;
 
-    // The info card takes real estate the two compare panels need — force
+    // The info panel takes real estate the two compare panels need — force
     // it closed on entering compare mode; leaving compare mode doesn't
     // reopen it, same as any other time the "i" icon hasn't been clicked.
-    if (compareMode && infoVisible) setInfoVisible(false);
+    if (compareMode) hideInfoPanel();
 
     if (!compareMode) {
       // Destroyed rather than left hidden: every overlay tool redraws in

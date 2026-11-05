@@ -3,7 +3,7 @@ import { t } from "../i18n.js";
 import { getState, on, subscribe } from "../state.js";
 import { switchProjection } from "../core/transition.js";
 import { closeSidebar, openSidebar } from "./mobile-sidebar.js";
-import { infoLayout, nudgeInfoPanel } from "./info-card.js";
+import { nudgeInfoPanel } from "./info-card.js";
 
 // ============================================================
 // ONBOARDING TOUR
@@ -20,18 +20,17 @@ import { infoLayout, nudgeInfoPanel } from "./info-card.js";
 // drawer on mobile and has to be opened for the step; `show` is a
 // projection the step switches the map to (its drawer then stays closed,
 // the map being what there is to look at); `nudge` makes the bottom info
-// panel bounce, and `layout` keeps a step to that info layout only.
+// panel bounce.
 // ============================================================
-const ALL_STEPS = [
+const STEPS = [
   { id: "mercator", target: '.proj-btn[data-proj-id="mercator"]', side: "right", show: "mercator" },
   { id: "equalEarth", target: '.proj-btn[data-proj-id="equalEarth"]', side: "right", show: "equalEarth" },
   { id: "views", target: "#recenter-panel", side: "right", drawer: true },
   { id: "tools", target: "#map-tools", side: "left" },
-  { id: "infoPanel", target: "#info-panel", side: "left", nudge: true, layout: "sheet" },
+  { id: "infoPanel", target: "#info-panel", side: "left", nudge: true },
   { id: "language", target: "#language-toggle-btn", side: "left" },
   { id: "navigation", target: "#zoom-controls", side: "left" },
 ];
-const STEPS = ALL_STEPS.filter((step) => !step.layout || step.layout === infoLayout);
 
 const SPOTLIGHT_PADDING = 4; // px of breathing room around the highlighted control
 const BUBBLE_GAP = 14;       // px between the target and the bubble (room for the arrow)
