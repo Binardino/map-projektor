@@ -401,6 +401,56 @@ def language_choice(page):
     page.evaluate("() => localStorage.removeItem('mapProjektorLanguage')")
 
 
+PANEL_STATE_JS = """() => {
+  const panel = document.getElementById("info-panel");
+  const map = document.getElementById("map-container").getBoundingClientRect();
+  const tools = document.getElementById("map-tools").getBoundingClientRect();
+  const box = panel.getBoundingClientRect();
+  return {
+    shown: !panel.hidden, open: panel.classList.contains("expanded"),
+    name: document.getElementById("info-panel-name").textContent,
+    mapHeight: map.height, toolsInMap: tools.bottom <= map.bottom,
+    panelInWindow: box.bottom <= innerHeight + 1 && box.right <= innerWidth + 1,
+    clearOfTools: box.right <= tools.left || box.top >= tools.bottom,
+  };
+}"""
+
+
+def info_panel(page):
+    """The two bottom-panel prototypes: the sheet folds, the band closes, both
+    follow the projection, remember their state and keep the toolbar usable."""
+    for layout, starts_open in (("sheet", False), ("band", True)):
+        page.set_viewport_size(VIEWPORT)
+        page.goto(f"{BASE_URL}/?info={layout}")
+        page.wait_for_selector("path.country")
+        settle(page)
+        page.keyboard.press("Escape")
+        state = page.evaluate(PANEL_STATE_JS)
+        assert state["shown"] and state["open"] == starts_open, f"{layout}: starting state {state}"
+        assert not page.is_visible("#projection-info"), f"{layout}: the floating card stays out of the way"
+        page.click("#info-toggle-btn")
+        after = page.evaluate(PANEL_STATE_JS)
+        assert after["open"] != starts_open, f"{layout}: the i button should flip the panel"
+        page.click("#info-toggle-btn")
+        if not starts_open:
+            page.click("#info-toggle-btn")
+        opened = page.evaluate(PANEL_STATE_JS)
+        assert opened["open"] and opened["toolsInMap"], f"{layout}: open panel must leave the toolbar whole"
+        switch(page, "mercator")
+        assert page.evaluate(PANEL_STATE_JS)["name"] == "Mercator", f"{layout}: the panel follows the projection"
+        page.reload()
+        page.wait_for_selector("path.country")
+        settle(page)
+        assert page.evaluate(PANEL_STATE_JS)["open"], f"{layout}: the open state should survive a reload"
+        for viewport in (MOBILE_VIEWPORT, LANDSCAPE_VIEWPORT):
+            page.set_viewport_size(viewport)
+            page.wait_for_timeout(300)
+            phone = page.evaluate(PANEL_STATE_JS)
+            assert phone["panelInWindow"] and phone["toolsInMap"], f"{layout} {viewport}: {phone}"
+            assert viewport is MOBILE_VIEWPORT or phone["clearOfTools"], f"{layout} on its side covers the toolbar"
+        page.evaluate("() => localStorage.clear()")
+
+
 def mobile_drawer(page):
     page.set_viewport_size(MOBILE_VIEWPORT)
     open_app(page)
@@ -492,7 +542,7 @@ def onboarding_landscape(page):
 
 
 ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile, onboarding_landscape]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, mobile_drawer, phone_turns]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, mobile_drawer, phone_turns]
 
 
 def main():

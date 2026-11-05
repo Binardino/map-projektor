@@ -76,6 +76,34 @@ MEASURE_JS = """async () => {
   return { hard, scrolls };
 }"""
 
+# The bottom info panel prototype (?info=band opens it, with the same content
+# as the unfolded sheet). Its columns may scroll on a short screen by design;
+# what must hold is the panel inside the window, its header on one row of
+# controls and the toolbar still whole above it.
+PANEL_JS = """async () => {
+  const hard = [], scrolls = [];
+  const box = (el) => el.getBoundingClientRect();
+  const messages = await (await fetch(`/static/i18n/${document.documentElement.lang}.json`)).json()
+    .catch(() => ({}));
+  document.getElementById("help-modal-close").click();
+  const panel = document.getElementById("info-panel");
+  const header = panel.querySelector(".info-panel-header");
+  const content = document.getElementById("info-panel-content");
+  const map = box(document.getElementById("map-container"));
+  if (box(document.getElementById("map-tools")).bottom > map.bottom + 1) hard.push("info panel cuts the toolbar");
+  const fields = ["origin", "preserves", "distorts", "bestFor"];
+  for (const p of window.__app.PROJECTIONS) {
+    document.getElementById("info-panel-name").textContent = messages[`projection.${p.id}.name`] ?? p.id;
+    const cells = content.querySelectorAll("dd");
+    fields.forEach((field, i) => { cells[i].textContent = messages[`projection.${p.id}.${field}`] ?? cells[i].textContent; });
+    const r = box(panel);
+    if (r.bottom > innerHeight + 1 || r.right > innerWidth + 1) hard.push(`info panel outside the window: ${p.id}`);
+    if (header.scrollWidth > header.clientWidth + 1) hard.push(`info panel header too wide: ${p.id}`);
+    if (content.scrollHeight > content.clientHeight + 1) scrolls.push(`info panel: ${p.id}`);
+  }
+  return { hard, scrolls };
+}"""
+
 
 def main():
     failures = []
@@ -88,14 +116,16 @@ def main():
                     page = browser.new_page(viewport=viewport)
                     skip_tour(page)
                     page.add_init_script(f"localStorage.setItem('mapProjektorLanguage', '{lang}')")
-                    page.goto(BASE_URL)
-                    page.wait_for_selector("path.country")
-                    page.evaluate("() => document.fonts.ready")
-                    result = page.evaluate(MEASURE_JS)
-                    status = "ok" if not result["hard"] else "FAIL"
-                    note = f"  scrolls: {', '.join(result['scrolls'])}" if result["scrolls"] else ""
-                    print(f"  {status:5s} {lang:3s} {name}{note}")
-                    failures += [f"{lang} {name}: {problem}" for problem in result["hard"]]
+                    for url, measure, label in ((BASE_URL, MEASURE_JS, name),
+                                                (f"{BASE_URL}/?info=band", PANEL_JS, f"{name}, info panel")):
+                        page.goto(url)
+                        page.wait_for_selector("path.country")
+                        page.evaluate("() => document.fonts.ready")
+                        result = page.evaluate(measure)
+                        status = "ok" if not result["hard"] else "FAIL"
+                        note = f"  scrolls: {', '.join(result['scrolls'])}" if result["scrolls"] else ""
+                        print(f"  {status:5s} {lang:3s} {label}{note}")
+                        failures += [f"{lang} {label}: {problem}" for problem in result["hard"]]
                     page.close()
             browser.close()
     finally:

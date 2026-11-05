@@ -98,8 +98,8 @@ if (infoLayout === "card") {
   infoToggleBtn.addEventListener("click", () => setPanelOpen(!panelOpen));
   infoPanelToggle.addEventListener("click", () => setPanelOpen(!panelOpen));
   document.getElementById("info-panel-close").addEventListener("click", () => setPanelOpen(false));
-  bottomPanelEl.hidden = false;
-  applyPanel();
+  // First shown once the language has loaded (init() always emits it): the
+  // toggle's label is read through t(), and an empty panel would flash.
   on("language:changed", applyPanel);
 }
 
