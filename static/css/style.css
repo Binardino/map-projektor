@@ -1085,6 +1085,70 @@ body {
   margin-inline-start: auto;
 }
 
+/* A phone held upright: four columns would be a word wide. The terms stack
+   and scroll, and the summary takes its own line under the name. */
+@media (max-width: 600px) {
+  #info-panel {
+    padding: 12px 16px;
+  }
+
+  .info-panel-header {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  #info-panel-summary {
+    order: 1;
+    flex-basis: 100%;
+    font-size: 14px;
+  }
+
+  #info-panel.expanded #info-panel-content {
+    display: block;
+  }
+
+  #info-panel-content dd {
+    margin-bottom: 10px;
+  }
+}
+
+/* A phone on its side has no height to give: the panel lies over the bottom
+   of the map instead of squeezing it under the toolbar, and stops short of
+   the toolbar's columns on the right so that every button stays reachable. */
+@media (max-height: 500px) and (orientation: landscape) {
+  #main {
+    position: relative;
+  }
+
+  #info-panel {
+    position: absolute;
+    left: 0;
+    right: 96px;
+    bottom: 0;
+    padding: 8px 16px;
+    border-start-end-radius: 12px;
+  }
+
+  .info-panel-header {
+    flex-wrap: nowrap;
+  }
+
+  #info-panel-summary {
+    order: 0;
+    flex-basis: auto;
+  }
+
+  #info-panel-name {
+    font-size: 17px;
+  }
+
+  #info-panel-content {
+    margin-top: 6px;
+    max-height: 55dvh;
+    font-size: 14px;
+  }
+}
+
 /* Two columns: all the languages stay in view without a scrolling list. */
 #language-list {
   display: grid;
