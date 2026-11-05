@@ -2,13 +2,15 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
-## 2026-11-05 — Bottom info panel prototype (on `feat/info-panel`)
+## 2026-11-05 — Info panel along the bottom of the map (on `feat/info-panel`)
+
+### Changed
+- The facts about the projection move from a floating card behind the i button to a panel along the bottom of the map, shown by default. It has three states: a one-line bar with what the projection preserves, four columns unfolded with its chevron, and closed with ✕ so that the map takes the whole height (the i button brings it back). The state is kept for the next visit
+- On a phone the terms stack upright, and on its side the panel lies over the map, clear of the toolbar
 
 ### Added
-- Two layouts of the info card along the bottom of the map, to try side by side: `?info=sheet` (a one-line bar that unfolds into four columns) and `?info=band` (the four columns, open until closed). Without the parameter the floating card is unchanged
-- The sheet has three states: closed with ✕ (the map takes the whole height, the i button brings it back), the one-line bar, and the columns. The onboarding tour gains a step on the bar, which bounces to show that it moves
-- On a phone the terms stack upright, and on its side the panel lies over the map, clear of the toolbar
-- `scripts/e2e_smoke.py` walks both layouts; `scripts/text_fit.py` measures the panel in every language
+- An onboarding step on the bar, which bounces to show that it moves up and down
+- `scripts/e2e_smoke.py` walks the panel's states and the new tour step; `scripts/text_fit.py` measures the panel in every language. `render_fingerprint.py` and `perf_transitions.py` run with the panel closed, so the map keeps the size their reference numbers were taken at
 
 ## 2026-11-03 — Credit in the map's corner (on `feat/credit-corner`)
 
