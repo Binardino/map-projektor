@@ -123,6 +123,8 @@
   "tour.skip": "跳过教程",
   "tour.step.equalEarth.text": "同一颗星球，由等积地球投影绘制：格陵兰回到真实大小，比非洲小 14 倍。此列表中的每个按钮都以自己的方式重新绘制世界。",
   "tour.step.equalEarth.title": "再看一遍",
+  "tour.step.infoPanel.text": "这一栏概括了屏幕上的投影。用箭头展开，看看它从何而来、保留了什么、扭曲了什么。用 ✕ 关闭，让地图占满整个屏幕；i 按钮可以把它找回来。",
+  "tour.step.infoPanel.title": "每张地图的故事",
   "tour.step.language.text": "在这里选择网站语言，国家名称也会随之改变。您的选择会保留到下次访问。",
   "tour.step.language.title": "您的语言",
   "tour.step.mercator.text": "这是墨卡托投影，大多数教室和在线地图使用的地图。看看格陵兰：它似乎和非洲一样大。点击“下一步”，看另一种投影如何重新绘制它。",

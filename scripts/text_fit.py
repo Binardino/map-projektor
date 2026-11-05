@@ -67,7 +67,7 @@ MEASURE_JS = """async () => {
   const tour = document.getElementById("tour");
   const bubble = document.getElementById("tour-bubble");
   tour.hidden = false;
-  for (const step of ["mercator", "equalEarth", "views", "tools", "language", "navigation"]) {
+  for (const step of ["mercator", "equalEarth", "views", "tools", "infoPanel", "language", "navigation"]) {
     document.getElementById("tour-title").textContent = text(`tour.step.${step}.title`, "");
     document.getElementById("tour-text").textContent = text(`tour.step.${step}.text`, "");
     if (bubble.offsetHeight > innerHeight - 24) hard.push(`tour bubble taller than the window: ${step}`);

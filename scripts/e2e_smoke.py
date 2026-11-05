@@ -428,12 +428,15 @@ def info_panel(page):
         state = page.evaluate(PANEL_STATE_JS)
         assert state["shown"] and state["open"] == starts_open, f"{layout}: starting state {state}"
         assert not page.is_visible("#projection-info"), f"{layout}: the floating card stays out of the way"
+        full_map = page.evaluate(PANEL_STATE_JS)["mapHeight"]
         page.click("#info-toggle-btn")
-        after = page.evaluate(PANEL_STATE_JS)
-        assert after["open"] != starts_open, f"{layout}: the i button should flip the panel"
+        hidden = page.evaluate(PANEL_STATE_JS)
+        assert not hidden["shown"] and hidden["mapHeight"] > full_map, f"{layout}: the i button hides the whole panel"
         page.click("#info-toggle-btn")
+        back = page.evaluate(PANEL_STATE_JS)
+        assert back["shown"] and back["open"] == starts_open, f"{layout}: the i button brings the panel back as it was"
         if not starts_open:
-            page.click("#info-toggle-btn")
+            page.click("#info-panel-toggle")
         opened = page.evaluate(PANEL_STATE_JS)
         assert opened["open"] and opened["toolsInMap"], f"{layout}: open panel must leave the toolbar whole"
         switch(page, "mercator")
@@ -449,6 +452,24 @@ def info_panel(page):
             assert phone["panelInWindow"] and phone["toolsInMap"], f"{layout} {viewport}: {phone}"
             assert viewport is MOBILE_VIEWPORT or phone["clearOfTools"], f"{layout} on its side covers the toolbar"
         page.evaluate("() => localStorage.clear()")
+
+
+def info_panel_tour(page):
+    """With the sheet, the tour has a step on the bar, which comes back if it
+    was closed and bounces to show that it moves."""
+    page.goto(f"{BASE_URL}/?info=sheet")
+    page.wait_for_selector("path.country")
+    settle(page)
+    page.keyboard.press("Escape")
+    page.click("#info-panel-close")
+    assert not page.evaluate(PANEL_STATE_JS)["shown"]
+    page.click("#tour-replay-btn")
+    while page.inner_text("#tour-title") != "The story of each map":
+        settle(page)
+        page.click("#tour-next")
+    assert page.evaluate(PANEL_STATE_JS)["shown"], "the tour brings the bar back to point at it"
+    assert page.evaluate("() => document.getElementById('info-panel').classList.contains('nudge')"), "the bar should bounce"
+    assert not page.is_hidden("#tour-spotlight"), "the spotlight should be on the bar"
 
 
 def mobile_drawer(page):
@@ -542,7 +563,7 @@ def onboarding_landscape(page):
 
 
 ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile, onboarding_landscape]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, mobile_drawer, phone_turns]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_tour, mobile_drawer, phone_turns]
 
 
 def main():

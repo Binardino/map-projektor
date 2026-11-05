@@ -123,6 +123,8 @@
   "tour.skip": "Tutorial überspringen",
   "tour.step.equalEarth.text": "Derselbe Planet, gezeichnet von Equal Earth: Grönland hat wieder seine wahre Größe, 14-mal kleiner als Afrika. Jede Schaltfläche in dieser Liste zeichnet die Welt auf ihre Weise neu.",
   "tour.step.equalEarth.title": "Schau noch einmal hin",
+  "tour.step.infoPanel.text": "Diese Leiste fasst die angezeigte Projektion zusammen. Öffne sie mit dem Pfeil, um zu sehen, woher sie stammt, was sie bewahrt und was sie verzerrt. Schließe sie mit ✕, um der Karte den ganzen Bildschirm zu geben; die Schaltfläche i holt sie zurück.",
+  "tour.step.infoPanel.title": "Die Geschichte jeder Karte",
   "tour.step.language.text": "Wähle hier die Sprache der Seite, einschließlich der Ländernamen. Deine Wahl bleibt für den nächsten Besuch gespeichert.",
   "tour.step.language.title": "Deine Sprache",
   "tour.step.mercator.text": "Das ist Mercator, die Karte der meisten Klassenzimmer und Online-Karten. Sieh dir Grönland an: Es wirkt so groß wie Afrika. Klicke auf Weiter und sieh zu, wie eine andere Projektion es neu zeichnet.",
