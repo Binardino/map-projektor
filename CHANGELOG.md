@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-05 — Portuguese welcome text (on `fix/pt-welcome`)
+
+### Changed
+- The Portuguese welcome modal reads more naturally, following a native speaker's review
+
 ## 2026-11-03 — Credit in the map's corner (on `feat/credit-corner`)
 
 ### Added
