@@ -123,6 +123,8 @@
   "tour.skip": "Passer le tutoriel",
   "tour.step.equalEarth.text": "La même planète, dessinée par Equal Earth : le Groenland retrouve sa vraie taille, 14 fois plus petit que l'Afrique. Chaque bouton de cette liste redessine le monde à sa façon.",
   "tour.step.equalEarth.title": "Regardez à nouveau",
+  "tour.step.infoPanel.text": "Cette barre résume la projection affichée. Ouvrez-la avec la flèche pour voir d'où elle vient, ce qu'elle garde et ce qu'elle déforme. Fermez-la avec ✕ pour laisser tout l'écran à la carte ; le bouton i la fait revenir.",
+  "tour.step.infoPanel.title": "L'histoire de chaque carte",
   "tour.step.language.text": "Choisissez ici la langue du site, noms de pays compris. Votre choix est gardé pour la prochaine visite.",
   "tour.step.language.title": "Votre langue",
   "tour.step.mercator.text": "Voici Mercator, la carte de la plupart des salles de classe et des cartes en ligne. Regardez le Groenland : il semble aussi grand que l'Afrique. Cliquez sur Suivant et regardez une autre projection le redessiner.",

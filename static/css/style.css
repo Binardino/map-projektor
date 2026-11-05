@@ -1073,9 +1073,8 @@ body {
   margin: 2px 0 0;
 }
 
-/* Each layout keeps one control: the sheet folds, the band only closes.
+/* The sheet folds and closes, the band only closes.
    Unfolded, the summary would repeat the "Preserves" column. */
-[data-info-layout="sheet"] #info-panel-close,
 [data-info-layout="band"] #info-panel-toggle,
 [data-info-layout="band"] #info-panel-summary,
 #info-panel.expanded #info-panel-summary {
@@ -1084,6 +1083,25 @@ body {
 
 [data-info-layout="band"] #info-panel-close {
   margin-inline-start: auto;
+}
+
+/* The onboarding's nudge: two hops up, the second smaller, so the bar reads
+   as something that rises rather than a decoration. */
+#info-panel.nudge {
+  animation: info-panel-nudge 1.1s ease-out 2;
+}
+
+@keyframes info-panel-nudge {
+  0%, 100% { transform: translateY(0); }
+  25%      { transform: translateY(-18px); }
+  50%      { transform: translateY(0); }
+  70%      { transform: translateY(-7px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #info-panel.nudge {
+    animation: none;
+  }
 }
 
 /* A phone held upright: four columns would be a word wide. The terms stack

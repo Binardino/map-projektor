@@ -6,6 +6,7 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 
 ### Added
 - Two layouts of the info card along the bottom of the map, to try side by side: `?info=sheet` (a one-line bar that unfolds into four columns) and `?info=band` (the four columns, open until closed). Without the parameter the floating card is unchanged
+- The sheet has three states: closed with ✕ (the map takes the whole height, the i button brings it back), the one-line bar, and the columns. The onboarding tour gains a step on the bar, which bounces to show that it moves
 - On a phone the terms stack upright, and on its side the panel lies over the map, clear of the toolbar
 - `scripts/e2e_smoke.py` walks both layouts; `scripts/text_fit.py` measures the panel in every language
 

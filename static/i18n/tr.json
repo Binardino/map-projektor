@@ -123,6 +123,8 @@
   "tour.skip": "Öğreticiyi atla",
   "tour.step.equalEarth.text": "Aynı gezegen, Equal Earth ile çizilmiş: Grönland gerçek boyutuna döner, Afrika'dan 14 kat küçüktür. Bu listedeki her düğme dünyayı kendi tarzında yeniden çizer.",
   "tour.step.equalEarth.title": "Bir daha bakın",
+  "tour.step.infoPanel.text": "Bu çubuk ekrandaki projeksiyonu özetler. Nereden geldiğini, neyi koruduğunu ve neyi bozduğunu görmek için okla açın. Haritaya tüm ekranı bırakmak için ✕ ile kapatın; i düğmesi onu geri getirir.",
+  "tour.step.infoPanel.title": "Her haritanın hikâyesi",
   "tour.step.language.text": "Sitenin dilini buradan seçin, ülke adları da buna dahil. Seçiminiz bir sonraki ziyaretiniz için saklanır.",
   "tour.step.language.title": "Diliniz",
   "tour.step.mercator.text": "Bu Mercator, çoğu sınıfın ve çevrimiçi haritanın haritası. Grönland'a bakın: Afrika kadar büyük görünüyor. İleri'ye basın ve başka bir izdüşümün onu yeniden çizişini izleyin.",

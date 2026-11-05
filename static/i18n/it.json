@@ -123,6 +123,8 @@
   "tour.skip": "Salta il tutorial",
   "tour.step.equalEarth.text": "Lo stesso pianeta, disegnato da Equal Earth: la Groenlandia torna alla sua vera dimensione, 14 volte più piccola dell'Africa. Ogni pulsante di questa lista ridisegna il mondo a modo suo.",
   "tour.step.equalEarth.title": "Guarda di nuovo",
+  "tour.step.infoPanel.text": "Questa barra riassume la proiezione sullo schermo. Aprila con la freccia per vedere da dove viene, cosa conserva e cosa deforma. Chiudila con ✕ per lasciare tutto lo schermo alla mappa; il pulsante i la fa tornare.",
+  "tour.step.infoPanel.title": "La storia di ogni mappa",
   "tour.step.language.text": "Scegli qui la lingua del sito, nomi dei paesi compresi. La tua scelta resta salvata per la prossima visita.",
   "tour.step.language.title": "La tua lingua",
   "tour.step.mercator.text": "Questa è Mercatore, la mappa della maggior parte delle aule e delle mappe online. Guarda la Groenlandia: sembra grande come l'Africa. Premi Avanti e guarda un'altra proiezione ridisegnarla.",
