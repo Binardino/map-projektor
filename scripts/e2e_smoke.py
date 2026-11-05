@@ -85,7 +85,7 @@ def bubble_on_screen(page):
 
 
 TOUR_TARGETS = ['.proj-btn[data-proj-id="mercator"]', '.proj-btn[data-proj-id="equalEarth"]',
-                "#recenter-panel", "#map-tools", "#language-toggle-btn", "#zoom-controls"]
+                "#recenter-panel", "#map-tools", "#info-panel", "#language-toggle-btn", "#zoom-controls"]
 # The tour opens on a demonstration: its first steps switch the projection themselves.
 TOUR_SHOWS = ["mercator", "equalEarth"]
 PROJECTION_JS = "() => window.__app.currentProjectionId"
@@ -260,16 +260,16 @@ def tools_and_cards(page):
     page.click("#compare-toggle-btn")
     page.fill("#compare-country-input", "fra")
     page.click("#compare-country-results li")
-    page.click("#info-toggle-btn")
-    assert page.is_visible("#compare-card") and page.is_visible("#projection-info"), "both cards open together"
+    page.click("#info-panel-toggle")
+    assert page.is_visible("#compare-card") and page.is_visible("#info-panel-content"), "compare card and info panel open together"
     assert page.locator("#compare-country-list li").count() == 1, "opening info must keep the compared countries"
     compare_box = page.locator("#compare-card").bounding_box()
-    info_box = page.locator("#projection-info").bounding_box()
-    assert info_box["y"] >= compare_box["y"] + compare_box["height"], "info card should sit below the compare card"
+    panel_box = page.locator("#info-panel").bounding_box()
+    assert panel_box["y"] >= compare_box["y"] + compare_box["height"], "the info panel should sit below the compare card"
     page.click("#compare-card-close")
-    assert not page.is_visible("#compare-card") and page.is_visible("#projection-info")
-    page.click("#info-close-btn")
-    assert not page.is_visible("#projection-info")
+    assert not page.is_visible("#compare-card") and page.is_visible("#info-panel-content")
+    page.click("#info-panel-close")
+    assert not page.is_visible("#info-panel")
 
 
 # Screen centre of a country as the map draws it.
@@ -417,49 +417,36 @@ PANEL_STATE_JS = """() => {
 
 
 def info_panel(page):
-    """The two bottom-panel prototypes: the sheet folds, the band closes, both
-    follow the projection, remember their state and keep the toolbar usable."""
-    for layout, starts_open in (("sheet", False), ("band", True)):
-        page.set_viewport_size(VIEWPORT)
-        page.goto(f"{BASE_URL}/?info={layout}")
-        page.wait_for_selector("path.country")
-        settle(page)
-        page.keyboard.press("Escape")
-        state = page.evaluate(PANEL_STATE_JS)
-        assert state["shown"] and state["open"] == starts_open, f"{layout}: starting state {state}"
-        assert not page.is_visible("#projection-info"), f"{layout}: the floating card stays out of the way"
-        full_map = page.evaluate(PANEL_STATE_JS)["mapHeight"]
-        page.click("#info-toggle-btn")
-        hidden = page.evaluate(PANEL_STATE_JS)
-        assert not hidden["shown"] and hidden["mapHeight"] > full_map, f"{layout}: the i button hides the whole panel"
-        page.click("#info-toggle-btn")
-        back = page.evaluate(PANEL_STATE_JS)
-        assert back["shown"] and back["open"] == starts_open, f"{layout}: the i button brings the panel back as it was"
-        if not starts_open:
-            page.click("#info-panel-toggle")
-        opened = page.evaluate(PANEL_STATE_JS)
-        assert opened["open"] and opened["toolsInMap"], f"{layout}: open panel must leave the toolbar whole"
-        switch(page, "mercator")
-        assert page.evaluate(PANEL_STATE_JS)["name"] == "Mercator", f"{layout}: the panel follows the projection"
-        page.reload()
-        page.wait_for_selector("path.country")
-        settle(page)
-        assert page.evaluate(PANEL_STATE_JS)["open"], f"{layout}: the open state should survive a reload"
-        for viewport in (MOBILE_VIEWPORT, LANDSCAPE_VIEWPORT):
-            page.set_viewport_size(viewport)
-            page.wait_for_timeout(300)
-            phone = page.evaluate(PANEL_STATE_JS)
-            assert phone["panelInWindow"] and phone["toolsInMap"], f"{layout} {viewport}: {phone}"
-            assert viewport is MOBILE_VIEWPORT or phone["clearOfTools"], f"{layout} on its side covers the toolbar"
-        page.evaluate("() => localStorage.clear()")
+    """The bottom info panel: folded at first, hidden and brought back by the
+    i button, unfolded by its chevron; it follows the projection, remembers
+    its state and keeps the toolbar usable on every screen."""
+    page.keyboard.press("Escape")
+    state = page.evaluate(PANEL_STATE_JS)
+    assert state["shown"] and not state["open"], f"the panel starts folded: {state}"
+    page.click("#info-toggle-btn")
+    hidden = page.evaluate(PANEL_STATE_JS)
+    assert not hidden["shown"] and hidden["mapHeight"] > state["mapHeight"], "the i button hides the whole panel"
+    page.click("#info-toggle-btn")
+    back = page.evaluate(PANEL_STATE_JS)
+    assert back["shown"] and not back["open"], "the i button brings the bar back"
+    page.click("#info-panel-toggle")
+    opened = page.evaluate(PANEL_STATE_JS)
+    assert opened["open"] and opened["toolsInMap"], "the open panel must leave the toolbar whole"
+    switch(page, "mercator")
+    assert page.evaluate(PANEL_STATE_JS)["name"] == "Mercator", "the panel follows the projection"
+    open_app(page)
+    assert page.evaluate(PANEL_STATE_JS)["open"], "the open state should survive a reload"
+    for viewport in (MOBILE_VIEWPORT, LANDSCAPE_VIEWPORT):
+        page.set_viewport_size(viewport)
+        page.wait_for_timeout(300)
+        phone = page.evaluate(PANEL_STATE_JS)
+        assert phone["panelInWindow"] and phone["toolsInMap"], f"{viewport}: {phone}"
+        assert viewport is MOBILE_VIEWPORT or phone["clearOfTools"], "on its side, the panel covers the toolbar"
 
 
 def info_panel_tour(page):
-    """With the sheet, the tour has a step on the bar, which comes back if it
-    was closed and bounces to show that it moves."""
-    page.goto(f"{BASE_URL}/?info=sheet")
-    page.wait_for_selector("path.country")
-    settle(page)
+    """The tour has a step on the info bar, which comes back if it was
+    closed and bounces to show that it moves."""
     page.keyboard.press("Escape")
     page.click("#info-panel-close")
     assert not page.evaluate(PANEL_STATE_JS)["shown"]

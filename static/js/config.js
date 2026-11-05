@@ -76,8 +76,7 @@ export const LANGUAGE_STORAGE_KEY = "mapProjektorLanguage";
 export const TOUR_STORAGE_KEY = "mapProjektorTourSeen";
 
 // --- info panel ---
-// localStorage key prefix of whether the bottom info panel was left open
-// (one value per layout: an open band and an unfolded sheet differ)
+// localStorage key of the bottom info panel's state: hidden, folded or open
 export const INFO_PANEL_STORAGE_KEY = "mapProjektorInfoPanel";
 
 // --- data ---
