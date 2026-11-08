@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-08 — README screenshots (on `docs/readme-assets`)
+
+### Changed
+- The README's screenshots, transition GIF and link preview show the bottom info panel instead of the old floating card
+
 ## 2026-11-05 — Info panel along the bottom of the map (on `feat/info-panel`)
 
 ### Changed
