@@ -405,6 +405,15 @@ body {
   border-left: none;
 }
 
+#tour-bubble[data-side="top"]::before {
+  top: auto;
+  bottom: -7px;
+  left: var(--tour-arrow-left, 50%);
+  margin: 0 0 0 -6px;
+  border-top: none;
+  border-left: none;
+}
+
 #tour-bubble[data-side="none"]::before {
   display: none;
 }
