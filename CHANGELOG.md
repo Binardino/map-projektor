@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-08 — Tour bubble and short windows (on `fix/tour-panel-credit`)
+
+### Changed
+- The onboarding step on the info panel puts its bubble above the panel, with an arrow pointing down, instead of at the top of the screen
+
+### Fixed
+- On a desktop window 501 to 640 px tall, the unfolded info panel and the map credit covered the toolbar's last buttons: zoom now sits beside the tools at the top, and the panel's columns get the height that frees
+
 ## 2026-11-05 — Info panel along the bottom of the map (on `feat/info-panel`)
 
 ### Changed
