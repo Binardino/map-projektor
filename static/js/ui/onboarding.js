@@ -3,6 +3,7 @@ import { t } from "../i18n.js";
 import { getState, on, subscribe } from "../state.js";
 import { switchProjection } from "../core/transition.js";
 import { closeSidebar, openSidebar } from "./mobile-sidebar.js";
+import { nudgeInfoPanel } from "./info-card.js";
 
 // ============================================================
 // ONBOARDING TOUR
@@ -18,13 +19,15 @@ import { closeSidebar, openSidebar } from "./mobile-sidebar.js";
 // `drawer` marks targets that sit in the sidebar, which is an off-canvas
 // drawer on mobile and has to be opened for the step; `show` is a
 // projection the step switches the map to (its drawer then stays closed,
-// the map being what there is to look at).
+// the map being what there is to look at); `nudge` makes the bottom info
+// panel bounce.
 // ============================================================
 const STEPS = [
   { id: "mercator", target: '.proj-btn[data-proj-id="mercator"]', side: "right", show: "mercator" },
   { id: "equalEarth", target: '.proj-btn[data-proj-id="equalEarth"]', side: "right", show: "equalEarth" },
   { id: "views", target: "#recenter-panel", side: "right", drawer: true },
   { id: "tools", target: "#map-tools", side: "left" },
+  { id: "infoPanel", target: "#info-panel", side: "left", nudge: true },
   { id: "language", target: "#language-toggle-btn", side: "left" },
   { id: "navigation", target: "#zoom-controls", side: "left" },
 ];
@@ -100,6 +103,7 @@ function renderStep() {
   // No dimming on a demonstration step: the map is the thing to watch.
   tourEl.classList.toggle("demo", Boolean(step.show));
   if (step.show) switchProjection(step.show);
+  if (step.nudge) nudgeInfoPanel();
   showMorph();
   positionStep();
   nextBtn.focus();

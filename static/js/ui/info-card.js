@@ -1,49 +1,99 @@
+import { INFO_PANEL_STORAGE_KEY } from "../config.js";
 import { getProjection, projectionName } from "../data/projections.js";
 import { t } from "../i18n.js";
 import { getState, on, subscribe } from "../state.js";
 
 // ============================================================
 // INFO PANEL
+// Along the bottom of the map rather than a floating card: the facts about
+// a projection are half of what the app has to say, and a card behind an
+// icon went unnoticed. It sits in #main's column under the map, which
+// shrinks to make room (core/resize.js follows the container).
 // ============================================================
-const infoTradeoffsContent = document.getElementById("info-tradeoffs-content");
+const panelEl   = document.getElementById("info-panel");
+const summaryEl = document.getElementById("info-panel-summary");
+const toggleBtn = document.getElementById("info-panel-toggle");
+const infoBtn   = document.getElementById("info-toggle-btn");
 
-// Always fully shown now (no expand/collapse) — matches the Figma card,
-// which has no toggle, just the terms laid out directly.
 function renderTradeoffs(projDef) {
-  infoTradeoffsContent.innerHTML = "";
+  const list = document.getElementById("info-panel-content");
+  list.innerHTML = "";
   ["origin", "preserves", "distorts", "bestFor"].forEach((field) => {
     const dt = document.createElement("dt");
     dt.textContent = t(`info.${field}`);
     const dd = document.createElement("dd");
     dd.textContent = t(`projection.${projDef.id}.${field}`);
-    infoTradeoffsContent.append(dt, dd);
+    list.append(dt, dd);
   });
 }
 
-export function updateInfo(projDef) {
-  document.getElementById("info-name").textContent = projectionName(projDef);
+// The folded bar still has to say something worth unfolding: what the
+// projection preserves is the one line that tells it apart from the others.
+function updateInfo(projDef) {
+  document.getElementById("info-panel-name").textContent = projectionName(projDef);
+  const label = document.createElement("span");
+  label.className = "info-panel-summary-label";
+  label.textContent = t("info.preserves");
+  const text = document.createElement("span");
+  text.textContent = t(`projection.${projDef.id}.preserves`);
+  summaryEl.replaceChildren(label, " ", text);
   renderTradeoffs(projDef);
 }
 
-// The info card is opt-in now (see the toolbar's "i" icon in
-// map-container) instead of an always-visible strip under the map.
-const infoToggleBtn = document.getElementById("info-toggle-btn");
-const infoCloseBtn  = document.getElementById("info-close-btn");
-const infoPanelEl   = document.getElementById("projection-info");
-export let infoVisible = false;
+// Three states: "hidden" (the map takes the whole height), "folded" (the
+// one-line bar, the default) and "open" (the four columns).
+const PANEL_STATES = ["hidden", "folded", "open"];
+const savedState = localStorage.getItem(INFO_PANEL_STORAGE_KEY);
+let panelState = PANEL_STATES.includes(savedState) ? savedState : "folded";
 
-export function setInfoVisible(visible) {
-  infoVisible = visible;
-  infoPanelEl.hidden = !infoVisible;
-  infoToggleBtn.classList.toggle("active", infoVisible);
-  infoToggleBtn.setAttribute("aria-pressed", String(infoVisible));
+function applyPanel() {
+  const open = panelState === "open";
+  panelEl.hidden = panelState === "hidden";
+  panelEl.classList.toggle("expanded", open);
+  toggleBtn.setAttribute("aria-expanded", String(open));
+  // Set here rather than through data-i18n-attr, which would reset it to
+  // "show" on every language change whatever the panel's state.
+  const label = t(open ? "info.hideDetails" : "info.showDetails");
+  toggleBtn.setAttribute("aria-label", label);
+  toggleBtn.dataset.tooltip = label;
+  infoBtn.classList.toggle("active", !panelEl.hidden);
+  infoBtn.setAttribute("aria-pressed", String(!panelEl.hidden));
 }
 
-infoToggleBtn.addEventListener("click", () => setInfoVisible(!infoVisible));
+function setPanelState(state) {
+  panelState = state;
+  localStorage.setItem(INFO_PANEL_STORAGE_KEY, state);
+  applyPanel();
+}
 
-infoCloseBtn.addEventListener("click", () => setInfoVisible(false));
+export function hideInfoPanel() {
+  setPanelState("hidden");
+}
 
-// The card always describes the projection on screen.
+// The onboarding tour points at the folded bar and makes it bounce, so
+// that its moving up and down is shown rather than described. A hidden bar
+// comes back for it: the tour must have something to point at.
+export function nudgeInfoPanel() {
+  if (panelState === "hidden") setPanelState("folded");
+  panelEl.classList.remove("nudge");
+  void panelEl.offsetWidth; // restarts the animation on a replayed tour
+  panelEl.classList.add("nudge");
+}
+
+// The "i" button shows or hides the panel as a whole; the chevron moves it
+// between the bar and the columns.
+infoBtn.addEventListener("click", () => setPanelState(panelState === "hidden" ? "folded" : "hidden"));
+toggleBtn.addEventListener("click", () => setPanelState(panelState === "open" ? "folded" : "open"));
+document.getElementById("info-panel-close").addEventListener("click", hideInfoPanel);
+panelEl.addEventListener("animationend", () => panelEl.classList.remove("nudge"));
+
+// The panel always describes the projection on screen.
 subscribe(["projectionId"], (state) => updateInfo(getProjection(state.projectionId)));
 
-on("language:changed", () => updateInfo(getProjection(getState().projectionId)));
+// Also its first showing: init() always loads a language before the map,
+// and the toggle's label is read through t(), so an earlier panel would
+// flash empty.
+on("language:changed", () => {
+  updateInfo(getProjection(getState().projectionId));
+  applyPanel();
+});

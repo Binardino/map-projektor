@@ -24,7 +24,7 @@ from perf_transitions import BASE_URL, skip_tour, start_server, stop_server
 ROOT_DIR = pathlib.Path(__file__).parent.parent
 SNAPSHOT_PATH = ROOT_DIR / "tests" / "ui_text_snapshot.json"
 
-# Three projections from different families, so the info card's per-projection
+# Three projections from different families, so the info panel's per-projection
 # texts and a polar view's sidebar state are both covered without the whole list.
 SNAPSHOT_PROJECTIONS = ["mercator", "robinson", "polarNorth"]
 COUNTRY_QUERY = "fra"
@@ -75,15 +75,15 @@ def capture_states(page):
     page.keyboard.press("Escape")
     states["map, no card open"] = page.evaluate(COLLECT_JS)
 
-    page.click("#info-toggle-btn")
-    states["info card (initial projection)"] = page.evaluate(COLLECT_JS)
+    page.click("#info-panel-toggle")
+    states["info panel (initial projection)"] = page.evaluate(COLLECT_JS)
 
     for proj_id in SNAPSHOT_PROJECTIONS:
         page.click(f'.proj-btn[data-proj-id="{proj_id}"]')
         wait_until_settled(page)
-        states[f"info card ({proj_id})"] = page.evaluate(COLLECT_JS)
+        states[f"info panel ({proj_id})"] = page.evaluate(COLLECT_JS)
 
-    # The info card stays open below the compare card: both are captured.
+    # The info panel stays open below the compare card: both are captured.
     page.click("#compare-toggle-btn")
     states["compare card"] = page.evaluate(COLLECT_JS)
 

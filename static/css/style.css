@@ -959,37 +959,173 @@ body {
   line-height: 1.5;
 }
 
-/* #info-name reuses .floating-card-title via its class in the HTML;
-   #info-tradeoffs-content lays the three terms out inline (Figma flattens
-   them into one running paragraph — this keeps them as distinguishable
-   label/value pairs instead, at the same 16px size). */
-/* Only the info card shrinks and scrolls when the stack outgrows a short
-   window: the compare card must not clip its absolutely-positioned country
-   list, which also paints over the info card below it. */
-#projection-info {
-  min-height: 0;
-  overflow-y: auto;
+/* Bottom info panel. It sits under the map in #main's column, so the map
+   shrinks to make room instead of being covered: core/resize.js already
+   follows the container. */
+#info-panel {
+  flex: none;
+  padding: 14px 24px;
+  background: var(--card-bg);
+  color: var(--card-text);
+  box-shadow: 0 -4px 16px var(--card-shadow);
+  /* The shadow must fall on the map, which comes earlier in the column. */
+  z-index: 1;
 }
 
-#info-tradeoffs-content {
-  margin-top: 16px;
+.info-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+#info-panel-name {
+  flex: none;
+  font-size: 20px;
+}
+
+/* One line, cut short: the folded sheet is a teaser, the columns hold the rest. */
+#info-panel-summary {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 16px;
+  color: var(--card-text-muted);
+}
+
+.info-panel-summary-label {
+  font-weight: bold;
+  color: var(--card-text);
+}
+
+#info-panel-toggle {
+  flex: none;
+  margin-inline-start: auto;
+  transition: transform 0.2s;
+}
+
+#info-panel.expanded #info-panel-toggle {
+  transform: rotate(180deg);
+}
+
+/* Four columns side by side: dt above its dd, filled column by column. */
+#info-panel-content {
+  display: none;
+  grid-template-rows: auto 1fr;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  column-gap: 32px;
+  margin-top: 12px;
+  /* The map must stay tall enough for its toolbar and the credit under it
+     (~510px, plus the panel's own header): on a short screen the columns
+     scroll instead. */
+  max-height: clamp(40px, calc(100dvh - 610px), 40vh);
+  overflow-y: auto;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--card-text-muted);
 }
 
-#info-tradeoffs-content dt {
+#info-panel.expanded #info-panel-content {
+  display: grid;
+}
+
+#info-panel-content dt {
   font-weight: bold;
   color: var(--card-text);
-  margin-top: 12px;
 }
 
-#info-tradeoffs-content dt:first-child {
-  margin-top: 0;
-}
-
-#info-tradeoffs-content dd {
+#info-panel-content dd {
   margin: 2px 0 0;
+}
+
+/* Unfolded, the summary would repeat the "Preserves" column. */
+#info-panel.expanded #info-panel-summary {
+  display: none;
+}
+
+/* The onboarding's nudge: two hops up, the second smaller, so the bar reads
+   as something that rises rather than a decoration. */
+#info-panel.nudge {
+  animation: info-panel-nudge 1.1s ease-out 2;
+}
+
+@keyframes info-panel-nudge {
+  0%, 100% { transform: translateY(0); }
+  25%      { transform: translateY(-18px); }
+  50%      { transform: translateY(0); }
+  70%      { transform: translateY(-7px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #info-panel.nudge {
+    animation: none;
+  }
+}
+
+/* A phone held upright: four columns would be a word wide. The terms stack
+   and scroll, and the summary takes its own line under the name. */
+@media (max-width: 600px) {
+  #info-panel {
+    padding: 12px 16px;
+  }
+
+  .info-panel-header {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  #info-panel-summary {
+    order: 1;
+    flex-basis: 100%;
+    font-size: 14px;
+  }
+
+  #info-panel.expanded #info-panel-content {
+    display: block;
+  }
+
+  #info-panel-content dd {
+    margin-bottom: 10px;
+  }
+}
+
+/* A phone on its side has no height to give: the panel lies over the bottom
+   of the map instead of squeezing it under the toolbar, and stops short of
+   the toolbar's columns on the right so that every button stays reachable. */
+@media (max-height: 500px) and (orientation: landscape) {
+  #main {
+    position: relative;
+  }
+
+  #info-panel {
+    position: absolute;
+    left: 0;
+    right: 96px;
+    bottom: 0;
+    padding: 8px 16px;
+    border-start-end-radius: 12px;
+  }
+
+  .info-panel-header {
+    flex-wrap: nowrap;
+  }
+
+  #info-panel-summary {
+    order: 0;
+    flex-basis: auto;
+  }
+
+  #info-panel-name {
+    font-size: 17px;
+  }
+
+  #info-panel-content {
+    margin-top: 6px;
+    max-height: 55dvh;
+    font-size: 14px;
+  }
 }
 
 /* Two columns: all the languages stay in view without a scrolling list. */
@@ -1007,12 +1143,13 @@ body {
 #help-modal:is(:lang(ar), :lang(ur)),
 #tour-bubble:is(:lang(ar), :lang(ur)),
 #floating-cards:is(:lang(ar), :lang(ur)),
+#info-panel:is(:lang(ar), :lang(ur)),
 .tool-btn[data-tooltip]:is(:lang(ar), :lang(ur)):hover::after {
   direction: rtl;
 }
 
 /* Nastaliq slants down across the line and needs far more room than other scripts. */
-:is(#help-modal-body, #help-modal-borders, #tour-text, #info-tradeoffs-content, .floating-card-description, #language-note):lang(ur) {
+:is(#help-modal-body, #help-modal-borders, #tour-text, #info-panel-summary, #info-panel-content, .floating-card-description, #language-note):lang(ur) {
   line-height: 2.2;
 }
 

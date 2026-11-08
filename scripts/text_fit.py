@@ -53,21 +53,31 @@ MEASURE_JS = """async () => {
   if (!inWindow(box(document.getElementById("compare-card")))) hard.push("compare card outside the window");
   document.getElementById("compare-toggle-btn").click();
 
-  document.getElementById("info-toggle-btn").click();
-  const info = document.getElementById("projection-info");
-  const fields = ["origin", "preserves", "distorts", "bestFor"];
-  for (const id of window.__app.PROJECTIONS.map((p) => p.id)) {
-    const cells = info.querySelectorAll("dd");
-    fields.forEach((field, i) => { cells[i].textContent = text(`projection.${id}.${field}`, cells[i].textContent); });
-    if (!inWindow(box(info))) hard.push(`info card outside the window: ${id}`);
-    if (info.scrollHeight > info.clientHeight + 1) scrolls.push(`info card: ${id}`);
+  // The info panel, unfolded. Its columns may scroll on a short screen by
+  // design; what must hold is the panel inside the window, its header on one
+  // row of controls and the toolbar still whole above it.
+  document.getElementById("info-panel-toggle").click();
+  const panel = document.getElementById("info-panel");
+  const header = panel.querySelector(".info-panel-header");
+  const content = document.getElementById("info-panel-content");
+  if (box(document.getElementById("map-tools")).bottom > box(document.getElementById("map-container")).bottom + 1) {
+    hard.push("info panel cuts the toolbar");
   }
-  document.getElementById("info-close-btn").click();
+  const fields = ["origin", "preserves", "distorts", "bestFor"];
+  for (const p of window.__app.PROJECTIONS) {
+    document.getElementById("info-panel-name").textContent = text(`projection.${p.id}.name`, p.id);
+    const cells = content.querySelectorAll("dd");
+    fields.forEach((field, i) => { cells[i].textContent = text(`projection.${p.id}.${field}`, cells[i].textContent); });
+    if (!inWindow(box(panel))) hard.push(`info panel outside the window: ${p.id}`);
+    if (header.scrollWidth > header.clientWidth + 1) hard.push(`info panel header too wide: ${p.id}`);
+    if (content.scrollHeight > content.clientHeight + 1) scrolls.push(`info panel: ${p.id}`);
+  }
+  document.getElementById("info-panel-toggle").click();
 
   const tour = document.getElementById("tour");
   const bubble = document.getElementById("tour-bubble");
   tour.hidden = false;
-  for (const step of ["mercator", "equalEarth", "views", "tools", "language", "navigation"]) {
+  for (const step of ["mercator", "equalEarth", "views", "tools", "infoPanel", "language", "navigation"]) {
     document.getElementById("tour-title").textContent = text(`tour.step.${step}.title`, "");
     document.getElementById("tour-text").textContent = text(`tour.step.${step}.text`, "");
     if (bubble.offsetHeight > innerHeight - 24) hard.push(`tour bubble taller than the window: ${step}`);

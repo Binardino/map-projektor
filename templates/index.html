@@ -146,16 +146,21 @@
               <option value="" selected data-i18n="compare.mapProjection"></option>
             </select>
           </div>
-          <div id="projection-info" class="floating-card" hidden>
-            <div class="floating-card-header">
-              <p id="info-name" class="floating-card-title"></p>
-              <button id="info-close-btn" class="floating-card-close" data-i18n-attr="aria-label:common.close">✕</button>
-            </div>
-            <dl id="info-tradeoffs-content"></dl>
-          </div>
         </div>
         <a id="map-credit" href="https://github.com/Binardino" target="_blank" rel="noopener" dir="ltr">© Binardino · GitHub</a>
       </div>
+
+      <section id="info-panel" hidden>
+        <div class="info-panel-header">
+          <p id="info-panel-name" class="floating-card-title"></p>
+          <p id="info-panel-summary"></p>
+          <button id="info-panel-toggle" class="tool-btn" aria-expanded="false" aria-controls="info-panel-content">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.75 10.25L8 5L13.25 10.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button id="info-panel-close" class="floating-card-close" data-i18n-attr="aria-label:common.close">✕</button>
+        </div>
+        <dl id="info-panel-content"></dl>
+      </section>
 
       <div id="compare-container" hidden>
         <div class="compare-panel" data-side="left">
