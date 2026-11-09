@@ -27,7 +27,7 @@ const STEPS = [
   { id: "equalEarth", target: '.proj-btn[data-proj-id="equalEarth"]', side: "right", show: "equalEarth" },
   { id: "views", target: "#recenter-panel", side: "right", drawer: true },
   { id: "tools", target: "#map-tools", side: "left" },
-  { id: "infoPanel", target: "#info-panel", side: "left", nudge: true },
+  { id: "infoPanel", target: "#info-panel", side: "top", nudge: true },
   { id: "language", target: "#language-toggle-btn", side: "left" },
   { id: "navigation", target: "#zoom-controls", side: "left" },
 ];
@@ -69,11 +69,20 @@ function positionStep() {
   // Middle of the part of the target that is on screen: the projection
   // list can be taller than the window.
   const targetMiddle = (Math.max(target.top, 0) + Math.min(target.bottom, innerHeight)) / 2;
+  const targetCentre = (target.left + target.right) / 2;
   let side = step.side;
-  let left = side === "right" ? target.right + BUBBLE_GAP : target.left - BUBBLE_GAP - width;
-  let top = clamp(targetMiddle - height / 2, VIEWPORT_MARGIN, innerHeight - height - VIEWPORT_MARGIN);
+  let left, top;
+  if (side === "top") {
+    // A target as wide as the map (the bottom info panel) has no room
+    // beside it: the bubble sits above it instead, pointing down.
+    left = clamp(targetCentre - width / 2, VIEWPORT_MARGIN, innerWidth - width - VIEWPORT_MARGIN);
+    top = target.top - BUBBLE_GAP - height;
+  } else {
+    left = side === "right" ? target.right + BUBBLE_GAP : target.left - BUBBLE_GAP - width;
+    top = clamp(targetMiddle - height / 2, VIEWPORT_MARGIN, innerHeight - height - VIEWPORT_MARGIN);
+  }
 
-  if (offScreen || left < VIEWPORT_MARGIN || left + width > innerWidth - VIEWPORT_MARGIN) {
+  if (offScreen || left < VIEWPORT_MARGIN || left + width > innerWidth - VIEWPORT_MARGIN || top < VIEWPORT_MARGIN) {
     // No room beside the target (the mobile drawer takes most of the
     // width): centre the bubble over the half of the screen the target's
     // middle is not in, without an arrow. With no target on screen it goes
@@ -87,6 +96,7 @@ function positionStep() {
   bubbleEl.style.left = `${left}px`;
   bubbleEl.style.top = `${top}px`;
   bubbleEl.style.setProperty("--tour-arrow-top", `${clamp(targetMiddle - top, ARROW_INSET, height - ARROW_INSET)}px`);
+  bubbleEl.style.setProperty("--tour-arrow-left", `${clamp(targetCentre - left, ARROW_INSET, width - ARROW_INSET)}px`);
 }
 
 function renderStep() {

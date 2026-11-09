@@ -405,6 +405,15 @@ body {
   border-left: none;
 }
 
+#tour-bubble[data-side="top"]::before {
+  top: auto;
+  bottom: -7px;
+  left: var(--tour-arrow-left, 50%);
+  margin: 0 0 0 -6px;
+  border-top: none;
+  border-left: none;
+}
+
 #tour-bubble[data-side="none"]::before {
   display: none;
 }
@@ -1029,6 +1038,31 @@ body {
 
 #info-panel.expanded #info-panel-content {
   display: grid;
+}
+
+/* A short desktop window: the stacked toolbar (down to ~470px) left no room
+   for the unfolded panel and the credit, which covered its last buttons.
+   Zoom goes beside the tools at the top, as on a phone on its side, and the
+   columns get back the height that frees. */
+@media (min-width: 769px) and (min-height: 501px) and (max-height: 640px) {
+  #zoom-controls {
+    top: 10px;
+    right: 60px;
+  }
+
+  #map-tools {
+    top: 10px;
+  }
+
+  #floating-cards {
+    top: 10px;
+    right: 112px;
+    max-width: calc(100% - 124px);
+  }
+
+  #info-panel-content {
+    max-height: clamp(40px, calc(100dvh - 420px), 40vh);
+  }
 }
 
 #info-panel-content dt {
