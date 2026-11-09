@@ -9,6 +9,10 @@ All notable changes to this project are documented here, grouped by sprint/sessi
 
 ### Fixed
 - On a desktop window 501 to 640 px tall, the unfolded info panel and the map credit covered the toolbar's last buttons: zoom now sits beside the tools at the top, and the panel's columns get the height that frees
+## 2026-11-08 — README screenshots (on `docs/readme-assets`)
+
+### Changed
+- The README's screenshots, transition GIF and link preview show the bottom info panel instead of the old floating card
 
 ## 2026-11-05 — Info panel along the bottom of the map (on `feat/info-panel`)
 
