@@ -23,16 +23,19 @@ function renderTradeoffs(projDef) {
     dt.textContent = t(`info.${field}`);
     const dd = document.createElement("dd");
     dd.textContent = t(`projection.${projDef.id}.${field}`);
-    if (field === "distorts") dd.append(tissotButton());
+    if (field === "distorts") dt.append(tissotButton());
     list.append(dt, dd);
   });
 }
 
 // The distortion grid sat behind a toolbar icon few people tried; this is
-// where the panel talks about distortion, so it offers to show it.
+// where the panel talks about distortion, so it offers to show it. Beside
+// the column's title, with the toolbar's icon and one word, so that the
+// columns don't grow taller.
 function tissotButton() {
   const btn = document.createElement("button");
   btn.id = "info-tissot-btn";
+  btn.append(document.querySelector("#grid-toggle-btn svg").cloneNode(true), document.createElement("span"));
   btn.addEventListener("click", () => emit("tissot:requested"));
   syncTissotButton(btn);
   return btn;
@@ -41,7 +44,9 @@ function tissotButton() {
 function syncTissotButton(btn = document.getElementById("info-tissot-btn")) {
   if (!btn) return;
   const visible = Boolean(getState().tissotVisible);
-  btn.textContent = t(visible ? "info.hideTissot" : "info.showTissot");
+  btn.querySelector("span").textContent = t(visible ? "info.hideTissotShort" : "info.showTissotShort");
+  btn.setAttribute("aria-label", t(visible ? "info.hideTissot" : "info.showTissot"));
+  btn.title = btn.getAttribute("aria-label");
   btn.setAttribute("aria-pressed", String(visible));
 }
 

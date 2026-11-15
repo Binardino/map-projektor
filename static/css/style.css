@@ -1077,16 +1077,25 @@ body {
 }
 
 #info-tissot-btn {
-  display: block;
-  margin-top: 8px;
-  padding: 3px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-inline-start: 8px;
+  padding: 1px 9px;
+  vertical-align: 1px;
   border: 1px solid var(--card-text-muted);
   border-radius: 999px;
   background: none;
   color: var(--card-text);
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: normal;
   cursor: pointer;
+}
+
+#info-tissot-btn svg {
+  width: 11px;
+  height: 11px;
 }
 
 #info-tissot-btn:hover,
