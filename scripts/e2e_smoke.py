@@ -444,6 +444,24 @@ def info_panel(page):
         assert viewport is MOBILE_VIEWPORT or phone["clearOfTools"], "on its side, the panel covers the toolbar"
 
 
+def info_panel_tissot(page):
+    """The pill beside "Distorts" and the toolbar's # button are one switch:
+    either turns the circles on, both show it, and the pill keeps its state
+    when the panel is rebuilt for another projection."""
+    page.keyboard.press("Escape")
+    page.click("#info-panel-toggle")
+    pill = "#info-tissot-btn"
+    assert page.get_attribute(pill, "aria-pressed") == "false"
+    page.click(pill)
+    assert page.locator("path.tissot").count() > 0, "the pill should draw the circles"
+    assert page.get_attribute("#grid-toggle-btn", "aria-pressed") == "true", "the toolbar button should follow the pill"
+    switch(page, "mercator")
+    assert page.get_attribute(pill, "aria-pressed") == "true", "the rebuilt pill should still say the circles are on"
+    page.click("#grid-toggle-btn")
+    assert page.locator("path.tissot").count() == 0, "the toolbar button should clear the circles"
+    assert page.get_attribute(pill, "aria-pressed") == "false", "the pill should follow the toolbar button"
+
+
 def info_panel_tour(page):
     """The tour has a step on the info bar, which comes back if it was
     closed and bounces to show that it moves."""
@@ -550,7 +568,7 @@ def onboarding_landscape(page):
 
 
 ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile, onboarding_landscape]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_tour, mobile_drawer, phone_turns]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
 
 
 def main():
