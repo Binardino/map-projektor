@@ -1018,7 +1018,7 @@ body {
   transform: rotate(180deg);
 }
 
-/* Four columns side by side: dt above its dd, filled column by column. */
+/* Five columns side by side: dt above its dd, filled column by column. */
 #info-panel-content {
   display: none;
   grid-template-rows: auto 1fr;
@@ -1098,7 +1098,7 @@ body {
   }
 }
 
-/* A phone held upright: four columns would be a word wide. The terms stack
+/* A phone held upright: five columns would be a word wide. The terms stack
    and scroll, and the summary takes its own line under the name. */
 @media (max-width: 600px) {
   #info-panel {
