@@ -36,7 +36,7 @@ Switching projection never snaps: the map morphs from one to the other, and rout
 - **Distortion grid**: Tissot's indicatrix, a grid of identical circles on the sphere that the projection stretches into ellipses, so you see where and how much it distorts
 - **Reference lines**: equator, tropics, polar circles and meridians
 - **Country size comparison**: pick up to 5 countries and drag them across the map; each one is moved on the sphere and projected again, so it stretches or shrinks exactly as the projection does at that place. They can also be drawn under another projection than the map's
-- **Projection facts**: who created each projection and when, what it preserves, what it distorts and what it is best for
+- **Projection facts**: who created each projection and when, what it preserves, what it distorts, what it is best for, and one fact worth knowing about it
 - **Navigation**: zoom with the buttons or the mouse wheel, drag to pan the map or to spin the globe
 - **Light and dark themes**, remembered between visits
 - **18 languages**, country names included, Arabic and Urdu reading right to left: the app follows the browser's language and remembers a choice. Most translations were made by an AI, and the app says so
