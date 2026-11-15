@@ -1,7 +1,7 @@
 import { INFO_PANEL_STORAGE_KEY } from "../config.js";
 import { getProjection, projectionName } from "../data/projections.js";
 import { t } from "../i18n.js";
-import { getState, on, subscribe } from "../state.js";
+import { emit, getState, on, subscribe } from "../state.js";
 
 // ============================================================
 // INFO PANEL
@@ -23,8 +23,26 @@ function renderTradeoffs(projDef) {
     dt.textContent = t(`info.${field}`);
     const dd = document.createElement("dd");
     dd.textContent = t(`projection.${projDef.id}.${field}`);
+    if (field === "distorts") dd.append(tissotButton());
     list.append(dt, dd);
   });
+}
+
+// The distortion grid sat behind a toolbar icon few people tried; this is
+// where the panel talks about distortion, so it offers to show it.
+function tissotButton() {
+  const btn = document.createElement("button");
+  btn.id = "info-tissot-btn";
+  btn.addEventListener("click", () => emit("tissot:requested"));
+  syncTissotButton(btn);
+  return btn;
+}
+
+function syncTissotButton(btn = document.getElementById("info-tissot-btn")) {
+  if (!btn) return;
+  const visible = Boolean(getState().tissotVisible);
+  btn.textContent = t(visible ? "info.hideTissot" : "info.showTissot");
+  btn.setAttribute("aria-pressed", String(visible));
 }
 
 // The folded bar still has to say something worth unfolding: what the
@@ -86,6 +104,8 @@ infoBtn.addEventListener("click", () => setPanelState(panelState === "hidden" ? 
 toggleBtn.addEventListener("click", () => setPanelState(panelState === "open" ? "folded" : "open"));
 document.getElementById("info-panel-close").addEventListener("click", hideInfoPanel);
 panelEl.addEventListener("animationend", () => panelEl.classList.remove("nudge"));
+
+subscribe(["tissotVisible"], () => syncTissotButton());
 
 // The panel always describes the projection on screen.
 subscribe(["projectionId"], (state) => updateInfo(getProjection(state.projectionId)));
