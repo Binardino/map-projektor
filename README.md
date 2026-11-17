@@ -30,7 +30,7 @@ Switching projection never snaps: the map morphs from one to the other, and rout
 
 ## Features
 
-- **20 projections in 7 families**: cylindrical, pseudocylindrical, azimuthal, pseudoazimuthal, conic, square and polyhedral, from Mercator to Equal Earth, plus a draggable 3D globe, two polar views, two square worlds (Spilhaus' world ocean map and Peirce's quincuncial), which the globe turns and unfolds into, and Fuller's Dymaxion map, which the map crossfades into
+- **20 projections in 7 families**: cylindrical, pseudocylindrical, azimuthal, pseudoazimuthal, conic, square and polyhedral, from Mercator to Equal Earth, plus a draggable 3D globe, two polar views, two square worlds (Spilhaus' world ocean map and Peirce's quincuncial), which the globe turns and unfolds into, and Fuller's Dymaxion map, which unfolds out of the globe triangle by triangle
 - **Animated transitions**: the map morphs from one projection to the next instead of snapping; a switch to or from a polar view folds into the globe, spins, then unfolds
 - **Six points of view**: Europe-, China-, Africa-, America- and Oceania-centred, and a south-up map. The Europe-centred default is a convention, not a fact of nature, and the chosen view carries over when you switch projection
 - **Distortion grid**: Tissot's indicatrix, a grid of identical circles on the sphere that the projection stretches into ellipses, so you see where and how much it distorts

@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-18 — Dymaxion unfolds out of the globe (on `feat/dymaxion-unfold`)
+
+### Changed
+- Switching to Dymaxion no longer crossfades: the map folds onto the globe, which gives way to the icosahedron sitting exactly on it (its 12 vertices on theirs); the solid turns to face you, then opens hinge by hinge, from the middle out, into Fuller's flat map. Switching away plays the same film backwards. The map is painted once and cut into its 24 faces, which are only moved in 3D, so the animation stays smooth although drawing Dymaxion takes about 250 ms
+- The registry's `transition: "unfold"` replaces `"fade"`; the crossfade, which nothing else used, is gone. `core/polyhedral-unfold.js` holds the folding maths, with its unit tests
+- The perf harness records each transition until it has really ended, since this route outlasts the polar one its window was sized on
+
 ## 2026-11-17 — The info bar peeks in the tour (on `feat/onboarding-peek`)
 
 ### Changed

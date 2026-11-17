@@ -76,7 +76,7 @@ Behaviour that differs between projections is declared on the object, never test
 | `aspect` | `null` | it is drawn at its own rotation, e.g. centred on a pole (`[0, ±90]`): transitions route through the globe and unfold in that rotated frame |
 | `recenterable` | `true` | its own `rotate()` matters (polar views) or it is tuned to one region (Albers) |
 | `tilted` | `false` | it should take a view's full tilt, not just its longitude (globe-like azimuthals) |
-| `transition` | `"morph"` | no blend can follow it (`"fade"`, Dymaxion's twenty triangles): every switch to or from it crossfades (CROSSFADE in `animation.js`) |
+| `transition` | `"morph"` | it is a polyhedral map no blend can follow (`"unfold"`, Dymaxion; its projection must have d3-geo-polygon's `tree()`): every switch to or from it goes through the globe and folds the net (POLYHEDRAL ROUTE in `animation.js`, maths in `core/polyhedral-unfold.js`) |
 
 `tests/js/projections.test.mjs` checks the registry (unique ids, one globe, aspect projections not recenterable, family labels).
 
@@ -97,7 +97,7 @@ Then add its English Wikipedia article to `ENGLISH_ARTICLES` in `scripts/fetch_w
 
 Projections requiring `d3-geo-projection` (CDN loaded in index.html): Robinson, Mollweide, Sinusoidal, Winkel Tripel, Aitoff, Hammer, Gall-Peters, Eckert IV, Peirce quincuncial. Dymaxion (`d3.geoAirocean`) comes from `d3-geo-polygon`, loaded after it. Spilhaus is in no library: its raw function is adapted in `static/js/data/spilhaus.js` (MIT, credited there and in the README).
 
-Transitions morph a blended projection frame by frame, reprojecting a thinned copy of the geometry (`buildLightGeometry`) for speed; the active recenter view carries over between projections; pairs involving a projection with its own `aspect` (the polar views) route through the orthographic globe (fold → spin → unfold) — see the ASPECT ROUTE section in `static/js/core/animation.js`.
+Transitions morph a blended projection frame by frame (Dymaxion folds its net instead, see the `transition` field), reprojecting a thinned copy of the geometry (`buildLightGeometry`) for speed; the active recenter view carries over between projections; pairs involving a projection with its own `aspect` (the polar views) route through the orthographic globe (fold → spin → unfold) — see the ASPECT ROUTE section in `static/js/core/animation.js`.
 
 **Modules:** layers import downwards only — `data` < `core` < `ui`/`tools` < `main.js`/`debug.js`; `config.js`, `state.js` and `i18n.js` are shared by all (enforced by `tests/js/layering.test.mjs`). Core never imports `ui/` or `tools/`: it writes the store and emits events, and they subscribe. A new module must also get a `<link rel="modulepreload">` in `index.html` (a test checks the list).
 
