@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  An interactive world map that morphs between 19 cartographic projections,<br>
+  An interactive world map that morphs between 20 cartographic projections,<br>
   so you can see what each one preserves and what it distorts.
 </p>
 
@@ -30,7 +30,7 @@ Switching projection never snaps: the map morphs from one to the other, and rout
 
 ## Features
 
-- **19 projections in 6 families**: cylindrical, pseudocylindrical, azimuthal, pseudoazimuthal, conic and square, from Mercator to Equal Earth, plus a draggable 3D globe, two polar views and two square worlds (Spilhaus' world ocean map and Peirce's quincuncial), which the globe turns and unfolds into
+- **20 projections in 7 families**: cylindrical, pseudocylindrical, azimuthal, pseudoazimuthal, conic, square and polyhedral, from Mercator to Equal Earth, plus a draggable 3D globe, two polar views, two square worlds (Spilhaus' world ocean map and Peirce's quincuncial), which the globe turns and unfolds into, and Fuller's Dymaxion map, which the map crossfades into
 - **Animated transitions**: the map morphs from one projection to the next instead of snapping; a switch to or from a polar view folds into the globe, spins, then unfolds
 - **Six points of view**: Europe-, China-, Africa-, America- and Oceania-centred, and a south-up map. The Europe-centred default is a convention, not a fact of nature, and the chosen view carries over when you switch projection
 - **Distortion grid**: Tissot's indicatrix, a grid of identical circles on the sphere that the projection stretches into ellipses, so you see where and how much it distorts
@@ -106,7 +106,7 @@ Adding a projection takes one object in the registry and five strings. [CONTRIBU
 ## Credits
 
 - Map data: [Natural Earth](https://www.naturalearthdata.com/) (public domain), simplified and lightly corrected by `scripts/fetch_geodata.py`
-- Projections and rendering: [D3](https://d3js.org/) and [d3-geo-projection](https://github.com/d3/d3-geo-projection) (ISC license)
+- Projections and rendering: [D3](https://d3js.org/), [d3-geo-projection](https://github.com/d3/d3-geo-projection) and [d3-geo-polygon](https://github.com/d3/d3-geo-polygon) for Dymaxion (ISC license)
 - Spilhaus projection: adapted from [riatelab/bertin](https://github.com/riatelab/bertin) (MIT License), after [Torben Jansen](https://observablehq.com/@toja/spilhaus-world-ocean-map-in-a-square)
 - Typeface: [Quicksand](https://fonts.google.com/specimen/Quicksand) (SIL Open Font License); [Noto Sans](https://fonts.google.com/noto) for the other scripts (same license)
 - Language icon: [Material Icons](https://fonts.google.com/icons) (Apache License 2.0)
