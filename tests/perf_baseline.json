@@ -18,10 +18,10 @@
     "max_frame_ms": 83.3
   },
   "projection: dymaxion -> mercator": {
-    "avg_frame_ms": 16.76,
-    "dropped_frames": 1,
-    "frame_count": 173,
-    "max_frame_ms": 33.2
+    "avg_frame_ms": 17.75,
+    "dropped_frames": 2,
+    "frame_count": 231,
+    "max_frame_ms": 250.0
   },
   "projection: eckert4 -> sinusoidal": {
     "avg_frame_ms": 20.96,
@@ -78,10 +78,10 @@
     "max_frame_ms": 83.3
   },
   "projection: peirceQuincuncial -> dymaxion": {
-    "avg_frame_ms": 19.18,
-    "dropped_frames": 1,
-    "frame_count": 173,
-    "max_frame_ms": 449.9
+    "avg_frame_ms": 20.7,
+    "dropped_frames": 15,
+    "frame_count": 261,
+    "max_frame_ms": 583.3
   },
   "projection: polarNorth -> polarSouth": {
     "avg_frame_ms": 22.57,

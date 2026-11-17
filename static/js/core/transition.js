@@ -1,4 +1,4 @@
-import { animateTransition, aspectTransition, crossfadeTransition } from "./animation.js";
+import { animateTransition, aspectTransition, polyhedralTransition } from "./animation.js";
 import { GLOBE, PROJECTIONS, getProjection } from "../data/projections.js";
 import { applyRecenter, rotationFor } from "./recenter.js";
 import { mainView } from "./scene.js";
@@ -37,9 +37,10 @@ async function morphTo(newProjId) {
   const fromDef = getProjection(getState().projectionId);
   const toDef   = getProjection(newProjId);
 
-  if (fromDef.transition === "fade" || toDef.transition === "fade") {
-    // Draws the target itself: a second draw would cost Dymaxion's ~250ms again
-    await crossfadeTransition(mainView, toDef, TIMING.projectionFade);
+  if (fromDef.transition === "unfold" || toDef.transition === "unfold") {
+    await polyhedralTransition(mainView, fromDef, toDef);
+    // It draws Dymaxion itself: a second draw would cost its ~250ms again
+    if (toDef.transition !== "unfold") mainView.setProjection(toDef, rotationFor(toDef)).render();
   } else {
     if (fromDef.aspect || toDef.aspect) {
       await aspectTransition(mainView, fromDef, toDef);

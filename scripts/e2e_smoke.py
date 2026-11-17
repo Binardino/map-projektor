@@ -258,22 +258,26 @@ def shared_link(page):
     assert page.evaluate("() => history.length") == history, "following the map should not add history entries"
 
 
-def fade_transition(page):
-    """A map no blend can follow (Dymaxion) crossfades: the frozen copy of the
-    old map is gone at the end, the new one is fully opaque, and a click
-    during the fade is ignored like one during a morph."""
+NET_STATE_JS = """() => ({ pieces: document.querySelectorAll(".polyhedral-net g").length,
+                          opacity: document.querySelector("g.world").style.opacity })"""
+
+
+def polyhedral_route(page):
+    """Dymaxion folds out of the globe: midway its net of faces stands in for
+    the map, and at the end it is gone, the real map fully shown. A click
+    meanwhile is ignored like one during a morph, and the way back works."""
     page.keyboard.press("Escape")
     switch(page, "mercator")
     page.click('.proj-btn[data-proj-id="dymaxion"]')
-    page.click('.proj-btn[data-proj-id="robinson"]')  # mid-fade: ignored
+    page.click('.proj-btn[data-proj-id="robinson"]')  # mid-route: ignored
+    page.wait_for_function("() => document.querySelectorAll('.polyhedral-net g').length > 0", timeout=5000)
+    assert page.evaluate(NET_STATE_JS)["pieces"] == 24, "the net has Dymaxion's 24 faces"
     settle(page)
     assert page.evaluate(PROJECTION_JS) == "dymaxion"
-    state = page.evaluate("""() => ({ ghosts: document.querySelectorAll(".crossfade-ghost").length,
-                                      opacity: document.querySelector("g.world").style.opacity })""")
-    assert state == {"ghosts": 0, "opacity": ""}, f"the fade should leave no trace: {state}"
-    switch(page, "orthographic")
-    assert page.evaluate(PROJECTION_JS) == "orthographic"
-    assert page.evaluate("() => document.querySelectorAll('.crossfade-ghost').length") == 0
+    assert page.evaluate(NET_STATE_JS) == {"pieces": 0, "opacity": ""}, "the route should leave no trace"
+    switch(page, "polarNorth")
+    assert page.evaluate(PROJECTION_JS) == "polarNorth"
+    assert page.evaluate(NET_STATE_JS) == {"pieces": 0, "opacity": ""}
 
 
 def camera(page):
@@ -670,7 +674,7 @@ def onboarding_landscape(page):
 
 
 ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile, onboarding_landscape]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, shared_link, fade_transition, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_wikipedia, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, shared_link, polyhedral_route, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_wikipedia, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
 
 
 def main():
