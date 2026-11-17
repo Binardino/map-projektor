@@ -71,7 +71,10 @@ function renderViewState(state) {
 }
 subscribe(["recenter", "projectionId"], renderViewState);
 
+// Lit on the click, before the morph ends; the store catches the rest (a
+// shared link opening on its projection).
 on("projection:requested", setActiveButton);
+subscribe(["projectionId"], (state) => setActiveButton(state.projectionId));
 
 on("language:changed", () => {
   buildSidebar();

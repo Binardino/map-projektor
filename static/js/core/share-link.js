@@ -1,6 +1,6 @@
 import { PROJECTIONS } from "../data/projections.js";
 import { RECENTER_PRESETS } from "../data/views.js";
-import { getState, on } from "../state.js";
+import { subscribe } from "../state.js";
 
 // The shareable link: the main map's projection and view in the URL hash
 // (#p=robinson&v=africa). A hash rather than a query string because the
@@ -29,12 +29,13 @@ export function formatLink({ projectionId, recenter }) {
 
 // The address bar always holds the link to the map on screen. replaceState,
 // not pushState: Back still leaves the app instead of stepping through every
-// projection tried. Written only when the link changes, because a globe drag
-// emits view:changed on every pointer move and the browser throttles a page
-// that rewrites its URL that often.
+// projection tried. It follows the two slices, not view:changed, which a
+// resize also emits. Written only when the link changes, because a globe
+// drag rewrites recenter on every pointer move and the browser throttles a
+// page that rewrites its URL that often.
 export function keepLinkInStep() {
-  on("view:changed", () => {
-    const link = formatLink(getState());
+  subscribe(["projectionId", "recenter"], (state) => {
+    const link = formatLink(state);
     if (location.hash !== link) history.replaceState(null, "", link);
   });
 }

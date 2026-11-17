@@ -38,16 +38,17 @@ import { emit, getState } from "./state.js";
 // INIT — fetch GeoJSON then render
 // ============================================================
 async function init() {
-  // First of all: the sidebar and the info card, built just below, show
-  // whichever projection the store holds.
   const link = parseLink(location.hash);
-  if (link.projectionId) startOnProjection(link.projectionId);
-  if (link.preset) startOnView(link.preset);
 
   // Before anything renders: loading the language also builds the sidebar,
   // view list, compare options and info card (their "language:changed"
   // subscribers), which all read their text through t().
   await setLanguage(preferredLanguage());
+  // After the language: the info card redraws as soon as projectionId
+  // changes, and would find no text. Before the first draw all the same,
+  // so the map never shows the globe first.
+  if (link.projectionId) startOnProjection(link.projectionId);
+  if (link.preset) startOnView(link.preset);
   // Someone opening a shared link came to see that map: the welcome pitch
   // would cover it, and the tour it leads to would morph it away. The tour
   // stays one click away on the toolbar's ? button.
@@ -62,8 +63,8 @@ async function init() {
   mainView.setProjection(initialProj, rotationFor(initialProj)).render();
   refreshFlip(mainView);
   emit("view:changed"); // first draw of the overlays that follow the view
-  // From the first change on, not this first draw: a plain visit keeps a
-  // bare URL, so reloading it still opens on the welcome modal.
+  // From the first change on, not the link applied above: a plain visit
+  // keeps a bare URL, so reloading it still opens on the welcome modal.
   keepLinkInStep();
 }
 
