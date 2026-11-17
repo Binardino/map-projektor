@@ -15,6 +15,12 @@ import { runExclusive } from "./busy.js";
 // only writer of projectionId.
 setState({ projectionId: GLOBE.id });
 
+// A shared link opens on its projection: set before the first draw, so
+// there is nothing to morph from.
+export function startOnProjection(id) {
+  setState({ projectionId: id });
+}
+
 function transitionTo(newProjId) {
   return runExclusive(() => morphTo(newProjId));
 }

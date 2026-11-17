@@ -27,7 +27,9 @@ import { getProjection } from "./data/projections.js";
 import { buildLightGeometry } from "./core/geometry.js";
 import { preferredLanguage, setLanguage } from "./i18n.js";
 import { openHelpModal } from "./ui/welcome-modal.js";
-import { rotationFor } from "./core/recenter.js";
+import { refreshFlip, rotationFor, startOnView } from "./core/recenter.js";
+import { startOnProjection } from "./core/transition.js";
+import { parseLink } from "./core/share-link.js";
 import { mainView } from "./core/scene.js";
 import { loadGeodata, terrainData, worldData } from "./data/geodata.js";
 import { emit, getState } from "./state.js";
@@ -36,6 +38,12 @@ import { emit, getState } from "./state.js";
 // INIT — fetch GeoJSON then render
 // ============================================================
 async function init() {
+  // First of all: the sidebar and the info card, built just below, show
+  // whichever projection the store holds.
+  const link = parseLink(location.hash);
+  if (link.projectionId) startOnProjection(link.projectionId);
+  if (link.preset) startOnView(link.preset);
+
   // Before anything renders: loading the language also builds the sidebar,
   // view list, compare options and info card (their "language:changed"
   // subscribers), which all read their text through t().
@@ -48,6 +56,7 @@ async function init() {
 
   const initialProj = getProjection(getState().projectionId);
   mainView.setProjection(initialProj, rotationFor(initialProj)).render();
+  refreshFlip(mainView);
   emit("view:changed"); // first draw of the overlays that follow the view
 }
 
