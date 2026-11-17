@@ -44,6 +44,7 @@ ENGLISH_ARTICLES = {
     "hammer": "Hammer projection",
     "albers": "Albers projection",
     "spilhaus": ("Q118727380", "Athelstan Spilhaus"),  # articles in de, es, fr only
+    "peirceQuincuncial": "Peirce quincuncial projection",
 }
 
 # zh.wikipedia stores one article and converts its script on the fly: the

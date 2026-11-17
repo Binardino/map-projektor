@@ -222,6 +222,20 @@ export const PROJECTIONS = [
     aspect: SPILHAUS_ASPECT,
     recenterable: false,
   },
+  {
+    id: "peirceQuincuncial",
+    family: "Square",
+    year: 1879,
+    description:
+      "Conformal world map in a square, North Pole at the centre, with the southern " +
+      "hemisphere folded into the four corners. It tiles the plane without a seam.",
+    // d3 draws it at this rotation with this clip circle; the aspect route
+    // must unfold into the same frame and cut where d3 cuts.
+    d3fn: () => d3.geoPeirceQuincuncial(),
+    clipAngle: 179.999,
+    aspect: [-90, -90, 45],
+    recenterable: false,
+  },
 ].map((projDef) => ({ ...PROJECTION_DEFAULTS, ...projDef }));
 
 // The globe (exactly one, see tests/js/projections.test.mjs).
