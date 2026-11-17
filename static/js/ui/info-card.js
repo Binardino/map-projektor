@@ -18,7 +18,7 @@ const infoBtn   = document.getElementById("info-toggle-btn");
 function renderTradeoffs(projDef) {
   const list = document.getElementById("info-panel-content");
   list.innerHTML = "";
-  ["origin", "preserves", "distorts", "bestFor"].forEach((field) => {
+  ["origin", "preserves", "distorts", "bestFor", "didYouKnow"].forEach((field) => {
     const dt = document.createElement("dt");
     dt.textContent = t(`info.${field}`);
     const dd = document.createElement("dd");
@@ -41,7 +41,7 @@ function updateInfo(projDef) {
 }
 
 // Three states: "hidden" (the map takes the whole height), "folded" (the
-// one-line bar, the default) and "open" (the four columns).
+// one-line bar, the default) and "open" (the five columns).
 const PANEL_STATES = ["hidden", "folded", "open"];
 const savedState = localStorage.getItem(INFO_PANEL_STORAGE_KEY);
 let panelState = PANEL_STATES.includes(savedState) ? savedState : "folded";

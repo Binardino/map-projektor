@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-15 — "Did you know?" in the info panel (on `feat/did-you-know`)
+
+### Added
+- A fifth column in the unfolded info panel, "Did you know?", with one anecdote per projection (Web Mercator's square, The West Wing's Gall-Peters episode, flat-earth maps, the Planck sky map…), in every language. It is a little wider than the other four so that the longer text doesn't make the panel scroll
+- `tests/test_i18n.py` requires the anecdote for every projection
+
 ## 2026-11-08 — Tour bubble and short windows (on `fix/tour-panel-credit`)
 
 ### Changed

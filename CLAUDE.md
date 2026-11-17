@@ -83,7 +83,8 @@ Behaviour that differs between projections is declared on the object, never test
 "projection.myProjection.origin": "Created in 1900 by Jane Doe (Scottish).",
 "projection.myProjection.preserves": "...",
 "projection.myProjection.distorts": "...",
-"projection.myProjection.bestFor": "..."
+"projection.myProjection.bestFor": "...",
+"projection.myProjection.didYouKnow": "One surprising fact, shown in the info panel."
 ```
 
 `tests/test_i18n.py` fails if a projection or view is missing any of its keys.
