@@ -65,10 +65,19 @@ def test_every_projection_and_view_has_its_texts():
     view_ids = re.findall(r'\{ id: "(\w+)"', view_src[: view_src.index("];")])
 
     assert len(projection_ids) == 18 and view_ids
-    expected = [f"projection.{i}.{f}" for i in projection_ids for f in ("name", "origin", "preserves", "distorts", "bestFor", "didYouKnow")]
+    expected = [f"projection.{i}.{f}" for i in projection_ids for f in ("name", "origin", "preserves", "distorts", "bestFor", "didYouKnow", "wikipedia")]
     expected += [f"family.{f.lower()}" for f in families]
     expected += [f"view.{i}.{f}" for i in view_ids for f in ("name", "description")]
     assert [k for k in expected if k not in EN] == []
+
+
+def test_wikipedia_links_point_at_wikipedia():
+    # Written by scripts/fetch_wikipedia_links.py; the info panel opens them in a new tab.
+    pattern = re.compile(r"^https://[a-z]{2}\.wikipedia\.org/(wiki|zh-cn)/\S+$")
+    for path in sorted(I18N_DIR.glob("*.json")):
+        messages = json.loads(path.read_text(encoding="utf-8"))
+        wrong = [k for k, v in messages.items() if k.startswith("projection.") and k.endswith(".wikipedia") and not pattern.match(v)]
+        assert wrong == [], f"{path.stem}: {wrong}"
 
 
 def test_every_tour_step_has_its_texts():

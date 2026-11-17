@@ -36,7 +36,7 @@ Switching projection never snaps: the map morphs from one to the other, and rout
 - **Distortion grid**: Tissot's indicatrix, a grid of identical circles on the sphere that the projection stretches into ellipses, so you see where and how much it distorts
 - **Reference lines**: equator, tropics, polar circles and meridians
 - **Country size comparison**: pick up to 5 countries and drag them across the map; each one is moved on the sphere and projected again, so it stretches or shrinks exactly as the projection does at that place. They can also be drawn under another projection than the map's
-- **Projection facts**: who created each projection and when, what it preserves, what it distorts, what it is best for, and one fact worth knowing about it
+- **Projection facts**: who created each projection and when, what it preserves, what it distorts, what it is best for, and one fact worth knowing about it, with a link to its Wikipedia article in your language
 - **Navigation**: zoom with the buttons or the mouse wheel, drag to pan the map or to spin the globe
 - **Shareable link**: the address bar always holds the projection and the view on screen, so copying it shares that exact map
 - **Light and dark themes**, remembered between visits
