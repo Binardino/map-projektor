@@ -6,10 +6,10 @@
     "max_frame_ms": 66.7
   },
   "projection: albers -> spilhaus": {
-    "avg_frame_ms": 16.76,
-    "dropped_frames": 1,
-    "frame_count": 171,
-    "max_frame_ms": 33.4
+    "avg_frame_ms": 17.88,
+    "dropped_frames": 10,
+    "frame_count": 160,
+    "max_frame_ms": 58.3
   },
   "projection: azimuthalEqualArea -> polarNorth": {
     "avg_frame_ms": 24.93,
@@ -108,10 +108,10 @@
     "max_frame_ms": 83.3
   },
   "projection: spilhaus -> peirceQuincuncial": {
-    "avg_frame_ms": 17.17,
-    "dropped_frames": 4,
-    "frame_count": 167,
-    "max_frame_ms": 50.1
+    "avg_frame_ms": 18.91,
+    "dropped_frames": 16,
+    "frame_count": 151,
+    "max_frame_ms": 66.7
   },
   "projection: winkelTripel -> aitoff": {
     "avg_frame_ms": 18.14,
