@@ -102,15 +102,17 @@ export function animateTransition(view, fromDef, toDef, duration) {
 }
 
 // ============================================================
-// POLAR ROUTE — via the orthographic globe
+// ASPECT ROUTE — via the orthographic globe
 //
-// A polar view sits 90° of rotation away from every other
-// projection. Blending directly would drag Antarctica's ring
-// across the whole map (a disc cannot become an annulus that
-// encircles everything without sweeping over it). Instead:
-// fold the map onto the globe, spin the globe to/from the pole
-// (a true projection every frame — always clean), then unfold
-// into the polar azimuthal view.
+// A projection with its own aspect (a polar view) is drawn at a
+// rotation far from every other projection's. Blending directly
+// would drag Antarctica's ring across the whole map (a disc cannot
+// become an annulus that encircles everything without sweeping
+// over it), and the blend clips at the geographic antimeridian,
+// not where the rotated projection cuts the world. Instead: fold
+// the map onto the globe, spin the globe to/from the aspect (a
+// true projection every frame — always clean), then unfold into
+// the target in its own rotated frame.
 // ============================================================
 // Spins a real orthographic globe between two orientations.
 function animateRotation(view, fromRot, toRot, duration) {
@@ -121,9 +123,11 @@ function animateRotation(view, fromRot, toRot, duration) {
   return new Promise((resolve) => {
     const timer = d3.timer((elapsed) => {
       const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
+      // All three angles: an aspect may roll the map as well as tip it
       projection.rotate([
         fromRot[0] + (toRot[0] - fromRot[0]) * t,
         fromRot[1] + (toRot[1] - fromRot[1]) * t,
+        (fromRot[2] || 0) + ((toRot[2] || 0) - (fromRot[2] || 0)) * t,
       ]);
       countries.attr("d", (d) => pathFn(lightOf(d)) || "");
       renderGlobeSphere(view, projection);
@@ -137,40 +141,40 @@ function animateRotation(view, fromRot, toRot, duration) {
   });
 }
 
-// Morphs between the orthographic globe and the flat azimuthal equidistant
-// disc, both centred on the same pole. Endpoints are built unrotated and the
-// blend wrapper carries the rotation, so the hemisphere clip stays centred
-// on the pole while it opens (90° → 179°) or closes (179° → 90°).
-function animatePolarUnfold(view, rotation, foldToGlobe, duration) {
+// Morphs between the orthographic globe and an aspect projection, both at
+// its aspect. Endpoints are built unrotated and the blend wrapper carries
+// the rotation, so the hemisphere clip stays centred on the aspect while it
+// opens (90° → the target's clip) or closes, and the blend cuts the world
+// where the target does.
+function animateAspectUnfold(view, def, foldToGlobe, duration) {
+  const rotation = def.aspect;
   const globe = d3.geoOrthographic().fitSize([view.width, view.height], { type: "Sphere" });
-  const disc  = d3.geoAzimuthalEquidistant().clipAngle(179)
-    .fitSize([view.width, view.height], { type: "Sphere" });
+  const flat  = def.d3fn().rotate([0, 0, 0]).fitSize([view.width, view.height], { type: "Sphere" });
   const projection = foldToGlobe
-    ? blendProjection(disc, globe, rotation)
-    : blendProjection(globe, disc, rotation);
+    ? blendProjection(flat, globe, rotation)
+    : blendProjection(globe, flat, rotation);
 
   // Rotated clones purely for animateBlend's crossfade sphere shapes (see
-  // its comment) — globe/disc above are deliberately built unrotated
+  // its comment) — globe/flat above are deliberately built unrotated
   // (blendProjection's wrapper carries the rotation instead), but the
   // crossfade needs each endpoint's shape as it actually appears on
   // screen, rotation included.
   const globeAtRotation = d3.geoOrthographic().rotate(rotation).fitSize([view.width, view.height], { type: "Sphere" });
-  const discAtRotation  = d3.geoAzimuthalEquidistant().clipAngle(179).rotate(rotation)
-    .fitSize([view.width, view.height], { type: "Sphere" });
+  const flatAtRotation  = def.d3fn().fitSize([view.width, view.height], { type: "Sphere" });
 
   return foldToGlobe
-    ? animateBlend(view, projection, duration, 179, 90, discAtRotation, globeAtRotation)
-    : animateBlend(view, projection, duration, 90, 179, globeAtRotation, discAtRotation);
+    ? animateBlend(view, projection, duration, def.clipAngle, 90, flatAtRotation, globeAtRotation)
+    : animateBlend(view, projection, duration, 90, def.clipAngle, globeAtRotation, flatAtRotation);
 }
 
-export async function polarTransition(view, fromDef, toDef) {
+export async function aspectTransition(view, fromDef, toDef) {
   const orthoDef = GLOBE;
-  const fromRot  = fromDef.polarRotation;
-  const toRot    = toDef.polarRotation;
+  const fromRot  = fromDef.aspect;
+  const toRot    = toDef.aspect;
 
   // Fold: reach an orthographic globe at the starting orientation
   if (fromRot) {
-    await animatePolarUnfold(view, fromRot, true, TIMING.polarFold);
+    await animateAspectUnfold(view, fromDef, true, TIMING.polarFold);
   } else if (!fromDef.globe) {
     await animateTransition(view, fromDef, orthoDef, TIMING.polarFold);
   }
@@ -182,7 +186,7 @@ export async function polarTransition(view, fromDef, toDef) {
 
   // Unfold: from the globe to the target
   if (toRot) {
-    await animatePolarUnfold(view, toRot, false, TIMING.polarUnfold);
+    await animateAspectUnfold(view, toDef, false, TIMING.polarUnfold);
   } else if (!toDef.globe) {
     await animateTransition(view, orthoDef, toDef, TIMING.polarUnfold);
   }

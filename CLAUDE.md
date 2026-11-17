@@ -69,14 +69,14 @@ Behaviour that differs between projections is declared on the object, never test
 
 | Field | Default | Set it when |
 |---|---|---|
-| `globe` | `false` | it is the 3D globe (exactly one: void backdrop, drag-to-rotate, hub of the polar route) |
+| `globe` | `false` | it is the 3D globe (exactly one: void backdrop, drag-to-rotate, hub of the aspect route) |
 | `clipAngle` | `179.9` | it shows one hemisphere (`90`) |
 | `fit` | `"sphere"` | the fitted sphere is too tall for the viewport (`"width"`, Mercator) |
-| `polarRotation` | `null` | it is centred on a pole (`[0, ±90]`): transitions route through the globe |
+| `aspect` | `null` | it is drawn at its own rotation, e.g. centred on a pole (`[0, ±90]`): transitions route through the globe and unfold in that rotated frame |
 | `recenterable` | `true` | its own `rotate()` matters (polar views) or it is tuned to one region (Albers) |
 | `tilted` | `false` | it should take a view's full tilt, not just its longitude (globe-like azimuthals) |
 
-`tests/js/projections.test.mjs` checks the registry (unique ids, one globe, polar views not recenterable, family labels).
+`tests/js/projections.test.mjs` checks the registry (unique ids, one globe, aspect projections not recenterable, family labels).
 
 ```json
 "projection.myProjection.name": "My Projection",
@@ -93,7 +93,7 @@ Behaviour that differs between projections is declared on the object, never test
 
 Projections requiring `d3-geo-projection` (CDN loaded in index.html): Robinson, Mollweide, Sinusoidal, Winkel Tripel, Aitoff, Hammer, Gall-Peters, Eckert IV.
 
-Transitions morph a blended projection frame by frame, reprojecting a thinned copy of the geometry (`buildLightGeometry`) for speed; the active recenter view carries over between projections; pairs involving a polar view route through the orthographic globe (fold → spin → unfold) — see the POLAR ROUTE section in `static/js/core/animation.js`.
+Transitions morph a blended projection frame by frame, reprojecting a thinned copy of the geometry (`buildLightGeometry`) for speed; the active recenter view carries over between projections; pairs involving a projection with its own `aspect` (the polar views) route through the orthographic globe (fold → spin → unfold) — see the ASPECT ROUTE section in `static/js/core/animation.js`.
 
 **Modules:** layers import downwards only — `data` < `core` < `ui`/`tools` < `main.js`/`debug.js`; `config.js`, `state.js` and `i18n.js` are shared by all (enforced by `tests/js/layering.test.mjs`). Core never imports `ui/` or `tools/`: it writes the store and emits events, and they subscribe. A new module must also get a `<link rel="modulepreload">` in `index.html` (a test checks the list).
 

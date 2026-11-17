@@ -17,8 +17,9 @@ import { t } from "../i18n.js";
 //   clipAngle      clip circle in degrees; 90 keeps only the visible hemisphere
 //   fit            "sphere" fits the whole sphere; "width" fits the width and
 //                  lets the rest overflow (see fitProjection)
-//   polarRotation  set on pole-centred views: the transition routes through
-//                  the globe (see POLAR ROUTE) instead of blending directly
+//   aspect         the rotation a projection is drawn at, set where it is its
+//                  own (pole-centred views): the transition routes through the
+//                  globe (see ASPECT ROUTE) instead of blending directly
 //   recenterable   false where the projection's own rotate() is load-bearing
 //                  (polar views) or tuned to one region (Albers)
 //   tilted         takes a view's full tilt, not just its longitude: tipping
@@ -32,7 +33,7 @@ const PROJECTION_DEFAULTS = {
   globe: false,
   clipAngle: 179.9,
   fit: "sphere",
-  polarRotation: null,
+  aspect: null,
   recenterable: true,
   tilted: false,
 };
@@ -154,7 +155,8 @@ export const PROJECTIONS = [
     // clipAngle(179) trims a 1° cap around the antipode (the South Pole),
     // where this projection is singular — Antarctica renders as the outer ring
     d3fn: () => d3.geoAzimuthalEquidistant().rotate([0, -90]).clipAngle(179),
-    polarRotation: [0, -90],
+    clipAngle: 179,
+    aspect: [0, -90],
     recenterable: false,
   },
   {
@@ -165,7 +167,8 @@ export const PROJECTIONS = [
       "Azimuthal equidistant centred on the South Pole. Antarctica sits at the " +
       "centre, surrounded by the Southern Ocean and every other continent.",
     d3fn: () => d3.geoAzimuthalEquidistant().rotate([0, 90]).clipAngle(179),
-    polarRotation: [0, 90],
+    clipAngle: 179,
+    aspect: [0, 90],
     recenterable: false,
   },
   {

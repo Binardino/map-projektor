@@ -26,12 +26,12 @@ test("projection ids are unique", () => {
 });
 
 test("exactly one projection is the globe", () => {
-  assert.deepEqual(PROJECTIONS.filter((p) => p.globe).length, 1, "the polar route needs a single globe hub");
+  assert.deepEqual(PROJECTIONS.filter((p) => p.globe).length, 1, "the aspect route needs a single globe hub");
 });
 
-test("pole-centred projections cannot be recentred", () => {
-  const recentrable = PROJECTIONS.filter((p) => p.polarRotation && p.recenterable).map((p) => p.id);
-  assert.deepEqual(recentrable, [], "a polarRotation projection must set recenterable: false");
+test("projections with their own aspect cannot be recentred", () => {
+  const recentrable = PROJECTIONS.filter((p) => p.aspect && p.recenterable).map((p) => p.id);
+  assert.deepEqual(recentrable, [], "an aspect projection must set recenterable: false");
 });
 
 test("fit is either sphere or width", () => {

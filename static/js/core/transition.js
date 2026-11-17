@@ -1,4 +1,4 @@
-import { animateTransition, polarTransition } from "./animation.js";
+import { animateTransition, aspectTransition } from "./animation.js";
 import { GLOBE, PROJECTIONS, getProjection } from "../data/projections.js";
 import { applyRecenter, rotationFor } from "./recenter.js";
 import { mainView } from "./scene.js";
@@ -37,8 +37,8 @@ async function morphTo(newProjId) {
   const fromDef = getProjection(getState().projectionId);
   const toDef   = getProjection(newProjId);
 
-  if (fromDef.polarRotation || toDef.polarRotation) {
-    await polarTransition(mainView, fromDef, toDef);
+  if (fromDef.aspect || toDef.aspect) {
+    await aspectTransition(mainView, fromDef, toDef);
   } else {
     await animateTransition(mainView, fromDef, toDef, TIMING.projectionMorph);
   }

@@ -55,7 +55,7 @@ Two files change, nothing else.
    }
    ```
 
-   Behaviour that differs between projections is declared on the object (`globe`, `clipAngle`, `fit`, `polarRotation`, `recenterable`, `tilted`), never tested by id elsewhere in the code. The defaults and what each field means are in `PROJECTION_DEFAULTS`, at the top of the same file.
+   Behaviour that differs between projections is declared on the object (`globe`, `clipAngle`, `fit`, `aspect`, `recenterable`, `tilted`), never tested by id elsewhere in the code. The defaults and what each field means are in `PROJECTION_DEFAULTS`, at the top of the same file.
 
 2. Add its texts to `static/i18n/en.json`:
 
