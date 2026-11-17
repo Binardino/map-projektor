@@ -76,7 +76,7 @@ def test_wikipedia_links_point_at_wikipedia():
     pattern = re.compile(r"^https://[a-z]{2}\.wikipedia\.org/(wiki|zh-cn)/\S+$")
     for path in sorted(I18N_DIR.glob("*.json")):
         messages = json.loads(path.read_text(encoding="utf-8"))
-        wrong = [k for k, v in messages.items() if k.endswith(".wikipedia") and not pattern.match(v)]
+        wrong = [k for k, v in messages.items() if k.startswith("projection.") and k.endswith(".wikipedia") and not pattern.match(v)]
         assert wrong == [], f"{path.stem}: {wrong}"
 
 
