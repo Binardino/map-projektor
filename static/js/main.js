@@ -7,6 +7,7 @@ import "./core/projection.js";
 import "./core/geometry.js";
 import "./core/animation.js";
 import "./core/transition.js";
+import "./core/share-link.js";
 import "./ui/info-card.js";
 import "./ui/compare-card.js";
 import "./ui/sidebar.js";
