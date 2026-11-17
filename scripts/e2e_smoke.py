@@ -467,6 +467,32 @@ def info_panel(page):
         assert viewport is MOBILE_VIEWPORT or phone["clearOfTools"], "on its side, the panel covers the toolbar"
 
 
+def info_panel_wikipedia(page):
+    """The book beside the projection's name links to its Wikipedia article,
+    in the interface language, and opens it in a new tab without handing it
+    the app's window."""
+    # Answered locally: the test checks where the link goes, not Wikipedia.
+    page.context.route("https://*.wikipedia.org/**", lambda route: route.fulfill(body="article"))
+    page.keyboard.press("Escape")
+    link = "#info-panel-wikipedia"
+    assert page.get_attribute(link, "href") == "https://en.wikipedia.org/wiki/Orthographic_map_projection"
+    switch(page, "mercator")
+    assert page.get_attribute(link, "href") == "https://en.wikipedia.org/wiki/Mercator_projection", "the link follows the projection"
+    page.click("#language-toggle-btn")
+    page.click('.language-option[data-lang="fr"]')
+    page.wait_for_function("() => document.documentElement.lang === 'fr'")
+    assert page.get_attribute(link, "href") == "https://fr.wikipedia.org/wiki/Projection_de_Mercator", "the link follows the language"
+    assert page.get_attribute(link, "title") == "En savoir plus sur Wikipédia"
+    page.keyboard.press("Escape")  # the language card
+    with page.context.expect_page() as tab:
+        page.click(link)
+    article = tab.value
+    article.wait_for_load_state()
+    assert article.url == "https://fr.wikipedia.org/wiki/Projection_de_Mercator", "the article opens in a new tab"
+    assert article.evaluate("() => window.opener") is None, "the article gets no handle on the app"
+    assert page.evaluate("() => __app.currentProjectionId") == "mercator", "the app stays where it was"
+
+
 def info_panel_tissot(page):
     """The pill beside "Distorts" and the toolbar's # button are one switch:
     either turns the circles on, both show it, and the pill keeps its state
@@ -591,7 +617,7 @@ def onboarding_landscape(page):
 
 
 ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile, onboarding_landscape]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, shared_link, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, shared_link, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_wikipedia, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
 
 
 def main():
