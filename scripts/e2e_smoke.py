@@ -71,10 +71,24 @@ def tour_seen(page):
     return page.evaluate("() => localStorage.getItem('mapProjektorTourSeen')") == "1"
 
 
+# The box an element takes at rest, its CSS transform (the info bar's peek) left out.
+REST_BOX_JS = """(selector) => {
+    const el = document.querySelector(selector);
+    const box = el.getBoundingClientRect();
+    const lifted = new DOMMatrixReadOnly(getComputedStyle(el).transform).m42;
+    return { x: box.x, y: box.y - lifted, width: box.width, height: box.height };
+}"""
+PEEK_LIFT = 84  # PEEK_LIFT in static/js/ui/info-card.js
+
+
 def spotlight_covers(page, selector):
-    """The spotlight frames the step's control: same box, give or take its padding."""
-    target = page.locator(selector).bounding_box()
+    """The spotlight frames the step's control: same box, give or take its
+    padding. Over the info bar it also takes in the height the bar's peek
+    rises through."""
+    target = page.evaluate(REST_BOX_JS, selector)
     spot = page.locator("#tour-spotlight").bounding_box()
+    if selector == "#info-panel":
+        target = {**target, "y": target["y"] - PEEK_LIFT, "height": target["height"] + PEEK_LIFT}
     return all(abs(spot[k] - target[k]) <= 12 for k in ("x", "y", "width", "height"))
 
 
@@ -529,9 +543,20 @@ def info_panel_tissot(page):
     assert page.get_attribute(pill, "aria-pressed") == "false", "the pill should follow the toolbar button"
 
 
+PEEK_JS = """() => {
+    const panel = document.getElementById("info-panel");
+    const bubble = document.getElementById("tour-bubble").getBoundingClientRect();
+    return { peeking: panel.classList.contains("nudge"),
+             columns: getComputedStyle(document.getElementById("info-panel-content")).display,
+             barTop: panel.getBoundingClientRect().top, bubbleBottom: bubble.bottom,
+             mapHeight: document.getElementById("map-svg").getBoundingClientRect().height };
+}"""
+
+
 def info_panel_tour(page):
     """The tour has a step on the info bar, which comes back if it was
-    closed and bounces to show that it moves."""
+    closed and peeks at its columns to show that it rises and what it holds,
+    without resizing the map, covering the bubble or changing the bar's state."""
     page.keyboard.press("Escape")
     page.click("#info-panel-close")
     assert not page.evaluate(PANEL_STATE_JS)["shown"]
@@ -540,8 +565,18 @@ def info_panel_tour(page):
         settle(page)
         page.click("#tour-next")
     assert page.evaluate(PANEL_STATE_JS)["shown"], "the tour brings the bar back to point at it"
-    assert page.evaluate("() => document.getElementById('info-panel').classList.contains('nudge')"), "the bar should bounce"
     assert not page.is_hidden("#tour-spotlight"), "the spotlight should be on the bar"
+    start = page.evaluate(PEEK_JS)
+    page.wait_for_timeout(1100)  # the hold at the top of the peek
+    top = page.evaluate(PEEK_JS)
+    assert top["peeking"] and top["columns"] != "none", f"the bar should show its columns: {top}"
+    assert top["barTop"] < start["barTop"] - 40, f"the bar should rise: {start['barTop']} -> {top['barTop']}"
+    assert top["bubbleBottom"] <= top["barTop"], f"the risen bar should stay clear of the bubble: {top}"
+    assert top["mapHeight"] == start["mapHeight"], "the peek must not resize the map"
+    page.wait_for_timeout(1700)
+    end = page.evaluate(PEEK_JS)
+    assert not end["peeking"] and end["columns"] == "none", f"the bar folds back: {end}"
+    assert page.evaluate("() => localStorage.getItem('mapProjektorInfoPanel')") == "folded", "the peek leaves the bar folded"
 
 
 def mobile_drawer(page):
