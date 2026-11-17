@@ -25,9 +25,10 @@ import { SPILHAUS_ASPECT, geoSpilhaus } from "./spilhaus.js";
 //                  (polar views) or tuned to one region (Albers)
 //   tilted         takes a view's full tilt, not just its longitude: tipping
 //                  a flat map turns it oblique, which reads as a broken map
-//   transition     "morph" blends the two projections frame by frame; "fade"
-//                  crossfades instead, for a map cut into pieces (Dymaxion)
-//                  that no blend can follow
+//   transition     "morph" blends the two projections frame by frame;
+//                  "unfold" is for a polyhedral map (one with tree(), from
+//                  d3-geo-polygon) that no blend can follow: it folds into its
+//                  solid on the globe and opens out (see POLYHEDRAL ROUTE)
 // ============================================================
 // name and tradeoffs live in static/i18n/<lang>.json under projection.<id>.*;
 // `family` is a grouping identifier whose label is family.<lowercase family>.
@@ -248,7 +249,7 @@ export const PROJECTIONS = [
       "Fuller's map on an unfolded icosahedron: twenty triangles, cut through the " +
       "oceans so the continents stay almost whole and nearly true to size.",
     d3fn: () => d3.geoAirocean(), // d3-geo-polygon
-    transition: "fade",
+    transition: "unfold",
     recenterable: false,
   },
 ].map((projDef) => ({ ...PROJECTION_DEFAULTS, ...projDef }));

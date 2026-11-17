@@ -1,6 +1,8 @@
 import { DEGREES, blendProjection } from "./projection.js";
 import { GLOBE } from "../data/projections.js";
 import { lightOf } from "./geometry.js";
+import { buildNet } from "./polyhedral-unfold.js";
+import { terrainData, worldData } from "../data/geodata.js";
 import { renderGlobeSphere, updateTerrainPaths } from "./render.js";
 import { rotationFor } from "./recenter.js";
 import { t } from "../i18n.js";
@@ -187,7 +189,10 @@ export async function aspectTransition(view, fromDef, toDef) {
   // Spin between orientations (north↔south rolls through the equator); a
   // non-polar end sits on the globe at the active view's tilt.
   const globeRot = rotationFor(orthoDef) || [0, 0];
-  await animateRotation(view, fromRot || globeRot, toRot || globeRot, TIMING.polarSpin);
+  const spinFrom = fromRot || globeRot, spinTo = toRot || globeRot;
+  // Nothing to spin when neither end has an aspect (the polyhedral route
+  // only goes to or from the globe through here)
+  if (spinFrom.some((v, i) => v !== spinTo[i])) await animateRotation(view, spinFrom, spinTo, TIMING.polarSpin);
 
   // Unfold: from the globe to the target
   if (toRot) {
@@ -198,36 +203,147 @@ export async function aspectTransition(view, fromDef, toDef) {
 }
 
 // ============================================================
-// CROSSFADE — for a map no blend can follow
+// POLYHEDRAL ROUTE — via the globe, folding into the polyhedron
 //
-// Dymaxion is twenty triangles: a blend has no way to tear the map
-// along their edges, and drawing it takes ~250ms, far over a frame.
-// So the map on screen is frozen as a copy laid over the live one;
-// the target is drawn underneath, hidden by the copy (the long draw
-// shows nothing moving); then the copy fades out as the map fades in.
-// The overlays live in the same group, so they fade with it.
+// No blend can tear a map along twenty triangle edges, and drawing
+// Dymaxion takes ~250ms, far over a frame. So the map is painted once
+// into an image and cut into its faces; the faces are then moved in 3D
+// (see core/polyhedral-unfold.js). Towards Dymaxion: the map folds onto
+// the globe as on the aspect route, the globe gives way to the closed
+// icosahedron sitting exactly on it, which turns to face the viewer and
+// opens hinge by hinge, from the root out, into the flat map. The real
+// map is then drawn underneath the last frame, which is identical to it.
+// Away from Dymaxion, the same film runs backwards.
 // ============================================================
-export function crossfadeTransition(view, toDef, duration) {
-  const ghost = d3.select(view.world.node().cloneNode(true))
-    .attr("class", "crossfade-ghost")
+const NET_SEAM = 0.6; // px each face's cut-out grows by, or anti-aliasing leaves a hairline between faces
+
+// The map as it would be drawn, in the colours the stylesheet gives it on
+// screen right now (theme included), painted once into an image.
+function paintMap(view, projection) {
+  const ratio = Math.min(2, window.devicePixelRatio || 1);
+  const canvas = Object.assign(document.createElement("canvas"), { width: view.width * ratio, height: view.height * ratio });
+  const ctx = canvas.getContext("2d");
+  ctx.scale(ratio, ratio);
+  const path = d3.geoPath(projection, ctx);
+  const style = (node) => node && getComputedStyle(node);
+
+  ctx.fillStyle = style(view.layers.sphere.node()).fill;
+  ctx.beginPath(); path({ type: "Sphere" }); ctx.fill();
+
+  const country = style(view.layers.countries.select("path.country").node());
+  ctx.fillStyle = country.fill;
+  ctx.strokeStyle = country.stroke;
+  ctx.lineWidth = parseFloat(country.strokeWidth) || 1;
+  for (const feature of worldData.features) {
+    ctx.beginPath(); path(lightOf(feature)); ctx.fill(); ctx.stroke();
+  }
+  if (view.layers.terrain) {
+    for (const feature of terrainData.features) {
+      const patch = style(view.layers.terrain.select(`path.terrain-${feature.properties.kind}`).node());
+      if (!patch) continue;
+      ctx.globalAlpha = parseFloat(patch.fillOpacity);
+      ctx.fillStyle = patch.fill;
+      ctx.beginPath(); path(lightOf(feature)); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  return canvas.toDataURL();
+}
+
+// The faces as pieces of that one image, each cut to its triangle, over the
+// map in the same viewport (same camera). show(turn, open) places them.
+function mountNet(view, net, href) {
+  const group = d3.select(view.world.node().parentNode).append("g")
+    .attr("class", "polyhedral-net")
     .style("pointer-events", "none");
-  view.world.node().after(ghost.node()); // same viewport: same camera
+  const defs = group.append("defs");
+  const pieces = new Map();
+  for (const face of net.faces) {
+    const [cx, cy] = face.flatMiddle;
+    const grown = face.flat.map(([x, y]) => {
+      const d = Math.hypot(x - cx, y - cy) || 1;
+      return [x + ((x - cx) / d) * NET_SEAM, y + ((y - cy) / d) * NET_SEAM];
+    });
+    defs.append("clipPath").attr("id", `net-face-${face.id}`)
+      .append("polygon").attr("points", grown.map((p) => p.join(",")).join(" "));
+    const piece = group.append("g");
+    piece.append("image").attr("href", href).attr("width", view.width).attr("height", view.height)
+      .attr("clip-path", `url(#net-face-${face.id})`);
+    pieces.set(face, piece.node());
+  }
+  return {
+    group,
+    show(turn, open) {
+      for (const { face, matrix } of net.frame(turn, open)) {
+        const piece = pieces.get(face);
+        piece.setAttribute("transform", `matrix(${matrix.join(",")})`);
+        group.node().appendChild(piece); // farthest first: the nearer faces cover them
+      }
+    },
+  };
+}
 
-  view.setProjection(toDef, rotationFor(toDef)).render();
-  emit("frame", { view, projection: view.projection() }); // the overlays redraw for the new map
-  view.world.style("opacity", 0);
-
+// Plays the net from folded (0) to flat (1), or back: the solid turns for the
+// first 30% of the time, then its hinges open.
+function animateNet(layer, from, to, duration) {
   return new Promise((resolve) => {
     const timer = d3.timer((elapsed) => {
-      const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
-      ghost.style("opacity", 1 - t);
-      view.world.style("opacity", t);
-      if (elapsed >= duration) {
+      const p = Math.min(1, elapsed / duration);
+      const s = from + (to - from) * p;
+      layer.show(d3.easeCubicInOut(Math.min(1, s / 0.3)), Math.max(0, (s - 0.3) / 0.7));
+      if (p >= 1) {
         timer.stop();
-        ghost.remove();
-        view.world.style("opacity", null);
         resolve();
       }
     });
   });
+}
+
+function crossfade(out, into, duration) {
+  return new Promise((resolve) => {
+    const timer = d3.timer((elapsed) => {
+      const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
+      out.style("opacity", 1 - t);
+      into.style("opacity", t);
+      if (elapsed >= duration) {
+        timer.stop();
+        resolve();
+      }
+    });
+  });
+}
+
+// Draws the target itself when it is the polyhedral map; the caller draws
+// any other target, as after the other routes.
+export async function polyhedralTransition(view, fromDef, toDef) {
+  const globeRotation = rotationFor(GLOBE) || [0, 0];
+  const globe = view.makeProjection(GLOBE, globeRotation);
+
+  if (toDef.transition === "unfold") {
+    if (!fromDef.globe) await aspectTransition(view, fromDef, GLOBE);
+    view.setProjection(GLOBE, globeRotation).render(); // the true globe, not the blend's last frame
+    const map = view.makeProjection(toDef);
+    const net = buildNet(map, globe);
+    const layer = mountNet(view, net, paintMap(view, map));
+    layer.show(0, 0);
+    layer.group.style("opacity", 0);
+    await crossfade(view.world, layer.group, TIMING.polyhedralFade);
+    await animateNet(layer, 0, 1, TIMING.polyhedralUnfold);
+    view.setProjection(toDef, rotationFor(toDef)).render(); // hidden by the identical last frame
+    view.world.style("opacity", null);
+    layer.group.remove();
+    return;
+  }
+
+  const map = view.projection();
+  const net = buildNet(map, globe);
+  const layer = mountNet(view, net, paintMap(view, map));
+  layer.show(1, 1); // the map itself, to the pixel
+  view.world.style("opacity", 0);
+  await animateNet(layer, 1, 0, TIMING.polyhedralUnfold);
+  view.setProjection(GLOBE, globeRotation).render();
+  await crossfade(layer.group, view.world, TIMING.polyhedralFade);
+  view.world.style("opacity", null);
+  layer.group.remove();
+  if (!toDef.globe) await aspectTransition(view, GLOBE, toDef);
 }

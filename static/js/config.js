@@ -12,7 +12,8 @@ export const DEFAULT_COMPARISON_PROJECTION = "gallPeters";
 // from this block to size its recording window, so keep one key per line.
 export const TIMING = {
   projectionMorph: 1400, // regular blend between two projections
-  projectionFade: 900,   // crossfade to or from a map no blend can follow
+  polyhedralFade: 300,   // polyhedral route: the globe gives way to the closed solid
+  polyhedralUnfold: 2600, // polyhedral route: the solid turns, then opens into the net
   polarFold: 800,        // polar route: flat map → globe
   polarSpin: 700,        // polar route: globe turns to/from the pole
   polarUnfold: 800,      // polar route: globe → polar view
