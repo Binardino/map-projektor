@@ -20,7 +20,7 @@ import { emit } from "../state.js";
 // same blend; only this synthetic outline breaks. Sidestepped entirely by
 // crossfading between the two endpoints' own (always well-behaved) static
 // sphere shapes instead of animating one continuously-blended shape.
-function animateBlend(view, projection, duration, clipFrom = null, clipTo = null, fromSphereProj = null, toSphereProj = null, rotationAt = null) {
+function animateBlend(view, projection, duration, clipFrom = null, clipTo = null, fromSphereProj = null, toSphereProj = null, rotationAt = null, antimeridian = true) {
   const pathFn    = d3.geoPath().projection(projection);
   const countries = view.layers.countries.selectAll("path.country");
 
@@ -47,7 +47,7 @@ function animateBlend(view, projection, duration, clipFrom = null, clipTo = null
         // country inside out (the whole globe flashed land colour on the
         // one frame the polar route leaves on screen between fold and spin).
         const radius = (clipFrom + (clipTo - clipFrom) * t) / DEGREES;
-        projection.preclip(radius > Math.PI / 2
+        projection.preclip(radius > Math.PI / 2 && antimeridian
           ? (stream) => d3.geoClipAntimeridian(d3.geoClipCircle(radius)(stream))
           : d3.geoClipCircle(radius));
       }
@@ -162,9 +162,14 @@ function animateAspectUnfold(view, def, foldToGlobe, duration) {
   const globeAtRotation = d3.geoOrthographic().rotate(rotation).fitSize([view.width, view.height], { type: "Sphere" });
   const flatAtRotation  = def.d3fn().fitSize([view.width, view.height], { type: "Sphere" });
 
+  // Cut the way the target does: a projection drawn with a clip circle (the
+  // polar views, Peirce) has no seam at the antimeridian, and one there left
+  // a stray edge across Peirce's corner until the final render.
+  // (d3 reads an antimeridian cut back as clipAngle() 0.)
+  const antimeridian = !flatAtRotation.clipAngle();
   return foldToGlobe
-    ? animateBlend(view, projection, duration, def.clipAngle, 90, flatAtRotation, globeAtRotation)
-    : animateBlend(view, projection, duration, 90, def.clipAngle, globeAtRotation, flatAtRotation);
+    ? animateBlend(view, projection, duration, def.clipAngle, 90, flatAtRotation, globeAtRotation, null, antimeridian)
+    : animateBlend(view, projection, duration, 90, def.clipAngle, globeAtRotation, flatAtRotation, null, antimeridian);
 }
 
 export async function aspectTransition(view, fromDef, toDef) {

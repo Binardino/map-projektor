@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  An interactive world map that morphs between 18 cartographic projections,<br>
+  An interactive world map that morphs between 19 cartographic projections,<br>
   so you can see what each one preserves and what it distorts.
 </p>
 
@@ -30,7 +30,7 @@ Switching projection never snaps: the map morphs from one to the other, and rout
 
 ## Features
 
-- **18 projections in 6 families**: cylindrical, pseudocylindrical, azimuthal, pseudoazimuthal, conic and square, from Mercator to Equal Earth, plus a draggable 3D globe, two polar views and the Spilhaus world ocean map, which the globe turns and unfolds into
+- **19 projections in 6 families**: cylindrical, pseudocylindrical, azimuthal, pseudoazimuthal, conic and square, from Mercator to Equal Earth, plus a draggable 3D globe, two polar views and two square worlds (Spilhaus' world ocean map and Peirce's quincuncial), which the globe turns and unfolds into
 - **Animated transitions**: the map morphs from one projection to the next instead of snapping; a switch to or from a polar view folds into the globe, spins, then unfolds
 - **Six points of view**: Europe-, China-, Africa-, America- and Oceania-centred, and a south-up map. The Europe-centred default is a convention, not a fact of nature, and the chosen view carries over when you switch projection
 - **Distortion grid**: Tissot's indicatrix, a grid of identical circles on the sphere that the projection stretches into ellipses, so you see where and how much it distorts

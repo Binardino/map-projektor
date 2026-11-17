@@ -72,6 +72,10 @@
       "view shown": "world",
       "paths": "3e405ad616a8fe976f8676938dd96b04840f9fdb4a1b35bb6eb5c39509764a2d"
     },
+    "world / peirceQuincuncial": {
+      "view shown": "world",
+      "paths": "0bdb09f287acfd499af2c47e8c67bfc4e10765559f15bff1fd039a2ca15bc912"
+    },
     "china / mercator": {
       "view shown": "china",
       "paths": "764f750cbfa996fc4f7780e83149301088be620b4508b2bed6789d44f2905f80"
@@ -143,6 +147,10 @@
     "china / spilhaus": {
       "view shown": "world",
       "paths": "3e405ad616a8fe976f8676938dd96b04840f9fdb4a1b35bb6eb5c39509764a2d"
+    },
+    "china / peirceQuincuncial": {
+      "view shown": "world",
+      "paths": "0bdb09f287acfd499af2c47e8c67bfc4e10765559f15bff1fd039a2ca15bc912"
     }
   },
   "control points": {
@@ -540,6 +548,28 @@
       [
         347.420935,
         65.585834
+      ]
+    ],
+    "peirceQuincuncial": [
+      [
+        519.999998,
+        900
+      ],
+      [
+        525.336009,
+        578.989345
+      ],
+      [
+        135.332736,
+        725.214296
+      ],
+      [
+        633.406258,
+        316.851151
+      ],
+      [
+        519.475893,
+        419.974624
       ]
     ]
   }

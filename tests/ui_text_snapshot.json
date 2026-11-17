@@ -28,6 +28,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -100,7 +101,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "map, no card open": [
     "[document.title] Map Projektor",
@@ -131,6 +133,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -192,7 +195,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "info panel (initial projection)": [
     "[document.title] Map Projektor",
@@ -223,6 +227,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -295,7 +300,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "info panel (mercator)": [
     "[document.title] Map Projektor",
@@ -326,6 +332,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -398,7 +405,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "info panel (robinson)": [
     "[document.title] Map Projektor",
@@ -429,6 +437,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -501,7 +510,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "info panel (polarNorth)": [
     "[document.title] Map Projektor",
@@ -532,6 +542,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -604,7 +615,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "compare card": [
     "[document.title] Map Projektor",
@@ -635,6 +647,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -712,7 +725,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "compare card, country search 'fra'": [
     "[document.title] Map Projektor",
@@ -743,6 +757,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -821,7 +836,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "compare card, one country picked": [
     "[document.title] Map Projektor",
@@ -852,6 +868,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -933,7 +950,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "language card": [
     "[document.title] Map Projektor",
@@ -964,6 +982,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1066,7 +1085,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "onboarding tour, step 1": [
     "[document.title] Map Projektor",
@@ -1097,6 +1117,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1204,7 +1225,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "onboarding tour, step 2": [
     "[document.title] Map Projektor",
@@ -1235,6 +1257,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1342,7 +1365,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "onboarding tour, step 3": [
     "[document.title] Map Projektor",
@@ -1373,6 +1397,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1480,7 +1505,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "onboarding tour, step 4": [
     "[document.title] Map Projektor",
@@ -1511,6 +1537,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1618,7 +1645,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "onboarding tour, step 5": [
     "[document.title] Map Projektor",
@@ -1649,6 +1677,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1756,7 +1785,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "onboarding tour, step 6": [
     "[document.title] Map Projektor",
@@ -1787,6 +1817,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1894,7 +1925,8 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ],
   "onboarding tour, step 7": [
     "[document.title] Map Projektor",
@@ -1925,6 +1957,7 @@
     "Albers",
     "Square",
     "Spilhaus",
+    "Peirce Quincuncial",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -2031,6 +2064,7 @@
     "[option] Aitoff",
     "[option] Hammer",
     "[option] Albers",
-    "[option] Spilhaus"
+    "[option] Spilhaus",
+    "[option] Peirce Quincuncial"
   ]
 }
