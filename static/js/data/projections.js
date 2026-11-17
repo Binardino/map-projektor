@@ -213,7 +213,8 @@ export const PROJECTIONS = [
   {
     id: "spilhaus",
     family: "Square",
-    year: 1942,
+    // The square dates from 1979; Spilhaus' first ocean-centred maps (1942) used other projections
+    year: 1979,
     description:
       "Conformal world map in a square, turned so that the cut runs through the " +
       "continents and the oceans form a single body of water.",
