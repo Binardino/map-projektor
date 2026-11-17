@@ -29,7 +29,7 @@ import { preferredLanguage, setLanguage } from "./i18n.js";
 import { openHelpModal } from "./ui/welcome-modal.js";
 import { refreshFlip, rotationFor, startOnView } from "./core/recenter.js";
 import { startOnProjection } from "./core/transition.js";
-import { parseLink } from "./core/share-link.js";
+import { keepLinkInStep, parseLink } from "./core/share-link.js";
 import { mainView } from "./core/scene.js";
 import { loadGeodata, terrainData, worldData } from "./data/geodata.js";
 import { emit, getState } from "./state.js";
@@ -62,6 +62,9 @@ async function init() {
   mainView.setProjection(initialProj, rotationFor(initialProj)).render();
   refreshFlip(mainView);
   emit("view:changed"); // first draw of the overlays that follow the view
+  // From the first change on, not this first draw: a plain visit keeps a
+  // bare URL, so reloading it still opens on the welcome modal.
+  keepLinkInStep();
 }
 
 init();
