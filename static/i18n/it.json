@@ -159,7 +159,7 @@
   "projection.spilhaus.bestFor": "Le correnti oceaniche, la vita marina, le rotte navali, e mostrare che gli oceani del mondo sono in realtà uno solo.",
   "projection.spilhaus.didYouKnow": "Spilhaus non pubblicò mai le formule del suo quadrato. Nel 2020 i cartografi di Esri hanno dovuto ricostruirlo con il reverse engineering per inserirlo nel loro software cartografico.",
   "projection.spilhaus.distorts": "L'area, sempre di più verso i quattro angoli. I continenti finiscono spinti ai bordi, e alcuni sono tagliati in due.",
-  "projection.spilhaus.name": "Spilhaus",
+  "projection.spilhaus.name": "Spilhaus (oceani)",
   "projection.spilhaus.origin": "Disegnata nel 1979 da Athelstan Spilhaus (oceanografo statunitense nato in Sudafrica).",
   "projection.spilhaus.preserves": "Gli angoli e le forme locali (conforme), e gli oceani come un'unica massa d'acqua: il mondo come lo vedrebbe un pesce.",
   "projection.spilhaus.wikipedia": "https://en.wikipedia.org/wiki/Athelstan_Spilhaus",

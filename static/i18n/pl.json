@@ -159,7 +159,7 @@
   "projection.spilhaus.bestFor": "Prądy morskie, życie w morzu, szlaki żeglugowe i pokazanie, że oceany świata to w istocie jeden ocean.",
   "projection.spilhaus.didYouKnow": "Spilhaus nigdy nie opublikował wzorów swojego kwadratu. W 2020 r. kartografowie z Esri musieli odtworzyć go metodą inżynierii wstecznej, by dodać go do swojego oprogramowania.",
   "projection.spilhaus.distorts": "Powierzchnię, coraz bardziej ku czterem narożnikom. Kontynenty są zepchnięte na brzegi, a niektóre przecięte na pół.",
-  "projection.spilhaus.name": "Spilhaus",
+  "projection.spilhaus.name": "Spilhaus (oceany)",
   "projection.spilhaus.origin": "Narysowane w 1979 r. przez Athelstana Spilhausa (amerykańskiego oceanografa urodzonego w RPA).",
   "projection.spilhaus.preserves": "Kąty i lokalne kształty (odwzorowanie wiernokątne), a oceany tworzą jeden spójny zbiornik: świat oczami ryby.",
   "projection.spilhaus.wikipedia": "https://en.wikipedia.org/wiki/Athelstan_Spilhaus",

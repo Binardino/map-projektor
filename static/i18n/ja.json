@@ -159,7 +159,7 @@
   "projection.spilhaus.bestFor": "海流、海洋生物、航路、そして世界の海が実はひとつであることを示すのに。",
   "projection.spilhaus.didYouKnow": "スピルハウスはこの正方形の数式を一度も公表しませんでした。2020年、Esri の地図製作者たちは自社の地図ソフトに加えるため、リバースエンジニアリングで再現しなければなりませんでした。",
   "projection.spilhaus.distorts": "面積は四隅に近づくほど大きく歪みます。大陸は端に押しやられ、一部は二つに分断されます。",
-  "projection.spilhaus.name": "スピルハウス図法",
+  "projection.spilhaus.name": "スピルハウス図法（海洋）",
   "projection.spilhaus.origin": "1979年、アセルスタン・スピルハウス（南アフリカ生まれのアメリカの海洋学者）が描きました。",
   "projection.spilhaus.preserves": "角度と局所的な形を保ちます（正角）。海はひとつにつながった水域として描かれます。魚から見た世界です。",
   "projection.spilhaus.wikipedia": "https://en.wikipedia.org/wiki/Athelstan_Spilhaus",

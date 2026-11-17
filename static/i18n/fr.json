@@ -159,7 +159,7 @@
   "projection.spilhaus.bestFor": "Les courants marins, la vie marine, les routes maritimes, et montrer que les océans du monde n'en forment qu'un.",
   "projection.spilhaus.didYouKnow": "Spilhaus n'a jamais publié les formules de son carré. En 2020, les cartographes d'Esri ont dû le reconstituer par rétro-ingénierie pour l'ajouter à leur logiciel de cartographie.",
   "projection.spilhaus.distorts": "L'aire, de plus en plus vers les quatre coins. Les continents sont repoussés sur les bords, et certains sont coupés en deux.",
-  "projection.spilhaus.name": "Spilhaus",
+  "projection.spilhaus.name": "Spilhaus (océans)",
   "projection.spilhaus.origin": "Dessinée en 1979 par Athelstan Spilhaus (océanographe américain né en Afrique du Sud).",
   "projection.spilhaus.preserves": "Les angles et les formes locales (projection conforme), et les océans d'un seul tenant : le monde tel que le verrait un poisson.",
   "projection.spilhaus.wikipedia": "https://fr.wikipedia.org/wiki/Projection_de_Spilhaus",

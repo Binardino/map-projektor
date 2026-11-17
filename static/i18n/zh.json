@@ -159,7 +159,7 @@
   "projection.spilhaus.bestFor": "洋流、海洋生物、航线，以及说明世界各大洋其实是一体的。",
   "projection.spilhaus.didYouKnow": "斯皮尔豪斯从未公开他这张正方形地图的公式。2020 年，Esri 的制图师只好通过逆向工程将其重建，才能加入自家的地图软件。",
   "projection.spilhaus.distorts": "面积，越靠近四个角变形越大。各大洲被推到边缘，有些被切成两半。",
-  "projection.spilhaus.name": "斯皮尔豪斯投影",
+  "projection.spilhaus.name": "斯皮尔豪斯投影（海洋）",
   "projection.spilhaus.origin": "1979 年由阿瑟尔斯坦·斯皮尔豪斯（生于南非的美国海洋学家）绘制。",
   "projection.spilhaus.preserves": "角度和局部形状（等角），海洋连成一整片水域：鱼眼中的世界。",
   "projection.spilhaus.wikipedia": "https://en.wikipedia.org/wiki/Athelstan_Spilhaus",

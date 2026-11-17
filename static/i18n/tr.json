@@ -159,7 +159,7 @@
   "projection.spilhaus.bestFor": "Okyanus akıntıları, deniz yaşamı, deniz yolları ve dünya okyanuslarının aslında tek bir okyanus olduğunu göstermek.",
   "projection.spilhaus.didYouKnow": "Spilhaus, karesinin formüllerini hiç yayımlamadı. 2020'de Esri'nin haritacıları onu harita yazılımlarına eklemek için tersine mühendislikle yeniden oluşturmak zorunda kaldı.",
   "projection.spilhaus.distorts": "Alanı, dört köşeye doğru giderek artan biçimde. Kıtalar kenarlara itilir, bazıları ikiye bölünür.",
-  "projection.spilhaus.name": "Spilhaus",
+  "projection.spilhaus.name": "Spilhaus (okyanuslar)",
   "projection.spilhaus.origin": "1979'da Athelstan Spilhaus (Güney Afrika doğumlu Amerikalı okyanus bilimci) tarafından çizildi.",
   "projection.spilhaus.preserves": "Açıları ve yerel şekilleri (konform), okyanusları da tek parça bir su kütlesi olarak: dünyayı bir balığın gözünden.",
   "projection.spilhaus.wikipedia": "https://en.wikipedia.org/wiki/Athelstan_Spilhaus",
