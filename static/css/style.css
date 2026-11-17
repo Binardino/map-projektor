@@ -1076,6 +1076,34 @@ body {
   margin: 2px 0 0;
 }
 
+#info-tissot-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: 6px;
+  padding: 1px 7px;
+  vertical-align: 1px;
+  border: 1px solid var(--card-text-muted);
+  border-radius: 999px;
+  background: none;
+  color: var(--card-text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+#info-tissot-btn svg {
+  width: 11px;
+  height: 11px;
+}
+
+#info-tissot-btn:hover,
+#info-tissot-btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
 /* Unfolded, the summary would repeat the "Preserves" column. */
 #info-panel.expanded #info-panel-summary {
   display: none;

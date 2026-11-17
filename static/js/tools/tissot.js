@@ -1,6 +1,6 @@
 import { allViews } from "../core/map-view.js";
 import { TISSOT_RADIUS, TISSOT_STEP } from "../config.js";
-import { on } from "../state.js";
+import { getState, on, setState, subscribe } from "../state.js";
 
 // ============================================================
 // TISSOT'S INDICATRIX OVERLAY
@@ -21,7 +21,9 @@ for (let lat = -90 + TISSOT_STEP; lat <= 90 - TISSOT_STEP; lat += TISSOT_STEP) {
   }
 }
 
-export let tissotVisible = false;
+// tissotVisible is a store slice written only here: the info panel offers
+// the same switch, and reads the slice to say "show" or "hide".
+setState({ tissotVisible: false });
 
 // Isolated ellipses don't read as "a grid" on their own — the graticule
 // (meridian/parallel lines, same 30° step as the circle spacing) gives
@@ -62,24 +64,29 @@ export function refreshTissot() {
   for (const view of allViews()) {
     const group = view.layers.tissot;
     if (!group) continue;
-    if (tissotVisible) renderTissot(group, view.projection());
+    if (getState().tissotVisible) renderTissot(group, view.projection());
     else clearTissot(group);
   }
 }
 
-// Now wired to the right-side toolbar's grid icon (see map-tools in
-// index.html) instead of the removed sidebar tools panel.
-if (tissotToggleBtn) {
-  tissotToggleBtn.addEventListener("click", () => {
-    tissotVisible = !tissotVisible;
-    tissotToggleBtn.classList.toggle("active", tissotVisible);
-    tissotToggleBtn.setAttribute("aria-pressed", String(tissotVisible));
-    refreshTissot();
-  });
+function toggleTissot() {
+  setState({ tissotVisible: !getState().tissotVisible });
 }
+
+// Two switches: the right-side toolbar's grid icon (see map-tools in
+// index.html) and the info panel's button, which can't import a tool and
+// asks through an event instead.
+tissotToggleBtn?.addEventListener("click", toggleTissot);
+on("tissot:requested", toggleTissot);
+
+subscribe(["tissotVisible"], ({ tissotVisible }) => {
+  tissotToggleBtn?.classList.toggle("active", tissotVisible);
+  tissotToggleBtn?.setAttribute("aria-pressed", String(tissotVisible));
+  refreshTissot();
+});
 
 // Redrawn on every animation frame and whenever the view settles.
 on("frame", ({ view, projection }) => {
-  if (tissotVisible && view.layers.tissot) updateTissotPaths(view.layers.tissot, projection);
+  if (getState().tissotVisible && view.layers.tissot) updateTissotPaths(view.layers.tissot, projection);
 });
 on("view:changed", refreshTissot);
