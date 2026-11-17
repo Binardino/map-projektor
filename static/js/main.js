@@ -48,7 +48,11 @@ async function init() {
   // view list, compare options and info card (their "language:changed"
   // subscribers), which all read their text through t().
   await setLanguage(preferredLanguage());
-  openHelpModal(); // after the language loads, or the modal would flash empty
+  // Someone opening a shared link came to see that map: the welcome pitch
+  // would cover it, and the tour it leads to would morph it away. The tour
+  // stays one click away on the toolbar's ? button.
+  // After the language loads, or the modal would flash empty.
+  if (!link.projectionId && !link.preset) openHelpModal();
 
   await loadGeodata();
   buildLightGeometry(worldData.features);
