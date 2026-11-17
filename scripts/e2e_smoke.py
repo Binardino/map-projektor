@@ -221,6 +221,29 @@ def polar_route_and_flip(page):
     assert "scale(1, -1)" in transform, f"flip should end mirrored, got {transform!r}"
 
 
+def shared_link(page):
+    """A link opens the app on its projection and view, without the welcome
+    modal, and the address bar then follows the map."""
+    page.keyboard.press("Escape")
+    assert page.evaluate("() => location.hash") == "", "a plain visit should keep a bare URL"
+    page.goto(f"{BASE_URL}#p=mercator&v=southAmericaFlipped")
+    page.reload()  # a hash-only goto stays on the same document
+    page.wait_for_selector("path.country")
+    settle(page)
+    assert not modal_open(page), "a shared link should skip the welcome modal"
+    assert page.evaluate("() => __app.currentProjectionId") == "mercator"
+    assert active_view(page) == "southAmericaFlipped"
+    transform = page.evaluate("() => __app.mapGroup.node().closest('g.world').style.transform")
+    assert "scale(1, -1)" in transform, f"the linked view should open mirrored, got {transform!r}"
+
+    history = page.evaluate("() => history.length")
+    switch(page, "robinson")
+    assert page.evaluate("() => location.hash") == "#p=robinson&v=southAmericaFlipped"
+    view(page, "china")
+    assert page.evaluate("() => location.hash") == "#p=robinson&v=china"
+    assert page.evaluate("() => history.length") == history, "following the map should not add history entries"
+
+
 def camera(page):
     page.keyboard.press("Escape")
     switch(page, "mercator")
@@ -568,7 +591,7 @@ def onboarding_landscape(page):
 
 
 ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile, onboarding_landscape]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, shared_link, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
 
 
 def main():
