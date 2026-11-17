@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-17 — Distortion circles from the info panel (on `feat/tissot-shortcut`)
+
+### Added
+- A "Show the distortion circles" pill beside the "Distorts" title of the info panel. It is the same switch as the toolbar's # button: either one turns the Tissot circles on or off, and both show the same state. In every language
+
+### Changed
+- The Tissot grid's visibility is a store slice (`tissotVisible`), written by `tools/tissot.js` and requested by the `tissot:requested` event, so that the info panel can offer the switch without importing a tool
+- `scripts/e2e_smoke.py` checks that the pill and the # button stay in step
+
 ## 2026-11-15 — "Did you know?" in the info panel (on `feat/did-you-know`)
 
 ### Added
