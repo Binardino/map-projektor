@@ -105,6 +105,10 @@ def measure_transition(page, action_fn, wait_ms=WAIT_AFTER_CLICK_MS):
     )
     action_fn()
     page.wait_for_timeout(wait_ms)
+    # The polyhedral route (Dymaxion) outlasts the window above: record until
+    # the transition has really ended, or the next click would land while it
+    # still runs and be ignored.
+    page.wait_for_function("() => !window.__app.isAnimating", timeout=15000)
     page.evaluate("() => { window.__recording = false; }")
     frames = page.evaluate("() => window.__frames")
     scales = page.evaluate("() => window.__zoomScales")
