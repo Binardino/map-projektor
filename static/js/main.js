@@ -7,6 +7,7 @@ import "./core/projection.js";
 import "./core/geometry.js";
 import "./core/animation.js";
 import "./core/transition.js";
+import "./core/share-link.js";
 import "./ui/info-card.js";
 import "./ui/compare-card.js";
 import "./ui/sidebar.js";
@@ -26,7 +27,9 @@ import { getProjection } from "./data/projections.js";
 import { buildLightGeometry } from "./core/geometry.js";
 import { preferredLanguage, setLanguage } from "./i18n.js";
 import { openHelpModal } from "./ui/welcome-modal.js";
-import { rotationFor } from "./core/recenter.js";
+import { refreshFlip, rotationFor, startOnView } from "./core/recenter.js";
+import { startOnProjection } from "./core/transition.js";
+import { keepLinkInStep, parseLink } from "./core/share-link.js";
 import { mainView } from "./core/scene.js";
 import { loadGeodata, terrainData, worldData } from "./data/geodata.js";
 import { emit, getState } from "./state.js";
@@ -35,11 +38,22 @@ import { emit, getState } from "./state.js";
 // INIT — fetch GeoJSON then render
 // ============================================================
 async function init() {
+  const link = parseLink(location.hash);
+
   // Before anything renders: loading the language also builds the sidebar,
   // view list, compare options and info card (their "language:changed"
   // subscribers), which all read their text through t().
   await setLanguage(preferredLanguage());
-  openHelpModal(); // after the language loads, or the modal would flash empty
+  // After the language: the info card redraws as soon as projectionId
+  // changes, and would find no text. Before the first draw all the same,
+  // so the map never shows the globe first.
+  if (link.projectionId) startOnProjection(link.projectionId);
+  if (link.preset) startOnView(link.preset);
+  // Someone opening a shared link came to see that map: the welcome pitch
+  // would cover it, and the tour it leads to would morph it away. The tour
+  // stays one click away on the toolbar's ? button.
+  // After the language loads, or the modal would flash empty.
+  if (!link.projectionId && !link.preset) openHelpModal();
 
   await loadGeodata();
   buildLightGeometry(worldData.features);
@@ -47,7 +61,11 @@ async function init() {
 
   const initialProj = getProjection(getState().projectionId);
   mainView.setProjection(initialProj, rotationFor(initialProj)).render();
+  refreshFlip(mainView);
   emit("view:changed"); // first draw of the overlays that follow the view
+  // From the first change on, not the link applied above: a plain visit
+  // keeps a bare URL, so reloading it still opens on the welcome modal.
+  keepLinkInStep();
 }
 
 init();

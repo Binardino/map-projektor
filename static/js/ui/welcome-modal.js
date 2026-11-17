@@ -5,8 +5,8 @@ import { emit } from "../state.js";
 //
 // A short pitch (why flat maps lie); the controls are left to the
 // onboarding tour (ui/onboarding.js), which listens for the
-// "welcome:closed" event. Opens on every launch —
-// there is no "seen" flag and no manual re-open trigger.
+// "welcome:closed" event. Opens on every launch except from a shared link
+// (main.js) — there is no "seen" flag and no manual re-open trigger.
 // ============================================================
 
 const helpModalBackdrop = document.getElementById("help-modal-backdrop");

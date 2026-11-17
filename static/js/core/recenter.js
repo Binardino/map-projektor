@@ -174,6 +174,16 @@ export async function applyRecenter(presetId) {
   emit("view:changed");
 }
 
+// A shared link opens on its view, without the sweep applyRecenter plays.
+// Called after startOnProjection: like switchProjection, a projection that
+// can't be recentred keeps the default view. The mirror itself is pixels,
+// so it is drawn by refreshFlip once the map has its size.
+export function startOnView(presetId) {
+  if (!getProjection(getState().projectionId).recenterable) return;
+  const preset = RECENTER_PRESETS.find((p) => p.id === presetId);
+  patchView({ preset: presetId, rotate: preset.rotate, tilt: preset.tilt || null, flip: !!preset.flipVertical });
+}
+
 export function resetRecenter() {
   setState({ recenter: DEFAULT_VIEW });
   // Cleared synchronously (no transition): if a projection switch is about

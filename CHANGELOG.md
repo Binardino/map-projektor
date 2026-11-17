@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-17 — Shareable link (on `feat/share-link`)
+
+### Added
+- The address bar holds the link to the map on screen: the projection and the view are in its hash (`#p=robinson&v=africa`). Opening such a link shows that map straight away, without the welcome modal or the tour (still on the ? button). The URL is rewritten in place, so Back still leaves the app; a globe turned by hand keeps only the projection, and an unknown id in the link is ignored
+- `tests/js/share-link.test.mjs` for reading and writing the link; `scripts/e2e_smoke.py` opens a link and checks the URL follows the map
+
+### Fixed
+- The sidebar lights the projection the map shows even when it was not clicked (a shared link)
+
 ## 2026-11-17 — Distortion circles from the info panel (on `feat/tissot-shortcut`)
 
 ### Added
