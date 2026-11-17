@@ -6,11 +6,11 @@
   <title>Map Projektor</title>
   <!-- Written here, not through data-i18n: search engines and link previews
        read the raw HTML without running the JavaScript -->
-  <meta name="description" content="An interactive world map that morphs between 19 projections, so you can see what each one preserves and what it distorts." />
+  <meta name="description" content="An interactive world map that morphs between 20 projections, so you can see what each one preserves and what it distorts." />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Map Projektor" />
   <meta property="og:title" content="Map Projektor" />
-  <meta property="og:description" content="An interactive world map that morphs between 19 projections, so you can see what each one preserves and what it distorts." />
+  <meta property="og:description" content="An interactive world map that morphs between 20 projections, so you can see what each one preserves and what it distorts." />
   <meta property="og:url" content="https://binardino.lauramini.fr/map-projektor/" />
   <meta property="og:image" content="https://binardino.lauramini.fr/map-projektor/static/social-preview.png" />
   <meta property="og:image:width" content="1280" />
@@ -214,10 +214,12 @@
 
   </div>
 
-  <!-- CDN libraries — order matters: d3-geo-projection extends d3, the modules use both.
+  <!-- CDN libraries — order matters: d3-geo-projection extends d3, d3-geo-polygon (Dymaxion)
+       builds on both, the modules use all three.
        Exact versions: a floating one would let a new release change the live site with no deploy. -->
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4.0.0/dist/d3-geo-projection.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-geo-polygon@2.0.1/dist/d3-geo-polygon.min.js"></script>
   <script type="module" src="static/js/main.js"></script>
 </body>
 </html>

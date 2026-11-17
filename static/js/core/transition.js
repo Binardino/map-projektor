@@ -1,4 +1,4 @@
-import { animateTransition, aspectTransition } from "./animation.js";
+import { animateTransition, aspectTransition, crossfadeTransition } from "./animation.js";
 import { GLOBE, PROJECTIONS, getProjection } from "../data/projections.js";
 import { applyRecenter, rotationFor } from "./recenter.js";
 import { mainView } from "./scene.js";
@@ -37,14 +37,18 @@ async function morphTo(newProjId) {
   const fromDef = getProjection(getState().projectionId);
   const toDef   = getProjection(newProjId);
 
-  if (fromDef.aspect || toDef.aspect) {
-    await aspectTransition(mainView, fromDef, toDef);
+  if (fromDef.transition === "fade" || toDef.transition === "fade") {
+    // Draws the target itself: a second draw would cost Dymaxion's ~250ms again
+    await crossfadeTransition(mainView, toDef, TIMING.projectionFade);
   } else {
-    await animateTransition(mainView, fromDef, toDef, TIMING.projectionMorph);
+    if (fromDef.aspect || toDef.aspect) {
+      await aspectTransition(mainView, fromDef, toDef);
+    } else {
+      await animateTransition(mainView, fromDef, toDef, TIMING.projectionMorph);
+    }
+    // Final render with the true target projection (native clipping rules)
+    mainView.setProjection(toDef, rotationFor(toDef)).render();
   }
-
-  // Final render with the true target projection (native clipping rules)
-  mainView.setProjection(toDef, rotationFor(toDef)).render();
 
   setState({ projectionId: newProjId });
   emit("view:changed");

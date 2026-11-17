@@ -244,6 +244,24 @@ def shared_link(page):
     assert page.evaluate("() => history.length") == history, "following the map should not add history entries"
 
 
+def fade_transition(page):
+    """A map no blend can follow (Dymaxion) crossfades: the frozen copy of the
+    old map is gone at the end, the new one is fully opaque, and a click
+    during the fade is ignored like one during a morph."""
+    page.keyboard.press("Escape")
+    switch(page, "mercator")
+    page.click('.proj-btn[data-proj-id="dymaxion"]')
+    page.click('.proj-btn[data-proj-id="robinson"]')  # mid-fade: ignored
+    settle(page)
+    assert page.evaluate(PROJECTION_JS) == "dymaxion"
+    state = page.evaluate("""() => ({ ghosts: document.querySelectorAll(".crossfade-ghost").length,
+                                      opacity: document.querySelector("g.world").style.opacity })""")
+    assert state == {"ghosts": 0, "opacity": ""}, f"the fade should leave no trace: {state}"
+    switch(page, "orthographic")
+    assert page.evaluate(PROJECTION_JS) == "orthographic"
+    assert page.evaluate("() => document.querySelectorAll('.crossfade-ghost').length") == 0
+
+
 def camera(page):
     page.keyboard.press("Escape")
     switch(page, "mercator")
@@ -617,7 +635,7 @@ def onboarding_landscape(page):
 
 
 ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile, onboarding_landscape]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, shared_link, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_wikipedia, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, shared_link, fade_transition, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_wikipedia, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
 
 
 def main():

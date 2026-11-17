@@ -196,3 +196,38 @@ export async function aspectTransition(view, fromDef, toDef) {
     await animateTransition(view, orthoDef, toDef, TIMING.polarUnfold);
   }
 }
+
+// ============================================================
+// CROSSFADE — for a map no blend can follow
+//
+// Dymaxion is twenty triangles: a blend has no way to tear the map
+// along their edges, and drawing it takes ~250ms, far over a frame.
+// So the map on screen is frozen as a copy laid over the live one;
+// the target is drawn underneath, hidden by the copy (the long draw
+// shows nothing moving); then the copy fades out as the map fades in.
+// The overlays live in the same group, so they fade with it.
+// ============================================================
+export function crossfadeTransition(view, toDef, duration) {
+  const ghost = d3.select(view.world.node().cloneNode(true))
+    .attr("class", "crossfade-ghost")
+    .style("pointer-events", "none");
+  view.world.node().after(ghost.node()); // same viewport: same camera
+
+  view.setProjection(toDef, rotationFor(toDef)).render();
+  emit("frame", { view, projection: view.projection() }); // the overlays redraw for the new map
+  view.world.style("opacity", 0);
+
+  return new Promise((resolve) => {
+    const timer = d3.timer((elapsed) => {
+      const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
+      ghost.style("opacity", 1 - t);
+      view.world.style("opacity", t);
+      if (elapsed >= duration) {
+        timer.stop();
+        ghost.remove();
+        view.world.style("opacity", null);
+        resolve();
+      }
+    });
+  });
+}

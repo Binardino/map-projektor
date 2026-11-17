@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-17 — Dymaxion (on `feat/dymaxion`)
+
+### Added
+- A 20th projection in a new "Polyhedral" family: Buckminster Fuller's Dymaxion map (1954), the Earth on an unfolded icosahedron, cut through the oceans so the land reads as one island. In every language, with its "Did you know?" and its Wikipedia link. `d3-geo-polygon` 2.0.1 is loaded for it
+- A crossfade for a map no blend can follow (`transition: "fade"` in the registry): the map on screen is frozen as a copy, the target is drawn underneath, then one fades into the other, overlays included. `scripts/e2e_smoke.py` checks it leaves nothing behind
+
+### Known limitations
+- Drawing Dymaxion takes about 250 ms: switching to it pauses a quarter of a second before the fade, and resizing the window on it redraws in about 0.7 s with every overlay on
+
 ## 2026-11-17 — Peirce quincuncial (on `feat/peirce`)
 
 ### Added
