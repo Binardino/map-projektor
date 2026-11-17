@@ -42,6 +42,7 @@ The golden files take `--write` after a deliberate change. **Before a PR:** `scr
 | `static/css/style.css` | CSS variables (theme) + layout |
 | `templates/index.html` | HTML structure: sidebar + SVG |
 | `scripts/fetch_geodata.py` | One-shot data fetch + Douglas-Peucker simplification |
+| `scripts/fetch_wikipedia_links.py` | Writes `projection.<id>.wikipedia` in every language from Wikidata; re-run after adding a projection |
 | `scripts/check_all.sh` | Runs every check below in order, stops at the first failure |
 | `scripts/perf_transitions.py`, `ui_text_snapshot.py`, `render_fingerprint.py`, `e2e_smoke.py` | Playwright checks; read app state through the read-only `window.__app` hook (`debug.js`) |
 | `scripts/capture_readme_assets.py` | Regenerates the README's screenshots and transition GIF in `docs/assets/` from the running app (Playwright; the GIF needs `ffmpeg`). Re-run after a visible UI change |

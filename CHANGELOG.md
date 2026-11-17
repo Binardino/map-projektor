@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-17 — Wikipedia link in the info panel (on `feat/wikipedia-link`, issue #68)
+
+### Added
+- A book beside the projection's name in the info panel opens its Wikipedia article in a new tab, in the interface language where the article exists and in English otherwise. A drawn book rather than Wikipedia's logo, which is a Wikimedia trademark
+- `scripts/fetch_wikipedia_links.py` reads which articles exist in which language from Wikidata and writes the links into every language file; `tests/test_i18n.py` requires one per projection, and `scripts/e2e_smoke.py` checks that the link follows the projection and the language
+
 ## 2026-11-17 — Spilhaus world ocean map (on `feat/spilhaus`)
 
 ### Added
