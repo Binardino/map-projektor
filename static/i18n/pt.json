@@ -128,7 +128,7 @@
   "projection.spilhaus.didYouKnow": "Spilhaus nunca publicou as fórmulas do seu quadrado. Em 2020, os cartógrafos da Esri tiveram que reconstruí-lo por engenharia reversa para incluí-lo em seu software de mapas.",
   "projection.spilhaus.distorts": "A área, cada vez mais rumo aos quatro cantos. Os continentes são empurrados para as bordas, e alguns são cortados em dois.",
   "projection.spilhaus.name": "Spilhaus",
-  "projection.spilhaus.origin": "Desenhada em 1979 por Athelstan Spilhaus (oceanógrafo americano nascido na África do Sul), a partir do mundo em um quadrado conforme de Oscar Adams.",
+  "projection.spilhaus.origin": "Desenhada em 1979 por Athelstan Spilhaus (oceanógrafo americano nascido na África do Sul).",
   "projection.spilhaus.preserves": "Os ângulos e as formas locais (conforme), e os oceanos como uma única massa de água: o mundo como um peixe o veria.",
   "projection.winkelTripel.bestFor": "Mapas do mundo de referência geral. A National Geographic a usa desde 1998.",
   "projection.winkelTripel.didYouKnow": "Em 2007, um estudo dos físicos Goldberg e Gott avaliou mapas-múndi por seis tipos de distorção. A Winkel Tripel ficou em primeiro lugar entre todas as projeções comuns.",

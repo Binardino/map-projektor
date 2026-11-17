@@ -128,7 +128,7 @@
   "projection.spilhaus.didYouKnow": "Spilhaus, karesinin formüllerini hiç yayımlamadı. 2020'de Esri'nin haritacıları onu harita yazılımlarına eklemek için tersine mühendislikle yeniden oluşturmak zorunda kaldı.",
   "projection.spilhaus.distorts": "Alanı, dört köşeye doğru giderek artan biçimde. Kıtalar kenarlara itilir, bazıları ikiye bölünür.",
   "projection.spilhaus.name": "Spilhaus",
-  "projection.spilhaus.origin": "1979'da Athelstan Spilhaus (Güney Afrika doğumlu Amerikalı okyanus bilimci) tarafından, Oscar Adams'ın konform \"kare içinde dünya\" haritasından çizildi.",
+  "projection.spilhaus.origin": "1979'da Athelstan Spilhaus (Güney Afrika doğumlu Amerikalı okyanus bilimci) tarafından çizildi.",
   "projection.spilhaus.preserves": "Açıları ve yerel şekilleri (konform), okyanusları da tek parça bir su kütlesi olarak: dünyayı bir balığın gözünden.",
   "projection.winkelTripel.bestFor": "Genel dünya haritaları. National Geographic 1998'den beri kullanıyor.",
   "projection.winkelTripel.didYouKnow": "Fizikçiler Goldberg ve Gott'un 2007'deki bir çalışması dünya haritalarını altı tür bozulmaya göre puanladı. Winkel Tripel, yaygın projeksiyonların hepsi arasında en iyi çıktı.",

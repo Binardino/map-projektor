@@ -128,7 +128,7 @@
   "projection.spilhaus.didYouKnow": "Spilhaus nigdy nie opublikował wzorów swojego kwadratu. W 2020 r. kartografowie z Esri musieli odtworzyć go metodą inżynierii wstecznej, by dodać go do swojego oprogramowania.",
   "projection.spilhaus.distorts": "Powierzchnię, coraz bardziej ku czterem narożnikom. Kontynenty są zepchnięte na brzegi, a niektóre przecięte na pół.",
   "projection.spilhaus.name": "Spilhaus",
-  "projection.spilhaus.origin": "Narysowane w 1979 r. przez Athelstana Spilhausa (amerykańskiego oceanografa urodzonego w RPA) na podstawie wiernokątnego świata w kwadracie Oscara Adamsa.",
+  "projection.spilhaus.origin": "Narysowane w 1979 r. przez Athelstana Spilhausa (amerykańskiego oceanografa urodzonego w RPA).",
   "projection.spilhaus.preserves": "Kąty i lokalne kształty (odwzorowanie wiernokątne), a oceany tworzą jeden spójny zbiornik: świat oczami ryby.",
   "projection.winkelTripel.bestFor": "Ogólne mapy świata. National Geographic używa go od 1998 r.",
   "projection.winkelTripel.didYouKnow": "W 2007 roku badanie fizyków Goldberga i Gotta oceniło mapy świata pod kątem sześciu rodzajów zniekształceń. Winkel Tripel wypadło najlepiej spośród wszystkich popularnych odwzorowań.",

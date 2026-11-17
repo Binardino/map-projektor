@@ -128,7 +128,7 @@
   "projection.spilhaus.didYouKnow": "斯皮尔豪斯从未公开他这张正方形地图的公式。2020 年，Esri 的制图师只好通过逆向工程将其重建，才能加入自家的地图软件。",
   "projection.spilhaus.distorts": "面积，越靠近四个角变形越大。各大洲被推到边缘，有些被切成两半。",
   "projection.spilhaus.name": "斯皮尔豪斯投影",
-  "projection.spilhaus.origin": "1979 年由阿瑟尔斯坦·斯皮尔豪斯（生于南非的美国海洋学家）根据奥斯卡·亚当斯的等角“正方形世界”绘制。",
+  "projection.spilhaus.origin": "1979 年由阿瑟尔斯坦·斯皮尔豪斯（生于南非的美国海洋学家）绘制。",
   "projection.spilhaus.preserves": "角度和局部形状（等角），海洋连成一整片水域：鱼眼中的世界。",
   "projection.winkelTripel.bestFor": "通用世界地图。美国《国家地理》自 1998 年起使用。",
   "projection.winkelTripel.didYouKnow": "2007年，物理学家戈德堡和戈特的一项研究按六种变形为世界地图打分。在所有常见投影中，温克尔三重投影表现最佳。",

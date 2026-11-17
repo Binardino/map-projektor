@@ -128,7 +128,7 @@
   "projection.spilhaus.didYouKnow": "Spilhaus n'a jamais publié les formules de son carré. En 2020, les cartographes d'Esri ont dû le reconstituer par rétro-ingénierie pour l'ajouter à leur logiciel de cartographie.",
   "projection.spilhaus.distorts": "L'aire, de plus en plus vers les quatre coins. Les continents sont repoussés sur les bords, et certains sont coupés en deux.",
   "projection.spilhaus.name": "Spilhaus",
-  "projection.spilhaus.origin": "Dessinée en 1979 par Athelstan Spilhaus (océanographe américain né en Afrique du Sud), à partir du monde dans un carré conforme d'Oscar Adams.",
+  "projection.spilhaus.origin": "Dessinée en 1979 par Athelstan Spilhaus (océanographe américain né en Afrique du Sud).",
   "projection.spilhaus.preserves": "Les angles et les formes locales (projection conforme), et les océans d'un seul tenant : le monde tel que le verrait un poisson.",
   "projection.winkelTripel.bestFor": "Les cartes du monde de référence. National Geographic l'utilise depuis 1998.",
   "projection.winkelTripel.didYouKnow": "En 2007, une étude des physiciens Goldberg et Gott a noté les cartes du monde selon six types de déformation. Winkel Tripel est arrivée en tête de toutes les projections courantes.",

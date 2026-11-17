@@ -128,7 +128,7 @@
   "projection.spilhaus.didYouKnow": "Spilhaus tak pernah menerbitkan rumus perseginya. Pada 2020 para kartografer Esri harus merekonstruksinya lewat rekayasa balik agar bisa ditambahkan ke perangkat lunak peta mereka.",
   "projection.spilhaus.distorts": "Luas, makin parah ke arah keempat sudut. Benua terdorong ke tepi, dan sebagian terbelah dua.",
   "projection.spilhaus.name": "Spilhaus",
-  "projection.spilhaus.origin": "Digambar pada 1979 oleh Athelstan Spilhaus (oseanograf Amerika kelahiran Afrika Selatan), berdasarkan \"dunia dalam persegi\" konformal karya Oscar Adams.",
+  "projection.spilhaus.origin": "Digambar pada 1979 oleh Athelstan Spilhaus (oseanograf Amerika kelahiran Afrika Selatan).",
   "projection.spilhaus.preserves": "Sudut dan bentuk lokal (konformal), dan samudra sebagai satu badan air yang tersambung: dunia seperti yang dilihat ikan.",
   "projection.winkelTripel.bestFor": "Peta dunia umum. National Geographic memakainya sejak 1998.",
   "projection.winkelTripel.didYouKnow": "Pada 2007, studi fisikawan Goldberg dan Gott menilai peta dunia berdasarkan enam jenis distorsi. Winkel Tripel keluar sebagai yang terbaik dari semua proyeksi umum.",
