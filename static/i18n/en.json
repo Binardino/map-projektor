@@ -159,7 +159,7 @@
   "projection.spilhaus.bestFor": "Ocean currents, marine life, shipping routes, and showing that the world's oceans are really one.",
   "projection.spilhaus.didYouKnow": "Spilhaus never published the formulas behind his square. In 2020 the cartographers at Esri had to reverse-engineer it to add it to their mapping software.",
   "projection.spilhaus.distorts": "Area, more and more towards the four corners. The continents are pushed to the edges, and some are split in two.",
-  "projection.spilhaus.name": "Spilhaus",
+  "projection.spilhaus.name": "Spilhaus (oceans)",
   "projection.spilhaus.origin": "Drawn in 1979 by Athelstan Spilhaus (South African-born American oceanographer).",
   "projection.spilhaus.preserves": "Angles and local shapes (conformal), and the oceans as one connected body of water: the world as a fish would see it.",
   "projection.spilhaus.wikipedia": "https://en.wikipedia.org/wiki/Athelstan_Spilhaus",

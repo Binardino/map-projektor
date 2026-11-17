@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-18 — "Spilhaus (oceans)" (on `feat/spilhaus-oceans`)
+
+### Changed
+- Spilhaus' label says what it shows, "Spilhaus (oceans)", in every language, so the map of the world as a fish would see it can be found in the list
+
 ## 2026-11-18 — Dymaxion unfolds out of the globe (on `feat/dymaxion-unfold`)
 
 ### Changed

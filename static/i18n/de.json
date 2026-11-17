@@ -159,7 +159,7 @@
   "projection.spilhaus.bestFor": "Meeresströmungen, Meeresleben, Schifffahrtsrouten, und um zu zeigen, dass die Ozeane der Welt eigentlich einer sind.",
   "projection.spilhaus.didYouKnow": "Spilhaus hat die Formeln seines Quadrats nie veröffentlicht. 2020 mussten die Kartografen von Esri es per Reverse Engineering nachbauen, um es in ihre Kartensoftware aufzunehmen.",
   "projection.spilhaus.distorts": "Die Fläche, immer stärker zu den vier Ecken hin. Die Kontinente werden an die Ränder gedrängt, manche in zwei Teile geschnitten.",
-  "projection.spilhaus.name": "Spilhaus",
+  "projection.spilhaus.name": "Spilhaus (Ozeane)",
   "projection.spilhaus.origin": "1979 von Athelstan Spilhaus (in Südafrika geborener US-amerikanischer Ozeanograf) gezeichnet.",
   "projection.spilhaus.preserves": "Winkel und lokale Formen (winkeltreu), und die Ozeane als ein zusammenhängendes Gewässer: die Welt, wie ein Fisch sie sähe.",
   "projection.spilhaus.wikipedia": "https://de.wikipedia.org/wiki/Spilhaus-Projektion",

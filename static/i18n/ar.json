@@ -159,7 +159,7 @@
   "projection.spilhaus.bestFor": "التيارات البحرية والحياة البحرية وطرق الملاحة، وإظهار أن محيطات العالم هي في الحقيقة محيط واحد.",
   "projection.spilhaus.didYouKnow": "لم ينشر سبيلهاوس قط معادلات مربعه. وفي عام 2020 اضطر رسامو الخرائط في Esri إلى إعادة بنائه بالهندسة العكسية لإضافته إلى برنامجهم للخرائط.",
   "projection.spilhaus.distorts": "المساحة، بشكل متزايد نحو الزوايا الأربع. تُدفع القارات إلى الأطراف، ويُقسم بعضها إلى نصفين.",
-  "projection.spilhaus.name": "سبيلهاوس",
+  "projection.spilhaus.name": "سبيلهاوس (المحيطات)",
   "projection.spilhaus.origin": "رسمه عام 1979 أثيلستان سبيلهاوس (عالم محيطات أمريكي مولود في جنوب أفريقيا).",
   "projection.spilhaus.preserves": "الزوايا والأشكال المحلية (إسقاط متطابق)، والمحيطات كتلةً مائية واحدة متصلة: العالم كما تراه سمكة.",
   "projection.spilhaus.wikipedia": "https://en.wikipedia.org/wiki/Athelstan_Spilhaus",
