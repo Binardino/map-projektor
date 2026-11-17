@@ -64,10 +64,13 @@ Two files change, nothing else.
    "projection.myProjection.origin": "Created in 1900 by Jane Doe (Scottish).",
    "projection.myProjection.preserves": "...",
    "projection.myProjection.distorts": "...",
-   "projection.myProjection.bestFor": "..."
+   "projection.myProjection.bestFor": "...",
+   "projection.myProjection.didYouKnow": "One surprising fact, shown in the info panel."
    ```
 
    A new family also needs its label: `"family.<lowercase name>": "..."`.
+
+3. Add its English Wikipedia article to `ENGLISH_ARTICLES` in `scripts/fetch_wikipedia_links.py`, then run `poetry run python scripts/fetch_wikipedia_links.py`: it writes the article's link in every language, read from Wikidata.
 
 `poetry run pytest` fails if a key is missing, and the JS tests check the registry (unique ids, family labels). A new projection changes two golden files on purpose: regenerate them with `scripts/ui_text_snapshot.py --write` and `scripts/render_fingerprint.py --write`, and commit them with the projection.
 
