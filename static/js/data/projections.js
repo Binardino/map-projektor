@@ -1,4 +1,5 @@
 import { t } from "../i18n.js";
+import { SPILHAUS_ASPECT, geoSpilhaus } from "./spilhaus.js";
 
 // ============================================================
 // PROJECTIONS REGISTRY
@@ -207,6 +208,17 @@ export const PROJECTIONS = [
       "mid-latitude regions. Official projection for US Census maps.",
     // Recentred for a world view — default is tuned for the USA
     d3fn: () => d3.geoAlbers().rotate([0, 0]).parallels([20, 50]).scale(153),
+    recenterable: false,
+  },
+  {
+    id: "spilhaus",
+    family: "Square",
+    year: 1942,
+    description:
+      "Conformal world map in a square, turned so that the cut runs through the " +
+      "continents and the oceans form a single body of water.",
+    d3fn: () => geoSpilhaus(),
+    aspect: SPILHAUS_ASPECT,
     recenterable: false,
   },
 ].map((projDef) => ({ ...PROJECTION_DEFAULTS, ...projDef }));
