@@ -128,7 +128,7 @@
   "projection.spilhaus.didYouKnow": "Spilhaus hat die Formeln seines Quadrats nie veröffentlicht. 2020 mussten die Kartografen von Esri es per Reverse Engineering nachbauen, um es in ihre Kartensoftware aufzunehmen.",
   "projection.spilhaus.distorts": "Die Fläche, immer stärker zu den vier Ecken hin. Die Kontinente werden an die Ränder gedrängt, manche in zwei Teile geschnitten.",
   "projection.spilhaus.name": "Spilhaus",
-  "projection.spilhaus.origin": "1979 von Athelstan Spilhaus (in Südafrika geborener US-amerikanischer Ozeanograf) gezeichnet, ausgehend von Oscar Adams' winkeltreuer Welt im Quadrat. Seine ersten ozeanzentrierten Karten stammen von 1942.",
+  "projection.spilhaus.origin": "1979 von Athelstan Spilhaus (in Südafrika geborener US-amerikanischer Ozeanograf) gezeichnet, ausgehend von Oscar Adams' winkeltreuer Welt im Quadrat.",
   "projection.spilhaus.preserves": "Winkel und lokale Formen (winkeltreu), und die Ozeane als ein zusammenhängendes Gewässer: die Welt, wie ein Fisch sie sähe.",
   "projection.winkelTripel.bestFor": "Allgemeine Weltkarten. National Geographic nutzt sie seit 1998.",
   "projection.winkelTripel.didYouKnow": "Eine Studie der Physiker Goldberg und Gott bewertete 2007 Weltkarten nach sechs Arten von Verzerrung. Winkel Tripel schnitt von allen gängigen Projektionen am besten ab.",
