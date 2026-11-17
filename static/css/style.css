@@ -992,6 +992,23 @@ body {
   font-size: 20px;
 }
 
+/* A book rather than Wikipedia's logo, which is a trademark. It hugs the
+   name it is about, pulled into the header's gap. */
+#info-panel-wikipedia {
+  flex: none;
+  display: inline-flex;
+  margin-inline-start: -10px;
+  padding: 3px;
+  border-radius: 6px;
+  color: var(--card-text-muted);
+}
+
+#info-panel-wikipedia:hover,
+#info-panel-wikipedia:focus-visible {
+  color: var(--card-text);
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
 /* One line, cut short: the folded sheet is a teaser, the columns hold the rest. */
 #info-panel-summary {
   flex: 1;

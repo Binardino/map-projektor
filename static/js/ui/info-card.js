@@ -54,6 +54,9 @@ function syncTissotButton(btn = document.getElementById("info-tissot-btn")) {
 // projection preserves is the one line that tells it apart from the others.
 function updateInfo(projDef) {
   document.getElementById("info-panel-name").textContent = projectionName(projDef);
+  // In the interface language where Wikipedia has the article, in English
+  // otherwise (scripts/fetch_wikipedia_links.py decides which).
+  document.getElementById("info-panel-wikipedia").href = t(`projection.${projDef.id}.wikipedia`);
   const label = document.createElement("span");
   label.className = "info-panel-summary-label";
   label.textContent = t("info.preserves");
