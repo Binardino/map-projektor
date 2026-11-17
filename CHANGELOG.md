@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-17 — Peirce quincuncial (on `feat/peirce`)
+
+### Added
+- A 19th projection in the "Square" family: Peirce's quincuncial (1879), the North Pole in the middle of a square and the southern hemisphere split between its four corners. The globe turns to its aspect and unfolds into it, as for Spilhaus. In every language, with its "Did you know?" and its Wikipedia link
+
+### Fixed
+- The globe unfolds into a projection cutting the way that projection does: Peirce and the polar views clip with a circle only, and the antimeridian cut the unfold added left a stray edge in Peirce's corner and a tick across the polar views' Antarctic ring until the morph ended
+
 ## 2026-11-17 — Wikipedia link in the info panel (on `feat/wikipedia-link`, issue #68)
 
 ### Added
