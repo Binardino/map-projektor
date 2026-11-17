@@ -15,6 +15,11 @@ const summaryEl = document.getElementById("info-panel-summary");
 const toggleBtn = document.getElementById("info-panel-toggle");
 const infoBtn   = document.getElementById("info-toggle-btn");
 
+// How far the onboarding's peek lifts the bar: enough for a column's title
+// and two lines of it. The CSS reads it, and the tour keeps that room clear.
+export const PEEK_LIFT = 84;
+panelEl.style.setProperty("--peek-lift", `${PEEK_LIFT}px`);
+
 function renderTradeoffs(projDef) {
   const list = document.getElementById("info-panel-content");
   list.innerHTML = "";
@@ -96,11 +101,13 @@ export function hideInfoPanel() {
   setPanelState("hidden");
 }
 
-// The onboarding tour points at the folded bar and makes it bounce, so
-// that its moving up and down is shown rather than described. A hidden bar
-// comes back for it: the tour must have something to point at.
+// The onboarding tour points at the folded bar and makes it peek at its
+// columns, so that its moving up and down, and the text it holds, are shown
+// rather than described. A hidden bar comes back for it: the tour must have
+// something to point at. An open panel already shows its columns.
 export function nudgeInfoPanel() {
   if (panelState === "hidden") setPanelState("folded");
+  if (panelState === "open") return;
   panelEl.classList.remove("nudge");
   void panelEl.offsetWidth; // restarts the animation on a replayed tour
   panelEl.classList.add("nudge");

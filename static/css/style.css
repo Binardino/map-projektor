@@ -1126,17 +1126,32 @@ body {
   display: none;
 }
 
-/* The onboarding's nudge: two hops up, the second smaller, so the bar reads
-   as something that rises rather than a decoration. */
+/* The onboarding's nudge: the bar rises far enough to show the first lines
+   of its columns, holds, then folds back, so it reads as a sheet with text
+   under it rather than a decoration. The columns hang just below the bar,
+   off screen, and the whole panel slides up over the map: its layout box
+   never changes, so the map is not resized and redrawn on every frame. */
 #info-panel.nudge {
-  animation: info-panel-nudge 1.1s ease-out 2;
+  position: relative;
+  animation: info-panel-nudge 2.4s ease-in-out;
+}
+
+#info-panel.nudge #info-panel-content {
+  display: grid;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0;
+  padding: 0 24px 14px;
+  max-height: none;
+  overflow: hidden;
+  background: var(--card-bg);
 }
 
 @keyframes info-panel-nudge {
   0%, 100% { transform: translateY(0); }
-  25%      { transform: translateY(-18px); }
-  50%      { transform: translateY(0); }
-  70%      { transform: translateY(-7px); }
+  30%, 70% { transform: translateY(calc(-1 * var(--peek-lift))); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1163,8 +1178,13 @@ body {
     font-size: 14px;
   }
 
-  #info-panel.expanded #info-panel-content {
+  #info-panel.expanded #info-panel-content,
+  #info-panel.nudge #info-panel-content {
     display: block;
+  }
+
+  #info-panel.nudge #info-panel-content {
+    padding: 0 16px 12px;
   }
 
   #info-panel-content dd {
@@ -1187,6 +1207,10 @@ body {
     bottom: 0;
     padding: 8px 16px;
     border-start-end-radius: 12px;
+  }
+
+  #info-panel.nudge {
+    position: absolute;
   }
 
   .info-panel-header {

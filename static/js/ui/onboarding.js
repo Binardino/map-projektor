@@ -3,7 +3,7 @@ import { t } from "../i18n.js";
 import { getState, on, subscribe } from "../state.js";
 import { switchProjection } from "../core/transition.js";
 import { closeSidebar, openSidebar } from "./mobile-sidebar.js";
-import { nudgeInfoPanel } from "./info-card.js";
+import { PEEK_LIFT, nudgeInfoPanel } from "./info-card.js";
 
 // ============================================================
 // ONBOARDING TOUR
@@ -20,7 +20,7 @@ import { nudgeInfoPanel } from "./info-card.js";
 // drawer on mobile and has to be opened for the step; `show` is a
 // projection the step switches the map to (its drawer then stays closed,
 // the map being what there is to look at); `nudge` makes the bottom info
-// panel bounce.
+// panel peek at its columns.
 // ============================================================
 const STEPS = [
   { id: "mercator", target: '.proj-btn[data-proj-id="mercator"]', side: "right", show: "mercator" },
@@ -51,11 +51,21 @@ let stepIndex = 0;
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
+// The bar at rest plus the height its peek rises through, so that the
+// spotlight frames the whole movement and the bubble sits above it rather
+// than over the lifted bar. Measured without the peek's own transform.
+function peekRoom(el) {
+  const box = el.getBoundingClientRect();
+  const lifted = new DOMMatrixReadOnly(getComputedStyle(el).transform).m42;
+  const top = box.top - lifted - PEEK_LIFT;
+  return { left: box.left, right: box.right, width: box.width, top, bottom: box.bottom - lifted, height: box.height + PEEK_LIFT };
+}
+
 function positionStep() {
   const step = STEPS[stepIndex];
   const targetEl = document.querySelector(step.target);
   targetEl.scrollIntoView({ block: "nearest" }); // the projection list scrolls
-  const target = targetEl.getBoundingClientRect();
+  const target = step.nudge ? peekRoom(targetEl) : targetEl.getBoundingClientRect();
   // A target inside the closed mobile drawer: nothing to point at.
   const offScreen = target.right <= 0;
   spotlightEl.hidden = offScreen;

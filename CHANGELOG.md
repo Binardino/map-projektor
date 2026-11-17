@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-17 — The info bar peeks in the tour (on `feat/onboarding-peek`)
+
+### Changed
+- In the onboarding tour, the bottom info bar no longer just bounces: it rises far enough to show a column's title and two lines of text, holds, then folds back, so it reads as a sheet with more under it. It slides over the map, which keeps its size; the tour's frame and bubble make room for the rise. Nothing moves when the system asks for reduced motion, and an open panel is left as is
+- `scripts/e2e_smoke.py` checks that the columns show, the bubble stays clear, the map keeps its size and the bar stays folded
+
 ## 2026-11-17 — Dymaxion (on `feat/dymaxion`)
 
 ### Added
