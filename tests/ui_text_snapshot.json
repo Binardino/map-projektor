@@ -29,6 +29,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -102,7 +104,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "map, no card open": [
     "[document.title] Map Projektor",
@@ -134,6 +137,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -196,7 +201,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "info panel (initial projection)": [
     "[document.title] Map Projektor",
@@ -228,6 +234,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -301,7 +309,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "info panel (mercator)": [
     "[document.title] Map Projektor",
@@ -333,6 +342,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -406,7 +417,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "info panel (robinson)": [
     "[document.title] Map Projektor",
@@ -438,6 +450,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -511,7 +525,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "info panel (polarNorth)": [
     "[document.title] Map Projektor",
@@ -543,6 +558,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -616,7 +633,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "compare card": [
     "[document.title] Map Projektor",
@@ -648,6 +666,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -726,7 +746,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "compare card, country search 'fra'": [
     "[document.title] Map Projektor",
@@ -758,6 +779,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -837,7 +860,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "compare card, one country picked": [
     "[document.title] Map Projektor",
@@ -869,6 +893,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -951,7 +977,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "language card": [
     "[document.title] Map Projektor",
@@ -983,6 +1010,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1086,7 +1115,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "onboarding tour, step 1": [
     "[document.title] Map Projektor",
@@ -1118,6 +1148,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1226,7 +1258,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "onboarding tour, step 2": [
     "[document.title] Map Projektor",
@@ -1258,6 +1291,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1366,7 +1401,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "onboarding tour, step 3": [
     "[document.title] Map Projektor",
@@ -1398,6 +1434,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1506,7 +1544,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "onboarding tour, step 4": [
     "[document.title] Map Projektor",
@@ -1538,6 +1577,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1646,7 +1687,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "onboarding tour, step 5": [
     "[document.title] Map Projektor",
@@ -1678,6 +1720,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1786,7 +1830,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "onboarding tour, step 6": [
     "[document.title] Map Projektor",
@@ -1818,6 +1863,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1926,7 +1973,8 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ],
   "onboarding tour, step 7": [
     "[document.title] Map Projektor",
@@ -1958,6 +2006,8 @@
     "Square",
     "Spilhaus",
     "Peirce Quincuncial",
+    "Polyhedral",
+    "Dymaxion",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -2065,6 +2115,7 @@
     "[option] Hammer",
     "[option] Albers",
     "[option] Spilhaus",
-    "[option] Peirce Quincuncial"
+    "[option] Peirce Quincuncial",
+    "[option] Dymaxion"
   ]
 }

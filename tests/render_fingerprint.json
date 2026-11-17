@@ -76,6 +76,10 @@
       "view shown": "world",
       "paths": "0bdb09f287acfd499af2c47e8c67bfc4e10765559f15bff1fd039a2ca15bc912"
     },
+    "world / dymaxion": {
+      "view shown": "world",
+      "paths": "2104d4839b20efe93afbbfb575cb177a04b552166b4dbb2d00eaf9152e74fd7c"
+    },
     "china / mercator": {
       "view shown": "china",
       "paths": "764f750cbfa996fc4f7780e83149301088be620b4508b2bed6789d44f2905f80"
@@ -151,6 +155,10 @@
     "china / peirceQuincuncial": {
       "view shown": "world",
       "paths": "0bdb09f287acfd499af2c47e8c67bfc4e10765559f15bff1fd039a2ca15bc912"
+    },
+    "china / dymaxion": {
+      "view shown": "world",
+      "paths": "2104d4839b20efe93afbbfb575cb177a04b552166b4dbb2d00eaf9152e74fd7c"
     }
   },
   "control points": {
@@ -570,6 +578,28 @@
       [
         519.475893,
         419.974624
+      ]
+    ],
+    "dymaxion": [
+      [
+        362.800403,
+        213.783532
+      ],
+      [
+        449.220614,
+        324.964744
+      ],
+      [
+        824.887907,
+        392.828237
+      ],
+      [
+        409.666508,
+        561.977816
+      ],
+      [
+        495.198412,
+        469.393782
       ]
     ]
   }
