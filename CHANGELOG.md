@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-17 — Spilhaus world ocean map (on `feat/spilhaus`)
+
+### Added
+- An 18th projection in a new "Square" family: Spilhaus' world ocean map in a square (1979), where the oceans form one body of water and the continents sit at the edges. The globe turns to its aspect and unfolds into it, from or to any other projection. In every language, with its own "Did you know?"
+- `static/js/data/spilhaus.js`, adapted from riatelab/bertin (MIT, after Torben Jansen), since no D3 library ships it
+
+### Changed
+- The polar route becomes the aspect route: a projection declares the rotation it is drawn at (`aspect`, was `polarRotation`), and the globe spins on all three angles and unfolds into that projection's own shape and clip
+
+### Fixed
+- The morph only clamps latitudes off the poles where a projection sends a pole to infinity (Mercator); everywhere else the 0.01° shift opened notches at Spilhaus' corners until the morph ended
+
 ## 2026-11-17 — Shareable link (on `feat/share-link`)
 
 ### Added

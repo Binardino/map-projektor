@@ -26,6 +26,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -95,7 +97,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "map, no card open": [
     "[document.title] Map Projektor",
@@ -124,6 +127,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -182,7 +187,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "info panel (initial projection)": [
     "[document.title] Map Projektor",
@@ -211,6 +217,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -280,7 +288,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "info panel (mercator)": [
     "[document.title] Map Projektor",
@@ -309,6 +318,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -378,7 +389,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "info panel (robinson)": [
     "[document.title] Map Projektor",
@@ -407,6 +419,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -476,7 +490,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "info panel (polarNorth)": [
     "[document.title] Map Projektor",
@@ -505,6 +520,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -574,7 +591,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "compare card": [
     "[document.title] Map Projektor",
@@ -603,6 +621,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -677,7 +697,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "compare card, country search 'fra'": [
     "[document.title] Map Projektor",
@@ -706,6 +727,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -781,7 +804,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "compare card, one country picked": [
     "[document.title] Map Projektor",
@@ -810,6 +834,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -888,7 +914,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "language card": [
     "[document.title] Map Projektor",
@@ -917,6 +944,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1016,7 +1045,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "onboarding tour, step 1": [
     "[document.title] Map Projektor",
@@ -1045,6 +1075,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1149,7 +1181,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "onboarding tour, step 2": [
     "[document.title] Map Projektor",
@@ -1178,6 +1211,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1282,7 +1317,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "onboarding tour, step 3": [
     "[document.title] Map Projektor",
@@ -1311,6 +1347,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1415,7 +1453,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "onboarding tour, step 4": [
     "[document.title] Map Projektor",
@@ -1444,6 +1483,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1548,7 +1589,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "onboarding tour, step 5": [
     "[document.title] Map Projektor",
@@ -1577,6 +1619,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1681,7 +1725,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "onboarding tour, step 6": [
     "[document.title] Map Projektor",
@@ -1710,6 +1755,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1814,7 +1861,8 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ],
   "onboarding tour, step 7": [
     "[document.title] Map Projektor",
@@ -1843,6 +1891,8 @@
     "Hammer",
     "Conic",
     "Albers",
+    "Square",
+    "Spilhaus",
     "Select a view",
     "Europe-centred",
     "China-centred",
@@ -1946,6 +1996,7 @@
     "[option] Winkel Tripel",
     "[option] Aitoff",
     "[option] Hammer",
-    "[option] Albers"
+    "[option] Albers",
+    "[option] Spilhaus"
   ]
 }

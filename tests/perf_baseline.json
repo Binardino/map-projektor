@@ -5,11 +5,11 @@
     "frame_count": 141,
     "max_frame_ms": 66.7
   },
-  "projection: albers -> mercator": {
-    "avg_frame_ms": 19.79,
-    "dropped_frames": 24,
-    "frame_count": 145,
-    "max_frame_ms": 66.6
+  "projection: albers -> spilhaus": {
+    "avg_frame_ms": 16.76,
+    "dropped_frames": 1,
+    "frame_count": 171,
+    "max_frame_ms": 33.4
   },
   "projection: azimuthalEqualArea -> polarNorth": {
     "avg_frame_ms": 24.93,
@@ -94,6 +94,12 @@
     "dropped_frames": 29,
     "frame_count": 146,
     "max_frame_ms": 83.3
+  },
+  "projection: spilhaus -> mercator": {
+    "avg_frame_ms": 16.67,
+    "dropped_frames": 0,
+    "frame_count": 171,
+    "max_frame_ms": 16.8
   },
   "projection: winkelTripel -> aitoff": {
     "avg_frame_ms": 18.14,

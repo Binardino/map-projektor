@@ -52,7 +52,9 @@ export const DEGREES = 180 / Math.PI;
 // every t (0.05 · ∞ is still ∞, and 0 · ∞ is NaN at the endpoints).
 // Clamping latitude a hair away from the poles keeps every blended
 // coordinate finite; the clamped point lands ~1500px offscreen, so the
-// visible map is unchanged.
+// visible map is unchanged. Only where a pole is actually infinite: in a
+// projection whose scale is huge near the poles of the blend's frame
+// (Spilhaus' corners), even 0.01° moves the coastline visibly.
 const POLE_LIMIT = 89.99 / DEGREES;
 
 // `rotation` (optional) is for blending two projections that share the same
@@ -60,10 +62,14 @@ const POLE_LIMIT = 89.99 / DEGREES;
 // keeps clipAngle circles centred on the shared centre (e.g. a pole).
 export function blendProjection(projFrom, projTo, rotation = null) {
   const mutate = d3.geoProjectionMutator((t) => (lambda, phi) => {
-    phi = Math.max(-POLE_LIMIT, Math.min(POLE_LIMIT, phi));
     // Raw functions receive radians; the fitted projections expect degrees
-    const [xa, ya] = projFrom([lambda * DEGREES, phi * DEGREES]);
-    const [xb, yb] = projTo([lambda * DEGREES, phi * DEGREES]);
+    let [xa, ya] = projFrom([lambda * DEGREES, phi * DEGREES]);
+    let [xb, yb] = projTo([lambda * DEGREES, phi * DEGREES]);
+    if (!Number.isFinite(xa + ya + xb + yb)) {
+      phi = Math.max(-POLE_LIMIT, Math.min(POLE_LIMIT, phi));
+      [xa, ya] = projFrom([lambda * DEGREES, phi * DEGREES]);
+      [xb, yb] = projTo([lambda * DEGREES, phi * DEGREES]);
+    }
     // The wrapper flips y (geographic y-up → screen y-down); pre-negating it
     // here means the blend passes the endpoints' screen coordinates through.
     return [(1 - t) * xa + t * xb, -((1 - t) * ya + t * yb)];

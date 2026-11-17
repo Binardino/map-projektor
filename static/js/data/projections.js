@@ -1,4 +1,5 @@
 import { t } from "../i18n.js";
+import { SPILHAUS_ASPECT, geoSpilhaus } from "./spilhaus.js";
 
 // ============================================================
 // PROJECTIONS REGISTRY
@@ -17,8 +18,9 @@ import { t } from "../i18n.js";
 //   clipAngle      clip circle in degrees; 90 keeps only the visible hemisphere
 //   fit            "sphere" fits the whole sphere; "width" fits the width and
 //                  lets the rest overflow (see fitProjection)
-//   polarRotation  set on pole-centred views: the transition routes through
-//                  the globe (see POLAR ROUTE) instead of blending directly
+//   aspect         the rotation a projection is drawn at, set where it is its
+//                  own (pole-centred views): the transition routes through the
+//                  globe (see ASPECT ROUTE) instead of blending directly
 //   recenterable   false where the projection's own rotate() is load-bearing
 //                  (polar views) or tuned to one region (Albers)
 //   tilted         takes a view's full tilt, not just its longitude: tipping
@@ -32,7 +34,7 @@ const PROJECTION_DEFAULTS = {
   globe: false,
   clipAngle: 179.9,
   fit: "sphere",
-  polarRotation: null,
+  aspect: null,
   recenterable: true,
   tilted: false,
 };
@@ -154,7 +156,8 @@ export const PROJECTIONS = [
     // clipAngle(179) trims a 1° cap around the antipode (the South Pole),
     // where this projection is singular — Antarctica renders as the outer ring
     d3fn: () => d3.geoAzimuthalEquidistant().rotate([0, -90]).clipAngle(179),
-    polarRotation: [0, -90],
+    clipAngle: 179,
+    aspect: [0, -90],
     recenterable: false,
   },
   {
@@ -165,7 +168,8 @@ export const PROJECTIONS = [
       "Azimuthal equidistant centred on the South Pole. Antarctica sits at the " +
       "centre, surrounded by the Southern Ocean and every other continent.",
     d3fn: () => d3.geoAzimuthalEquidistant().rotate([0, 90]).clipAngle(179),
-    polarRotation: [0, 90],
+    clipAngle: 179,
+    aspect: [0, 90],
     recenterable: false,
   },
   {
@@ -204,6 +208,18 @@ export const PROJECTIONS = [
       "mid-latitude regions. Official projection for US Census maps.",
     // Recentred for a world view — default is tuned for the USA
     d3fn: () => d3.geoAlbers().rotate([0, 0]).parallels([20, 50]).scale(153),
+    recenterable: false,
+  },
+  {
+    id: "spilhaus",
+    family: "Square",
+    // The square dates from 1979; Spilhaus' first ocean-centred maps (1942) used other projections
+    year: 1979,
+    description:
+      "Conformal world map in a square, turned so that the cut runs through the " +
+      "continents and the oceans form a single body of water.",
+    d3fn: () => geoSpilhaus(),
+    aspect: SPILHAUS_ASPECT,
     recenterable: false,
   },
 ].map((projDef) => ({ ...PROJECTION_DEFAULTS, ...projDef }));

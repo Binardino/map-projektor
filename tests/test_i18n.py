@@ -64,7 +64,7 @@ def test_every_projection_and_view_has_its_texts():
     view_src = VIEWS_JS[VIEWS_JS.index("const RECENTER_PRESETS"):]
     view_ids = re.findall(r'\{ id: "(\w+)"', view_src[: view_src.index("];")])
 
-    assert len(projection_ids) == 17 and view_ids
+    assert len(projection_ids) == 18 and view_ids
     expected = [f"projection.{i}.{f}" for i in projection_ids for f in ("name", "origin", "preserves", "distorts", "bestFor", "didYouKnow")]
     expected += [f"family.{f.lower()}" for f in families]
     expected += [f"view.{i}.{f}" for i in view_ids for f in ("name", "description")]
