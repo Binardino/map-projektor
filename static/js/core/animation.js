@@ -209,11 +209,12 @@ export async function aspectTransition(view, fromDef, toDef) {
 // Dymaxion takes ~250ms, far over a frame. So the map is painted once
 // into an image and cut into its faces; the faces are then moved in 3D
 // (see core/polyhedral-unfold.js). Towards Dymaxion: the map folds onto
-// the globe as on the aspect route, the globe gives way to the closed
-// icosahedron sitting exactly on it, which turns to face the viewer and
-// opens hinge by hinge, from the root out, into the flat map. The real
-// map is then drawn underneath the last frame, which is identical to it.
-// Away from Dymaxion, the same film runs backwards.
+// the globe as on the aspect route, the globe is cut into facets that travel
+// to their place on the closed icosahedron sitting exactly on it (a canvas),
+// which turns to face the viewer and opens hinge by hinge, from the root
+// out, into the flat map. The real map is then drawn underneath the last
+// frame, which is identical to it. Away from Dymaxion, the same film runs
+// backwards.
 // ============================================================
 const NET_SEAM = 0.6; // px each face's cut-out grows by, or anti-aliasing leaves a hairline between faces
 
@@ -402,13 +403,13 @@ function animateNet(layer, from, to, duration) {
 // The true globe and the facet globe look alike but are not the same picture:
 // the facets carry Dymaxion's own rendering of each face, a few pixels off
 // the orthographic coastlines and a touch softer. A cut between them would
-// show, so these two meet in a short crossfade, and only these two.
-function crossfade(out, into, duration) {
+// show, so they meet in a short fade. Only the layer on top moves: fading both
+// at once lets the backdrop through (their coverage dips to 75% midway).
+function fadeOver(layer, from, to, duration) {
   return new Promise((resolve) => {
     const timer = d3.timer((elapsed) => {
       const t = Math.min(1, elapsed / duration);
-      out.style("opacity", 1 - t);
-      into.style("opacity", t);
+      layer.style("opacity", from + (to - from) * t);
       if (t >= 1) {
         timer.stop();
         resolve();
@@ -422,47 +423,59 @@ function crossfade(out, into, duration) {
 export async function polyhedralTransition(view, fromDef, toDef) {
   const globeRotation = rotationFor(GLOBE) || [0, 0];
   const globe = view.makeProjection(GLOBE, globeRotation);
+  // Whatever the route leaves on screen, so a throw midway (a map image that
+  // fails to decode) cannot strand it over the next projection
+  const layers = [];
+  const mount = (layer) => (layers.push(layer.group), layer);
 
-  if (toDef.transition === "unfold") {
-    if (!fromDef.globe) await aspectTransition(view, fromDef, GLOBE);
-    view.setProjection(GLOBE, globeRotation).render(); // the true globe, not the blend's last frame
-    const map = view.makeProjection(toDef);
-    const net = buildNet(map, globe);
-    const href = paintMap(view, map);
-    // Mounted before it is needed, hidden: the net's images get decoded while the globe facets
-    const layer = mountNet(view, net, href);
-    layer.show(0, 0);
-    layer.group.style("opacity", 0);
-    const facets = await mountFacets(view, net, href);
-    facets.show(0);
-    facets.group.style("opacity", 0);
-    await crossfade(view.world, facets.group, TIMING.polyhedralSwap); // the facet globe stands in for the true one
-    await animateFacets(facets, 0, 1, TIMING.polyhedralFacet);
-    layer.group.style("opacity", null); // the closed solid, to the pixel what the facets ended on
-    facets.group.remove();
-    await animateNet(layer, 0, 1, TIMING.polyhedralUnfold);
-    view.setProjection(toDef, rotationFor(toDef)).render(); // hidden by the identical last frame
+  try {
+    if (toDef.transition === "unfold") await foldIn(view, fromDef, toDef, globe, globeRotation, mount);
+    else await foldOut(view, toDef, globe, globeRotation, mount);
+  } finally {
+    layers.forEach((group) => group.remove());
     view.world.style("opacity", null);
-    layer.group.remove();
-    return;
   }
+  if (toDef.transition !== "unfold" && !toDef.globe) await aspectTransition(view, GLOBE, toDef);
+}
 
+async function foldIn(view, fromDef, toDef, globe, globeRotation, mount) {
+  if (!fromDef.globe) await aspectTransition(view, fromDef, GLOBE);
+  view.setProjection(GLOBE, globeRotation).render(); // the true globe, not the blend's last frame
+  const map = view.makeProjection(toDef);
+  const net = buildNet(map, globe);
+  const href = paintMap(view, map);
+  const layer = mount(mountNet(view, net, href));
+  layer.show(0, 0);
+  layer.group.style("opacity", 0); // waits under the facets, which hand over to it
+  const facets = mount(await mountFacets(view, net, href));
+  facets.show(0);
+  facets.group.style("opacity", 0);
+  await fadeOver(facets.group, 0, 1, TIMING.polyhedralSwap); // over the true globe, which stays whole underneath
+  view.world.style("opacity", 0);
+  await animateFacets(facets, 0, 1, TIMING.polyhedralFacet);
+  layer.group.style("opacity", null); // the closed solid, to the pixel what the facets ended on
+  facets.group.remove();
+  await animateNet(layer, 0, 1, TIMING.polyhedralUnfold);
+  view.setProjection(toDef, rotationFor(toDef)).render(); // hidden by the identical last frame
+}
+
+async function foldOut(view, toDef, globe, globeRotation, mount) {
   const map = view.projection();
   const net = buildNet(map, globe);
   const href = paintMap(view, map);
-  const layer = mountNet(view, net, href);
+  const layer = mount(mountNet(view, net, href));
   layer.show(1, 1); // the map itself, to the pixel
-  view.world.style("opacity", 0);
-  const facets = await mountFacets(view, net, href);
+  // The facets are mounted before the map underneath goes away: decoding the
+  // image takes a moment, and nothing but the net's own image must be left on show meanwhile
+  const facets = mount(await mountFacets(view, net, href));
   facets.group.style("opacity", 0);
+  view.world.style("opacity", 0);
   await animateNet(layer, 1, 0, TIMING.polyhedralUnfold);
   facets.show(1);
   facets.group.style("opacity", null);
   layer.group.remove();
   await animateFacets(facets, 1, 0, TIMING.polyhedralFacet);
-  view.setProjection(GLOBE, globeRotation).render(); // under the facets, still hidden
-  await crossfade(facets.group, view.world, TIMING.polyhedralSwap);
+  view.setProjection(GLOBE, globeRotation).render(); // whole under the facets
   view.world.style("opacity", null);
-  facets.group.remove();
-  if (!toDef.globe) await aspectTransition(view, GLOBE, toDef);
+  await fadeOver(facets.group, 1, 0, TIMING.polyhedralSwap);
 }

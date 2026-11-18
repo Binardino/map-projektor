@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-18 — Review fixes for the faceted globe (on `fix/dymaxion-facet-review`)
+
+### Fixed
+- The 150 ms swap between the true globe and the facet globe let a quarter of the backdrop show through midway, since both layers faded against each other (their coverage is 1 − (1 − a)(1 − b), 75% at the middle). Only the layer on top fades now, over a globe that stays whole underneath
+- A polyhedral route that threw midway (the map image failing to decode) left its net or canvas over the next projection, and on the way out the map hidden. The route now removes whatever it mounted and restores the map in a `finally`
+- On the way out the facets are mounted before the map underneath is hidden, so decoding their image no longer leaves only the net on screen
+- The comments describing the route and `buildNet` mention the facet stage
+
+### Tests
+- Two smoke scenarios, each shown to fail on the previous code: the route leaves no trace after a forced decode failure (both directions), and the swap's coverage never falls under 0.99
+
 ## 2026-11-18 — Dymaxion: the globe facets into the icosahedron (on `feat/dymaxion-facet-globe`)
 
 ### Changed
