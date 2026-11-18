@@ -15,6 +15,10 @@
 // Pure maths on the projections handed in: no DOM. Uses the global d3.
 // ============================================================
 
+// Facets per face edge: a facet spans ~10° of the globe, so the silhouette of
+// the facetted globe strays from the true circle by about a pixel.
+const FACET_CUTS = 6;
+
 // 4x4 matrices, row-major, acting on column vectors [x, y, z, 1].
 export const identity = () => [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 
@@ -150,6 +154,7 @@ export function buildNet(map, globe) {
       parent,
       depth,
       corners,
+      centroid,
       flat: corners.map((c) => onMap(map, toGeographic, c, centroid)),
       // The icosahedron face it is, or a piece of: d3-geo-polygon keeps the
       // whole face's centre on the pieces of the faces it splits.
@@ -212,12 +217,9 @@ export function buildNet(map, globe) {
   const globeCentre = [tx, ty];
   const mapMiddle = middle(faces.flatMap((f) => f.flat));
 
-  function frame(turn, open) {
-    // Hinges open from the root out, each level starting before the last ends
-    const placed = placements((face) => {
-      const start = ((face.depth - 1) / maxDepth) * 0.64;
-      return d3.easeCubicInOut(Math.max(0, Math.min(1, (open - start) / 0.36)));
-    });
+  // Where the whole net stands on screen for a turn and an opening: the
+  // matrix taking a placed face's 3D points to the screen.
+  function viewAt(turn, open, placed) {
     // From the globe's size and turn to the map's own frame; the content's
     // middle travels in a straight line from the globe's centre to the map's
     const progress = (turn + open) / 2;
@@ -232,6 +234,16 @@ export function buildNet(map, globe) {
     const now = mean3(faces.flatMap((f) => f.flat.map((p) => apply(multiply(view, placed.get(f)), [...p, 0]))));
     view[3] = globeCentre[0] + (mapMiddle[0] - globeCentre[0]) * progress - now[0];
     view[7] = globeCentre[1] + (mapMiddle[1] - globeCentre[1]) * progress - now[1];
+    return view;
+  }
+
+  function frame(turn, open) {
+    // Hinges open from the root out, each level starting before the last ends
+    const placed = placements((face) => {
+      const start = ((face.depth - 1) / maxDepth) * 0.64;
+      return d3.easeCubicInOut(Math.max(0, Math.min(1, (open - start) / 0.36)));
+    });
+    const view = viewAt(turn, open, placed);
 
     return faces
       .map((face) => {
@@ -241,5 +253,39 @@ export function buildNet(map, globe) {
       .sort((a, b) => b.depth - a.depth); // farthest first, so nearer faces paint over them
   }
 
-  return { faces, frame };
+  // The globe becoming the closed solid: every face cut into facets, each
+  // vertex a point of the sphere that travels in a straight line to its place
+  // on the solid. The texture point is where that vertex sits on the finished
+  // map, so the facets carry the map's own picture along. At u = 1 the
+  // vertices are exactly where frame(0, 0) puts the closed net, so the
+  // hand-over to it cannot jump.
+  const grid = subdivideTriangle(FACET_CUTS);
+  const closed = viewAt(0, 0, folded);
+  const toLonLat = (v) => {
+    const [x, y, z] = normalise(v);
+    return [(Math.atan2(y, x) * 180) / Math.PI, (Math.asin(z) * 180) / Math.PI];
+  };
+  const facets = faces.map((face) => {
+    const corners3 = face.corners.map(cartesian);
+    // The facet grid sits on the sphere, not on the chord triangle: normalised mix of the corners
+    const geographic = grid.vertices.map((w) => toLonLat([0, 1, 2].map((i) => w[0] * corners3[0][i] + w[1] * corners3[1][i] + w[2] * corners3[2][i])));
+    const texture = geographic.map((g) => onMap(map, toGeographic, g, face.centroid));
+    return {
+      face,
+      texture,
+      sphere: geographic.map((g) => onGlobe(toGeographic(g))),
+      solid: texture.map((t) => apply(multiply(closed, folded.get(face)), [...t, 0])),
+    };
+  });
+
+  function facetFrame(u) {
+    return facets.map(({ face, texture, sphere, solid }) => ({
+      face,
+      texture,
+      triangles: grid.triangles,
+      points: sphere.map((s, i) => s.map((v, axis) => v + (solid[i][axis] - v) * u)),
+    }));
+  }
+
+  return { faces, frame, facetFrame };
 }

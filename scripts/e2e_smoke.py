@@ -280,6 +280,39 @@ def polyhedral_route(page):
     assert page.evaluate(NET_STATE_JS) == {"pieces": 0, "opacity": ""}
 
 
+FACETS_JS = """async () => {
+    const { buildNet } = await import('/static/js/core/polyhedral-unfold.js');
+    const dymaxion = __app.PROJECTIONS.find((p) => p.id === 'dymaxion');
+    const globe = __app.makeProjection(__app.PROJECTIONS.find((p) => p.globe), [0, 0]);
+    const net = buildNet(__app.makeProjection(dymaxion), globe);
+    const closed = new Map(net.frame(0, 0).map(({ face, matrix }) => [face, matrix]));
+    const [tx, ty] = globe.translate(), k = globe.scale();
+
+    let apart = 0, offSphere = 0, count = 0;
+    const atNet = net.facetFrame(1), atGlobe = net.facetFrame(0);
+    atNet.forEach(({ face, points, texture }, f) => {
+        const [a, b, c, d, e, g] = closed.get(face);
+        points.forEach(([x, y], i) => {
+            const [u, v] = texture[i];
+            apart = Math.max(apart, Math.hypot(x - (a * u + c * v + e), y - (b * u + d * v + g)));
+            const [gx, gy, gz] = atGlobe[f].points[i];
+            offSphere = Math.max(offSphere, Math.abs(Math.hypot(gx - tx, gy - ty, gz) - k));
+        });
+        count += atNet[f].triangles.length;
+    });
+    return { apart, offSphere, count, faces: atNet.length };
+}"""
+
+
+def facet_globe_matches_net(page):
+    """The facets end exactly where the closed solid stands, and start on the
+    globe: so the hand-over to the net, and from the true globe, shows no jump."""
+    got = page.evaluate(FACETS_JS)
+    assert got["faces"] == 24 and got["count"] == 24 * 36, f"facet count: {got}"
+    assert got["apart"] < 1e-6, f"facets at u=1 are {got['apart']}px from the closed solid"
+    assert got["offSphere"] < 1e-6, f"facets at u=0 are {got['offSphere']}px off the globe"
+
+
 def camera(page):
     page.keyboard.press("Escape")
     switch(page, "mercator")
@@ -674,7 +707,7 @@ def onboarding_landscape(page):
 
 
 ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile, onboarding_landscape]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, shared_link, polyhedral_route, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_wikipedia, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, shared_link, facet_globe_matches_net, polyhedral_route, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_wikipedia, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
 
 
 def main():
