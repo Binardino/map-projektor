@@ -259,25 +259,71 @@ def shared_link(page):
 
 
 NET_STATE_JS = """() => ({ pieces: document.querySelectorAll(".polyhedral-net g").length,
+                          facets: document.querySelectorAll(".polyhedral-facets canvas").length,
                           opacity: document.querySelector("g.world").style.opacity })"""
+CLEAN = {"pieces": 0, "facets": 0, "opacity": ""}
 
 
 def polyhedral_route(page):
-    """Dymaxion folds out of the globe: midway its net of faces stands in for
-    the map, and at the end it is gone, the real map fully shown. A click
-    meanwhile is ignored like one during a morph, and the way back works."""
+    """Dymaxion folds out of the globe: first the sphere facets into the
+    closed solid (a canvas), then the net of faces stands in for the map, and
+    at the end both are gone, the real map fully shown. A click meanwhile is
+    ignored like one during a morph, and the ways back work, to a flat map
+    and to the globe itself."""
     page.keyboard.press("Escape")
     switch(page, "mercator")
     page.click('.proj-btn[data-proj-id="dymaxion"]')
     page.click('.proj-btn[data-proj-id="robinson"]')  # mid-route: ignored
-    page.wait_for_function("() => document.querySelectorAll('.polyhedral-net g').length > 0", timeout=5000)
-    assert page.evaluate(NET_STATE_JS)["pieces"] == 24, "the net has Dymaxion's 24 faces"
+    page.wait_for_function("() => document.querySelectorAll('.polyhedral-facets canvas').length > 0", timeout=5000)
+    # The net waits, hidden, under the facets and shows only once they are gone: never both
+    assert page.evaluate("() => document.querySelector('.polyhedral-net').style.opacity") == "0", "the net shows while the facets still play"
+    page.wait_for_function("() => document.querySelectorAll('.polyhedral-facets canvas').length === 0", timeout=5000)
+    state = page.evaluate(NET_STATE_JS)
+    assert state["pieces"] == 24, "the net has Dymaxion's 24 faces"
+    assert page.evaluate("() => document.querySelector('.polyhedral-net').style.opacity") == "", "the net should show once the facets hand over"
     settle(page)
     assert page.evaluate(PROJECTION_JS) == "dymaxion"
-    assert page.evaluate(NET_STATE_JS) == {"pieces": 0, "opacity": ""}, "the route should leave no trace"
-    switch(page, "polarNorth")
-    assert page.evaluate(PROJECTION_JS) == "polarNorth"
-    assert page.evaluate(NET_STATE_JS) == {"pieces": 0, "opacity": ""}
+    assert page.evaluate(NET_STATE_JS) == CLEAN, "the route should leave no trace"
+    for target in ("polarNorth", "orthographic"):
+        page.click(f'.proj-btn[data-proj-id="{target}"]' if target != "orthographic" else '.proj-btn[data-proj-id="orthographic"]')
+        page.wait_for_function("() => document.querySelectorAll('.polyhedral-facets canvas').length > 0", timeout=8000)
+        settle(page)
+        assert page.evaluate(PROJECTION_JS) == target
+        assert page.evaluate(NET_STATE_JS) == CLEAN, f"leaving for {target} should leave no trace"
+        switch(page, "dymaxion")
+
+
+FACETS_JS = """async () => {
+    const { buildNet } = await import('/static/js/core/polyhedral-unfold.js');
+    const dymaxion = __app.PROJECTIONS.find((p) => p.id === 'dymaxion');
+    const globe = __app.makeProjection(__app.PROJECTIONS.find((p) => p.globe), [0, 0]);
+    const net = buildNet(__app.makeProjection(dymaxion), globe);
+    const closed = new Map(net.frame(0, 0).map(({ face, matrix }) => [face, matrix]));
+    const [tx, ty] = globe.translate(), k = globe.scale();
+
+    let apart = 0, offSphere = 0, count = 0;
+    const atNet = net.facetFrame(1), atGlobe = net.facetFrame(0);
+    atNet.forEach(({ face, points, texture }, f) => {
+        const [a, b, c, d, e, g] = closed.get(face);
+        points.forEach(([x, y], i) => {
+            const [u, v] = texture[i];
+            apart = Math.max(apart, Math.hypot(x - (a * u + c * v + e), y - (b * u + d * v + g)));
+            const [gx, gy, gz] = atGlobe[f].points[i];
+            offSphere = Math.max(offSphere, Math.abs(Math.hypot(gx - tx, gy - ty, gz) - k));
+        });
+        count += atNet[f].triangles.length;
+    });
+    return { apart, offSphere, count, faces: atNet.length };
+}"""
+
+
+def facet_globe_matches_net(page):
+    """The facets end exactly where the closed solid stands, and start on the
+    globe: so the hand-over to the net, and from the true globe, shows no jump."""
+    got = page.evaluate(FACETS_JS)
+    assert got["faces"] == 24 and got["count"] == 24 * 36, f"facet count: {got}"
+    assert got["apart"] < 1e-6, f"facets at u=1 are {got['apart']}px from the closed solid"
+    assert got["offSphere"] < 1e-6, f"facets at u=0 are {got['offSphere']}px off the globe"
 
 
 def camera(page):
@@ -674,7 +720,7 @@ def onboarding_landscape(page):
 
 
 ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile, onboarding_landscape]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, shared_link, polyhedral_route, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_wikipedia, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, shared_link, facet_globe_matches_net, polyhedral_route, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_wikipedia, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
 
 
 def main():
