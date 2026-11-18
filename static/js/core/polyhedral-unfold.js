@@ -139,9 +139,10 @@ function similarity(from, to) {
 
 // `map` is the fitted polyhedral projection (d3-geo-polygon, with tree());
 // `globe` the fitted orthographic projection the folded net must sit on.
-// Returns the faces (their corners on the finished map) and frame(turn,
+// Returns the faces (their corners on the finished map), frame(turn,
 // open): turn and open run 0 → 1, the closed solid turning from the globe to
-// face the viewer, then its hinges opening from the root out.
+// face the viewer, then its hinges opening from the root out; and
+// facetFrame(u): the globe itself becoming that closed solid, u 0 → 1.
 export function buildNet(map, globe) {
   const toGeographic = d3.geoRotation(map.rotate()).invert;
 

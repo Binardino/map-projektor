@@ -293,6 +293,57 @@ def polyhedral_route(page):
         switch(page, "dymaxion")
 
 
+def polyhedral_route_cleans_up_on_failure(page):
+    """A route that throws midway (the map image failing to decode) must not
+    strand its layers: no net or canvas over the next projection, the map
+    visible, the UI unlocked. Both directions, since each hides different things."""
+    page.keyboard.press("Escape")
+    switch(page, "mercator")
+    # The route is meant to throw here and nothing catches a failed transition
+    # (it surfaces in the console, which is right for a real bug): this one is expected
+    page.evaluate("() => addEventListener('unhandledrejection', (e) => e.preventDefault())")
+    page.evaluate("() => { window.__decode = HTMLImageElement.prototype.decode; HTMLImageElement.prototype.decode = () => Promise.reject(new Error('decode failed')); }")
+    page.click('.proj-btn[data-proj-id="dymaxion"]')
+    page.wait_for_function("() => !window.__app.isAnimating", timeout=10000)
+    assert page.evaluate(NET_STATE_JS) == CLEAN, "a failed route into Dymaxion left layers behind"
+
+    page.evaluate("() => { HTMLImageElement.prototype.decode = window.__decode; }")
+    switch(page, "dymaxion")  # the failed route never set it: land there for real
+    page.evaluate("() => { HTMLImageElement.prototype.decode = () => Promise.reject(new Error('decode failed')); }")
+    page.click('.proj-btn[data-proj-id="mercator"]')
+    page.wait_for_function("() => !window.__app.isAnimating", timeout=10000)
+    assert page.evaluate(NET_STATE_JS) == CLEAN, "a failed route out of Dymaxion left layers behind"
+    page.evaluate("() => { HTMLImageElement.prototype.decode = window.__decode; }")
+
+
+SWAP_COVERAGE_JS = """async () => {
+    const world = document.querySelector("g.world");
+    const seen = [];
+    const until = performance.now() + 4000;
+    const facets = () => document.querySelector(".polyhedral-facets");
+    // The facets' opacity and the world's, while both are on screen: together
+    // they must cover the backdrop fully, or the globe flickers translucent
+    while (performance.now() < until) {
+        const f = facets();
+        const w = +(world.style.opacity === "" ? 1 : world.style.opacity);
+        if (f) seen.push(1 - (1 - w) * (1 - (f.style.opacity === "" ? 1 : +f.style.opacity)));
+        await new Promise((r) => requestAnimationFrame(r));
+    }
+    return Math.min(...seen);
+}"""
+
+
+def polyhedral_swap_never_thins_the_globe(page):
+    """While the true globe and the facet globe trade places, the coverage
+    1 - (1 - a)(1 - b) must stay at 1: fading both linearly dips to 75%."""
+    page.keyboard.press("Escape")
+    switch(page, "orthographic")
+    page.evaluate("() => { window.__cover = (" + SWAP_COVERAGE_JS + ")(); }")
+    page.click('.proj-btn[data-proj-id="dymaxion"]')
+    low = page.evaluate("() => window.__cover")
+    assert low > 0.99, f"the swap lets the backdrop through: coverage fell to {low:.2f}"
+
+
 FACETS_JS = """async () => {
     const { buildNet } = await import('/static/js/core/polyhedral-unfold.js');
     const dymaxion = __app.PROJECTIONS.find((p) => p.id === 'dymaxion');
@@ -720,7 +771,7 @@ def onboarding_landscape(page):
 
 
 ONBOARDING_SCENARIOS = [onboarding_tour, onboarding_skip_and_escape, onboarding_mobile, onboarding_landscape]
-SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, shared_link, facet_globe_matches_net, polyhedral_route, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_wikipedia, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
+SCENARIOS = [welcome_modal, *ONBOARDING_SCENARIOS, view_survives_switch, africa_view, polar_route_and_flip, shared_link, facet_globe_matches_net, polyhedral_route, polyhedral_route_cleans_up_on_failure, polyhedral_swap_never_thins_the_globe, camera, tools_and_cards, country_drag, ui_rebuild, projection_title_pinned, language_choice, info_panel, info_panel_wikipedia, info_panel_tissot, info_panel_tour, mobile_drawer, phone_turns]
 
 
 def main():
