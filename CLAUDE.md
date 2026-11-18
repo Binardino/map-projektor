@@ -76,7 +76,7 @@ Behaviour that differs between projections is declared on the object, never test
 | `aspect` | `null` | it is drawn at its own rotation, e.g. centred on a pole (`[0, ±90]`): transitions route through the globe and unfold in that rotated frame |
 | `recenterable` | `true` | its own `rotate()` matters (polar views) or it is tuned to one region (Albers) |
 | `tilted` | `false` | it should take a view's full tilt, not just its longitude (globe-like azimuthals) |
-| `transition` | `"morph"` | it is a polyhedral map no blend can follow (`"unfold"`, Dymaxion; its projection must have d3-geo-polygon's `tree()`): every switch to or from it goes through the globe and folds the net (POLYHEDRAL ROUTE in `animation.js`, maths in `core/polyhedral-unfold.js`) |
+| `transition` | `"morph"` | it is a polyhedral map no blend can follow (`"unfold"`, Dymaxion; its projection must have d3-geo-polygon's `tree()`): every switch to or from it goes through the globe, which facets into the closed solid (a canvas) before the net unfolds (POLYHEDRAL ROUTE in `animation.js`, maths in `core/polyhedral-unfold.js`) |
 
 `tests/js/projections.test.mjs` checks the registry (unique ids, one globe, aspect projections not recenterable, family labels).
 

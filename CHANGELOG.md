@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here, grouped by sprint/session. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 2026-11-18 — Dymaxion: the globe facets into the icosahedron (on `feat/dymaxion-facet-globe`)
+
+### Changed
+- Going to Dymaxion, the round globe no longer fades into the closed icosahedron: it is cut into 36 facets per face, and each one travels from the sphere to its place on the solid, so the globe visibly turns into the hexagonal shape before it turns and unfolds as before. Switching away plays the same film backwards. The facets are drawn on a canvas, hiding the ones that turn their back to the viewer, and carry the map's own picture; at the end they stand exactly where the net starts, so the hand-over does not jump
+- A 150 ms crossfade joins the true globe to the facet globe (and back): they are not the same picture, 8% of the pixels differ at the swap, a cut would show. `TIMING.polyhedralFade` is replaced by `polyhedralFacet` (700 ms) and `polyhedralSwap` (150 ms)
+- `core/polyhedral-unfold.js` gains `subdivideTriangle` and `facetFrame(u)`, with unit tests and a smoke check that the facets meet the closed solid at `u = 1` and lie on the globe at `u = 0`
+
 ## 2026-11-18 — "Spilhaus (oceans)" (on `feat/spilhaus-oceans`)
 
 ### Changed
