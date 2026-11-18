@@ -259,25 +259,38 @@ def shared_link(page):
 
 
 NET_STATE_JS = """() => ({ pieces: document.querySelectorAll(".polyhedral-net g").length,
+                          facets: document.querySelectorAll(".polyhedral-facets canvas").length,
                           opacity: document.querySelector("g.world").style.opacity })"""
+CLEAN = {"pieces": 0, "facets": 0, "opacity": ""}
 
 
 def polyhedral_route(page):
-    """Dymaxion folds out of the globe: midway its net of faces stands in for
-    the map, and at the end it is gone, the real map fully shown. A click
-    meanwhile is ignored like one during a morph, and the way back works."""
+    """Dymaxion folds out of the globe: first the sphere facets into the
+    closed solid (a canvas), then the net of faces stands in for the map, and
+    at the end both are gone, the real map fully shown. A click meanwhile is
+    ignored like one during a morph, and the ways back work, to a flat map
+    and to the globe itself."""
     page.keyboard.press("Escape")
     switch(page, "mercator")
     page.click('.proj-btn[data-proj-id="dymaxion"]')
     page.click('.proj-btn[data-proj-id="robinson"]')  # mid-route: ignored
-    page.wait_for_function("() => document.querySelectorAll('.polyhedral-net g').length > 0", timeout=5000)
-    assert page.evaluate(NET_STATE_JS)["pieces"] == 24, "the net has Dymaxion's 24 faces"
+    page.wait_for_function("() => document.querySelectorAll('.polyhedral-facets canvas').length > 0", timeout=5000)
+    # The net waits, hidden, under the facets and shows only once they are gone: never both
+    assert page.evaluate("() => document.querySelector('.polyhedral-net').style.opacity") == "0", "the net shows while the facets still play"
+    page.wait_for_function("() => document.querySelectorAll('.polyhedral-facets canvas').length === 0", timeout=5000)
+    state = page.evaluate(NET_STATE_JS)
+    assert state["pieces"] == 24, "the net has Dymaxion's 24 faces"
+    assert page.evaluate("() => document.querySelector('.polyhedral-net').style.opacity") == "", "the net should show once the facets hand over"
     settle(page)
     assert page.evaluate(PROJECTION_JS) == "dymaxion"
-    assert page.evaluate(NET_STATE_JS) == {"pieces": 0, "opacity": ""}, "the route should leave no trace"
-    switch(page, "polarNorth")
-    assert page.evaluate(PROJECTION_JS) == "polarNorth"
-    assert page.evaluate(NET_STATE_JS) == {"pieces": 0, "opacity": ""}
+    assert page.evaluate(NET_STATE_JS) == CLEAN, "the route should leave no trace"
+    for target in ("polarNorth", "orthographic"):
+        page.click(f'.proj-btn[data-proj-id="{target}"]' if target != "orthographic" else '.proj-btn[data-proj-id="orthographic"]')
+        page.wait_for_function("() => document.querySelectorAll('.polyhedral-facets canvas').length > 0", timeout=8000)
+        settle(page)
+        assert page.evaluate(PROJECTION_JS) == target
+        assert page.evaluate(NET_STATE_JS) == CLEAN, f"leaving for {target} should leave no trace"
+        switch(page, "dymaxion")
 
 
 FACETS_JS = """async () => {

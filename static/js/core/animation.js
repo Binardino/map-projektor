@@ -283,6 +283,106 @@ function mountNet(view, net, href) {
   };
 }
 
+// The map image, ready to be drawn from: a canvas needs the pixels decoded
+// before the first frame, or that frame is blank.
+async function loadImage(href) {
+  const image = new Image();
+  image.src = href;
+  await image.decode();
+  return image;
+}
+
+// The affine map taking the three points `from` onto the three points `to`,
+// as canvas' setTransform wants it: x' = a·x + c·y + e, y' = b·x + d·y + f.
+function affineBetween([p0, p1, p2], [q0, q1, q2]) {
+  const det = (p1[0] - p0[0]) * (p2[1] - p0[1]) - (p2[0] - p0[0]) * (p1[1] - p0[1]);
+  const solve = (v0, v1, v2) => {
+    const dx = ((v1 - v0) * (p2[1] - p0[1]) - (v2 - v0) * (p1[1] - p0[1])) / det;
+    const dy = ((v2 - v0) * (p1[0] - p0[0]) - (v1 - v0) * (p2[0] - p0[0])) / det;
+    return [dx, dy, v0 - dx * p0[0] - dy * p0[1]];
+  };
+  const [a, c, e] = solve(q0[0], q1[0], q2[0]);
+  const [b, d, f] = solve(q0[1], q1[1], q2[1]);
+  return [a, b, c, d, e, f];
+}
+
+// The globe becoming the closed solid, on a canvas over the map in the same
+// viewport (same camera). A canvas, not SVG: hundreds of facets move every
+// frame, which is a per-frame redraw rather than a retained scene. The
+// surface is convex, so hiding the facets that turn their back to the viewer
+// is all the depth handling it needs. show(u) places them, u 0 = globe, 1 = solid.
+async function mountFacets(view, net, href) {
+  const image = await loadImage(href);
+  const ratio = Math.min(2, window.devicePixelRatio || 1);
+  const group = d3.select(view.world.node().parentNode).append("g")
+    .attr("class", "polyhedral-facets")
+    .style("pointer-events", "none");
+  const canvas = group.append("foreignObject").attr("width", view.width).attr("height", view.height)
+    .append("xhtml:canvas")
+    .attr("width", view.width * ratio).attr("height", view.height * ratio)
+    .style("width", `${view.width}px`).style("height", `${view.height}px`)
+    .node();
+  const ctx = canvas.getContext("2d");
+
+  return {
+    group,
+    show(u) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const frames = net.facetFrame(u);
+      // The solid's middle, to tell a facet's outside from its inside
+      const all = frames.flatMap((f) => f.points);
+      const middle = [0, 1, 2].map((i) => all.reduce((sum, p) => sum + p[i], 0) / all.length);
+      for (const { texture, triangles, points } of frames) {
+        for (const triangle of triangles) {
+          const [p0, p1, p2] = triangle.map((i) => points[i]);
+          const normal = [
+            (p1[1] - p0[1]) * (p2[2] - p0[2]) - (p1[2] - p0[2]) * (p2[1] - p0[1]),
+            (p1[2] - p0[2]) * (p2[0] - p0[0]) - (p1[0] - p0[0]) * (p2[2] - p0[2]),
+            (p1[0] - p0[0]) * (p2[1] - p0[1]) - (p1[1] - p0[1]) * (p2[0] - p0[0]),
+          ];
+          const outward = [0, 1, 2].reduce((sum, i) => sum + normal[i] * ((p0[i] + p1[i] + p2[i]) / 3 - middle[i]), 0);
+          // +z points away from the viewer: an outward normal with z < 0 faces us
+          if (normal[2] * Math.sign(outward) >= 0) continue;
+
+          const screen = [p0, p1, p2].map((p) => [p[0], p[1]]);
+          const [cx, cy] = [0, 1].map((i) => (screen[0][i] + screen[1][i] + screen[2][i]) / 3);
+          ctx.save();
+          ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+          ctx.beginPath();
+          screen.forEach(([x, y], i) => {
+            const d = Math.hypot(x - cx, y - cy) || 1;
+            const gx = x + ((x - cx) / d) * NET_SEAM, gy = y + ((y - cy) / d) * NET_SEAM;
+            if (i === 0) ctx.moveTo(gx, gy); else ctx.lineTo(gx, gy);
+          });
+          ctx.closePath();
+          ctx.clip();
+          ctx.transform(...affineBetween(triangle.map((i) => texture[i]), screen));
+          // Only the part of the image under this facet: the whole map per facet would cost hundreds of full draws
+          const t = triangle.map((i) => texture[i]);
+          const x0 = Math.floor(Math.min(...t.map((q) => q[0]))) - 1, y0 = Math.floor(Math.min(...t.map((q) => q[1]))) - 1;
+          const x1 = Math.ceil(Math.max(...t.map((q) => q[0]))) + 1, y1 = Math.ceil(Math.max(...t.map((q) => q[1]))) + 1;
+          ctx.drawImage(image, x0 * ratio, y0 * ratio, (x1 - x0) * ratio, (y1 - y0) * ratio, x0, y0, x1 - x0, y1 - y0);
+          ctx.restore();
+        }
+      }
+    },
+  };
+}
+
+function animateFacets(layer, from, to, duration) {
+  return new Promise((resolve) => {
+    const timer = d3.timer((elapsed) => {
+      const p = Math.min(1, elapsed / duration);
+      layer.show(from + (to - from) * d3.easeCubicInOut(p));
+      if (p >= 1) {
+        timer.stop();
+        resolve();
+      }
+    });
+  });
+}
+
 // Plays the net from folded (0) to flat (1), or back: the solid turns for the
 // first 30% of the time, then its hinges open.
 function animateNet(layer, from, to, duration) {
@@ -299,13 +399,17 @@ function animateNet(layer, from, to, duration) {
   });
 }
 
+// The true globe and the facet globe look alike but are not the same picture:
+// the facets carry Dymaxion's own rendering of each face, a few pixels off
+// the orthographic coastlines and a touch softer. A cut between them would
+// show, so these two meet in a short crossfade, and only these two.
 function crossfade(out, into, duration) {
   return new Promise((resolve) => {
     const timer = d3.timer((elapsed) => {
-      const t = d3.easeCubicInOut(Math.min(1, elapsed / duration));
+      const t = Math.min(1, elapsed / duration);
       out.style("opacity", 1 - t);
       into.style("opacity", t);
-      if (elapsed >= duration) {
+      if (t >= 1) {
         timer.stop();
         resolve();
       }
@@ -324,10 +428,18 @@ export async function polyhedralTransition(view, fromDef, toDef) {
     view.setProjection(GLOBE, globeRotation).render(); // the true globe, not the blend's last frame
     const map = view.makeProjection(toDef);
     const net = buildNet(map, globe);
-    const layer = mountNet(view, net, paintMap(view, map));
+    const href = paintMap(view, map);
+    // Mounted before it is needed, hidden: the net's images get decoded while the globe facets
+    const layer = mountNet(view, net, href);
     layer.show(0, 0);
     layer.group.style("opacity", 0);
-    await crossfade(view.world, layer.group, TIMING.polyhedralFade);
+    const facets = await mountFacets(view, net, href);
+    facets.show(0);
+    facets.group.style("opacity", 0);
+    await crossfade(view.world, facets.group, TIMING.polyhedralSwap); // the facet globe stands in for the true one
+    await animateFacets(facets, 0, 1, TIMING.polyhedralFacet);
+    layer.group.style("opacity", null); // the closed solid, to the pixel what the facets ended on
+    facets.group.remove();
     await animateNet(layer, 0, 1, TIMING.polyhedralUnfold);
     view.setProjection(toDef, rotationFor(toDef)).render(); // hidden by the identical last frame
     view.world.style("opacity", null);
@@ -337,13 +449,20 @@ export async function polyhedralTransition(view, fromDef, toDef) {
 
   const map = view.projection();
   const net = buildNet(map, globe);
-  const layer = mountNet(view, net, paintMap(view, map));
+  const href = paintMap(view, map);
+  const layer = mountNet(view, net, href);
   layer.show(1, 1); // the map itself, to the pixel
   view.world.style("opacity", 0);
+  const facets = await mountFacets(view, net, href);
+  facets.group.style("opacity", 0);
   await animateNet(layer, 1, 0, TIMING.polyhedralUnfold);
-  view.setProjection(GLOBE, globeRotation).render();
-  await crossfade(layer.group, view.world, TIMING.polyhedralFade);
-  view.world.style("opacity", null);
+  facets.show(1);
+  facets.group.style("opacity", null);
   layer.group.remove();
+  await animateFacets(facets, 1, 0, TIMING.polyhedralFacet);
+  view.setProjection(GLOBE, globeRotation).render(); // under the facets, still hidden
+  await crossfade(facets.group, view.world, TIMING.polyhedralSwap);
+  view.world.style("opacity", null);
+  facets.group.remove();
   if (!toDef.globe) await aspectTransition(view, GLOBE, toDef);
 }
