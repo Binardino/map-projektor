@@ -3,6 +3,10 @@
 <p align="center"><strong>The Universal Map Projection Converter</strong></p>
 
 <p align="center">
+  <a href="https://binardino.lauramini.fr/map-projektor/"><strong>▶ Try it live</strong></a>
+</p>
+
+<p align="center">
   <a href="https://github.com/Binardino/map-projektor/actions/workflows/tests.yml"><img src="https://github.com/Binardino/map-projektor/actions/workflows/tests.yml/badge.svg?branch=main" alt="Tests"></a>
 </p>
 
