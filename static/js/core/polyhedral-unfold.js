@@ -85,6 +85,29 @@ export function towardsIdentity(q, u) {
   ];
 }
 
+// A triangle cut into n × n facets, as barycentric weights of its three
+// corners: the same grid serves every face, whatever the face's shape. Facets
+// keep the parent's winding so a back-face test on the screen can tell the
+// side of the solid facing the viewer.
+export function subdivideTriangle(n) {
+  const vertices = [], index = [];
+  for (let i = 0; i <= n; i++) {
+    index.push([]);
+    for (let j = 0; j <= n - i; j++) {
+      index[i].push(vertices.length);
+      vertices.push([(n - i - j) / n, j / n, i / n]);
+    }
+  }
+  const triangles = [];
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n - i; j++) {
+      triangles.push([index[i][j], index[i][j + 1], index[i + 1][j]]);
+      if (j < n - i - 1) triangles.push([index[i][j + 1], index[i + 1][j + 1], index[i + 1][j]]);
+    }
+  }
+  return { vertices, triangles };
+}
+
 const cartesian = ([lon, lat]) => {
   const l = (lon * Math.PI) / 180, p = (lat * Math.PI) / 180;
   return [Math.cos(p) * Math.cos(l), Math.cos(p) * Math.sin(l), Math.sin(p)];
